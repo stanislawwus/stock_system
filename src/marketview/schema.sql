@@ -15,14 +15,15 @@ CREATE TABLE IF NOT EXISTS price_bars (
 );
 
 CREATE TABLE IF NOT EXISTS news (
-  id           VARCHAR PRIMARY KEY,           -- sha1(url + headline)
+  id           VARCHAR NOT NULL,              -- sha1(url + headline); one article may tag several tickers
   ticker       VARCHAR NOT NULL,
   published_at TIMESTAMPTZ NOT NULL,
   headline     VARCHAR NOT NULL,
   summary      VARCHAR NOT NULL DEFAULT '',
   url          VARCHAR NOT NULL,
   source       VARCHAR NOT NULL,
-  available_at TIMESTAMPTZ NOT NULL           -- = published_at
+  available_at TIMESTAMPTZ NOT NULL,          -- = published_at
+  PRIMARY KEY (id, ticker)
 );
 
 CREATE TABLE IF NOT EXISTS filings (
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS facts (
   method       VARCHAR NOT NULL,              -- xbrl | llm | regex
   source_ref   VARCHAR NOT NULL,
   grounding    JSON,                          -- Span for extracted facts
-  available_at TIMESTAMPTZ NOT NULL,          -- xbrl: filed date 00:00 UTC of the 10-Q/10-K; extracted: source's
+  available_at TIMESTAMPTZ NOT NULL,          -- xbrl: acceptance of the carrying 10-Q/10-K (D-30); extracted: source's
   PRIMARY KEY (ticker, name, period_end, method, source_ref)
 );
 

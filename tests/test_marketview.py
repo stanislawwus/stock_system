@@ -1,11 +1,10 @@
-"""Time rules (AGENTS.md R2). Three FAILING tests until MarketView and src.db are implemented:
+"""Time rules (AGENTS.md R2). Three tests that must stay green:
 
 (a) canary oracle: a planted future record is never returned
 (b) random future: for random as_of values no returned record has available_at > as_of
 (c) direct data access that bypasses MarketView inside a guarded context raises
 
-They are marked xfail(strict=True, raises=NotImplementedError): any other failure is a real
-failure, and once implemented the marker must be removed (strict XPASS fails the suite).
+They were written first as strict xfails (D-26); the markers were removed with the implementation.
 """
 
 from __future__ import annotations
@@ -24,9 +23,6 @@ from src.marketview.clock import bar_close_for, cutoff_for
 SCHEMA = Path(__file__).resolve().parents[1] / "src" / "marketview" / "schema.sql"
 AS_OF = cutoff_for(date(2026, 9, 15))  # 09:00 ET on D
 CANARY = "CANARY-FUTURE"
-design_phase = pytest.mark.xfail(
-    strict=True, raises=NotImplementedError, reason="design phase: MarketView not implemented"
-)
 
 
 # ----------------------------------------------------------------------------- clock (passes now)
@@ -110,7 +106,6 @@ def _all_records(view: MarketView) -> list:
 # ----------------------------------------------------------------------------- the three
 
 
-@design_phase
 def test_a_canary_future_record_is_never_returned(seeded_db: Path) -> None:
     view = MarketView(AS_OF, seeded_db)
     records = _all_records(view)
@@ -124,7 +119,6 @@ def test_a_canary_future_record_is_never_returned(seeded_db: Path) -> None:
     assert bars[-1].bar_date >= AS_OF.date() - timedelta(days=4)
 
 
-@design_phase
 def test_b_random_as_of_never_returns_the_future(seeded_db: Path) -> None:
     rng = random.Random(1)
     start = datetime(2026, 8, 1, tzinfo=UTC)
@@ -134,7 +128,6 @@ def test_b_random_as_of_never_returns_the_future(seeded_db: Path) -> None:
             assert r.available_at <= as_of, f"{r} returned at as_of={as_of}"
 
 
-@design_phase
 def test_c_direct_access_inside_guarded_context_raises(seeded_db: Path) -> None:
     with guarded():
         with pytest.raises(DirectDataAccessError):
