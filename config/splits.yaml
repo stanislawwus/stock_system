@@ -1,0 +1,28 @@
+# FROZEN. Do not edit (AGENTS.md rule 4). tests/test_repo_rules.py pins the sha256 of this file.
+# All dates are trading days in America/New_York; a period includes both ends.
+# Decision day D: signals use data with available_at <= 09:00 ET of D; fills at the open of D.
+# Why these dates: Finnhub free plan serves ~1 year of news (from ~2025-11-13), so the news-
+# aware periods start 2025-12-01 with margin. Test ends one week before 2026-11-13 so that
+# 1-3 day forward returns and late-arriving filings are complete. See docs/decisions.md D-05.
+
+timezone: America/New_York
+cutoff_local_time: "09:00"
+
+# Price-only history for indicator warm-up (200-day MA). Never used as a strategy period.
+warmup:
+  start: 2024-01-02
+  end: 2025-11-28
+
+train:            # tune individual strategy parameters here, and only here
+  start: 2025-12-01
+  end: 2026-05-29
+
+validation:       # aggregator weights, confidence threshold, LLM-researcher iterations (max 5)
+  start: 2026-06-01
+  end: 2026-08-31
+
+test:             # used exactly once via `make test-final`; the lock file proves it
+  start: 2026-09-01
+  end: 2026-11-06
+
+# Crypto (hourly candles) uses the same calendar dates; a day D starts at 00:00 UTC.

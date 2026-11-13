@@ -1,0 +1,20 @@
+# Default watchlist for demo and evals. Users may add any ticker via POST /watchlist.
+benchmark: SPY
+
+stocks:
+  - {ticker: AAPL, sector: technology}
+  - {ticker: MSFT, sector: technology}
+  - {ticker: NVDA, sector: technology}
+  - {ticker: JPM,  sector: financials}
+  - {ticker: GS,   sector: financials}
+  - {ticker: XOM,  sector: energy}
+  - {ticker: CVX,  sector: energy}
+  - {ticker: WMT,  sector: consumer}
+  - {ticker: COST, sector: consumer}
+  - {ticker: MCD,  sector: consumer}
+  - {ticker: JNJ,  sector: healthcare}
+  - {ticker: BA,   sector: industrials}
+
+crypto:
+  - {symbol: BTCUSDT, display: BTC}
+  - {symbol: ETHUSDT, display: ETH}

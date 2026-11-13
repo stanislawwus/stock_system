@@ -1,0 +1,9 @@
+# Risk manager and simulator settings. Long-only: a signal <= 0 means cash (AGENTS.md rule 9).
+initial_capital_usd: 100000
+max_position_pct: 0.20          # of current equity, per ticker
+stop_loss_pct: 0.08             # close at next open once the position is down this much
+max_drawdown_halt_pct: 0.15     # no new positions while equity is this far below its peak
+commission_pct_per_side: 0.001  # 10 bps
+slippage_pct: 0.0005            # 5 bps applied to open price
+# Trade only when |aggregated signal| exceeds this. Chosen on validation (threshold -> return curve).
+confidence_threshold: null      # null = not chosen yet; validation run fills it in config/strategies.yaml

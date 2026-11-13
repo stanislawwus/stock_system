@@ -1,0 +1,31 @@
+# Parameters of every strategy. Tuned on `train` only; `validation` picks aggregator weights.
+# Values here are starting points taken from common practice, not fitted yet.
+momentum:
+  fast_window: 50
+  slow_window: 200
+mean_reversion:
+  rsi_window: 14
+  buy_below: 30
+  sell_above: 70
+news_sentiment:
+  baseline_window_days: 20
+  min_articles_per_day: 1
+event:
+  horizon_days: 3
+  surprise_source: [revenue, eps]   # quarter-over-quarter and year-over-year change
+contrarian:                          # Should
+  move_sigma: 2.0
+  lookback_days: 60
+insider:                             # Should
+  min_open_market_buyers: 2
+  window_days: 30
+smc:                                 # Should, crypto only
+  swing_length: 10
+  equal_level_tolerance_pct: 0.1
+  choch_within_candles: 12
+  min_risk_reward: 2.0
+aggregator:
+  method: hedge                      # hedge | stacking | llm_researcher | equal
+  hedge_eta: 0.1
+  lookback_days: 20
+  confidence_threshold: null         # filled from the validation run, see config/risk.yaml

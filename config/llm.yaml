@@ -1,0 +1,36 @@
+# LLM routing for src/llm.py. Model IDs must appear in docs/inputs/free_models.md "Allowed" table.
+# Free models may log prompts: send only public text (news, filings, prices), never user data.
+
+provider: openrouter
+base_url: https://api.openrouter.ai/api/v1   # read from OPENROUTER_API_KEY in .env
+
+# Hard daily budget of HTTP calls across all models (counter in .llm_budget.json, UTC day).
+# When reached, src/llm.py raises BudgetExceeded and callers use their deterministic fallback.
+daily_budget: 200
+max_items_per_call: 10        # batch several items per request
+max_retries: 3
+retry_backoff_seconds: 2
+timeout_seconds: 60
+cache_dir: data/cache/llm
+trace_dir: data/traces
+
+# Tried in order; a model is skipped for the rest of the run after 2 consecutive failures.
+models:
+  - id: cohere/north-mini-code:free            # primary: JSON schema output
+    use_for: [facts, events, sentiment, intake]
+  - id: nvidia/nemotron-3-ultra-550b-a55b:free # quality candidate: chat, facts
+    use_for: [chat, facts, events]
+  - id: thinkingmachines/inkling-2-small:free  # fallback 1
+    use_for: [facts, events, sentiment, chat, intake]
+  - id: liquid/lfm-3-1.7b:free                 # fast cheap fallback (weak accuracy)
+    use_for: [sentiment, events]
+  - id: liquid/lfm-2.5-2.6b:free               # short snippets only
+    use_for: [sentiment]
+
+# Deterministic fallbacks when the budget is gone or every model fails.
+fallbacks:
+  sentiment: lexicon        # Loughran-McDonald word lists
+  events: rules             # keyword rules mapped to 8-K item numbers
+  facts: xbrl_or_regex      # XBRL companyfacts when present, else regex on the press release
+  chat: records_only        # return the retrieved records with a notice, no generated prose
+  intake: ticker_table      # exact/fuzzy match on the known company-name table
