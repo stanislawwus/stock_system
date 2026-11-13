@@ -2,19 +2,24 @@
 # Free models may log prompts: send only public text (news, filings, prices), never user data.
 
 provider: openrouter
-base_url: https://api.openrouter.ai/api/v1   # read from OPENROUTER_API_KEY in .env
+base_url: https://openrouter.ai/api/v1       # key: OPENROUTER_API_KEY in .env (api.openrouter.ai does not resolve)
+# live = HTTP to the provider; mock = no network, responses from a registered test responder.
+# Env LLM_MODE overrides (tests force mock in tests/conftest.py).
+mode: live
 
 # Hard daily budget of HTTP calls across all models (counter in .llm_budget.json, UTC day).
 # When reached, src/llm.py raises BudgetExceeded and callers use their deterministic fallback.
 daily_budget: 200
 max_items_per_call: 10        # batch several items per request
+requests_per_minute: 20       # client-side throttle, below the free-tier limit
+max_consecutive_failures: 2   # a model is skipped for the rest of the run after this many
 max_retries: 3
 retry_backoff_seconds: 2
 timeout_seconds: 60
 cache_dir: data/cache/llm
 trace_dir: data/traces
 
-# Tried in order; a model is skipped for the rest of the run after 2 consecutive failures.
+# Tried in order (filtered by use_for); skipped after max_consecutive_failures.
 models:
   - id: cohere/north-mini-code:free            # primary: JSON schema output
     use_for: [facts, events, sentiment, intake]
