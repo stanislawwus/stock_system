@@ -21,7 +21,6 @@ Guarantees:
 from __future__ import annotations
 
 import hashlib
-import html
 import json
 import logging
 import os
@@ -39,6 +38,7 @@ import yaml
 from pydantic import BaseModel, ValidationError, create_model
 
 from src.ratelimit import RateLimiter
+from src.textutil import strip_html
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_MODELS_DOC = ROOT / "docs" / "inputs" / "free_models.md"
@@ -227,16 +227,6 @@ def _select_models(task: Task, models: Sequence[str] | None, cfg: dict[str, Any]
 
 
 # --------------------------------------------------------------------------- untrusted text
-
-_SCRIPT_RE = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL)
-_TAG_RE = re.compile(r"<[^>]+>")
-_WS_RE = re.compile(r"\s+")
-
-
-def strip_html(text: str) -> str:
-    text = _SCRIPT_RE.sub(" ", text)
-    text = _TAG_RE.sub(" ", text)
-    return _WS_RE.sub(" ", html.unescape(text)).strip()
 
 
 def wrap_untrusted(text: str, max_chars: int = 6000) -> str:
