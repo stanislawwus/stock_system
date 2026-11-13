@@ -9,7 +9,7 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 # data (raw caches, DuckDB, LLM cache, traces); demo slice is tracked
-data/
+data/*
 !data/demo/
 !data/demo/**
 *.duckdb
