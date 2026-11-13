@@ -1,5 +1,21 @@
+# secrets and local state
 .env
 .llm_budget.json
+# python
 .venv/
 __pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# data (raw caches, DuckDB, LLM cache, traces); demo slice is tracked
+data/
+!data/demo/
+!data/demo/**
 *.duckdb
+*.duckdb.wal
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
