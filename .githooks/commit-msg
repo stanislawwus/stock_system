@@ -1,0 +1,4 @@
+#!/bin/sh
+f="$1"
+grep -v -i -E '^[[:space:]]*(co-authored-by:|claude-session:)|generated with \[?claude' "$f" > "$f.tmp"
+mv "$f.tmp" "$f"

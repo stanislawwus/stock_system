@@ -1,0 +1,5 @@
+.env
+.llm_budget.json
+.venv/
+__pycache__/
+*.duckdb
