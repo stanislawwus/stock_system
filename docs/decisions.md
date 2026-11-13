@@ -162,3 +162,54 @@ python-dotenv, tzdata (zoneinfo on Windows), duckdb, pandas, numpy, pyarrow, htt
 uvicorn, streamlit; dev: pytest, ruff; optional extra `finbert`: torch, transformers. Anything else
 needs its own D-nn (AGENTS.md R14). Not added yet: `smartmoneyconcepts` (Should), `scikit-learn`,
 `lightgbm`, `shap` (stacking, Should), `apscheduler` (Should), `langfuse` (Should).
+
+**D-29 (2026-11-13) — Collection sources and universe (data-preparation phase).**
+- *News: Finnhub only* (the task prompt's fallback track). A FNSPID 2019–2022 dev track would need
+  periods outside the frozen `config/splits.yaml` (R3) and FNSPID ends in 2023 (already rejected in
+  D-05), so it cannot cover train (2025-12..) at all. No FNSPID download was attempted. Finnhub's
+  free window starts 2025-11-13, so it covers train, validation and test; the warmup period gets
+  news only for its last two weeks.
+- *Finnhub returns at most ~250 items per call (newest first)*: windows start at 31 days and are
+  halved while a response has ≥ 200 items; single days still at the cap are reported as gaps.
+- *Universe* `config/universe.yaml`: 77 S&P 100 names (no dotted share classes), CIKs verified
+  against SEC `company_tickers.json` by `python -m src.collectors.tickers`. *Watchlist* 10 names
+  (supersedes D-18: CVX and COST dropped; every sector keeps at least one name).
+- *XOM* moved to a holding company (new CIK 0002115436) in July 2026; filings up to Aug 2026 are
+  under the old CIK 0000034088, so a company may list `former_ciks` and all are collected.
+- *Prices*: yfinance `auto_adjust=False` Close (split-adjusted, not dividend-adjusted: dividend
+  back-adjustment rewrites history with later dividends). Stooq is the fallback but currently
+  answers with a JavaScript bot check from this machine, which the collector detects and logs.
+- *EDGAR `acceptanceDateTime` is genuine UTC*: checked on 2026-11-13 against the filing index page
+  (`21:30:40Z` in JSON = `16:30:40` Eastern on the index page). Stored without conversion.
+- *Exchange calendar* for completeness = SPY's sessions (independent of the stock being checked).
+- *Form 4* headers are stored (insider strategy is a Should item); no Form 4 text yet.
+- `news` primary key is `(id, ticker)`: one Finnhub article can be tagged with several tickers.
+- Not collected yet: Binance crypto candles (Should, not in this task).
+Rejected: FNSPID-based dev track (breaks frozen splits), dividend-adjusted prices, treating
+`acceptanceDateTime` as Eastern time (would have been wrong by 4–5 hours).
+
+**D-30 (2026-11-13) — XBRL fact `available_at` = acceptance time of the 10-Q/10-K that carried it**
+(supersedes the XBRL clause of D-24). The accession number (`accn`) of each fact is joined to the
+filing's `acceptanceDateTime`; if the accession is unknown, filed date at 22:00 ET (the EDGAR
+filing window closes then, so the real acceptance is never later). Why: D-24's "filed date 00:00
+UTC" is 19:00–20:00 ET of the *previous* day; a 10-Q accepted at 16:30 ET on day D would have been
+visible at the 09:00 ET cutoff of D, a look-ahead of up to ~20 hours. Only each filing's own
+reporting period is stored (comparative prior-year values are skipped), quarters = 80–100-day
+durations, fiscal years (10-K) = 350–380 days.
+
+**D-31 (2026-11-13) — Test-period data is not collected in this session.** The task asked to
+"collect the test period but not analyse it"; AGENTS.md section 7 and D-13 say `make collect-test`
+runs only right before `make test-final`, and AGENTS.md says a rule wins over a prompt. So
+`make collect-test` is implemented and covered by offline tests but was not run. Nothing is lost by
+waiting: the test period (2026-09-01..11-06) stays inside Finnhub's one-year free window until
+September 2027, and EDGAR keeps everything. Every dev collection fails its quality check if a
+test-period row reaches the database.
+
+**D-32 (2026-11-13) — LLM gateway details** (extends D-06). `LLM_MODE=mock` (forced in
+`tests/conftest.py`) never opens a socket: answers come from a registered responder, otherwise the
+caller's fallback runs. The daily budget counts every HTTP *attempt* (retries included) and is
+checked before the request; cache hits are free. Client-side throttle 20 requests/min (live only).
+A model is skipped for the rest of the run after 2 batches in which all its retries failed.
+`config/llm.yaml` base URL fixed to `https://openrouter.ai/api/v1` (`api.openrouter.ai` does not
+resolve). Rejected: counting one budget unit per batch (a retry storm could exceed the provider's
+free quota while the counter says otherwise).

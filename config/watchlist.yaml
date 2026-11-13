@@ -1,4 +1,5 @@
-# Default watchlist for demo and evals. Users may add any ticker via POST /watchlist.
+# Demo watchlist: 10 names, a subset of config/universe.yaml (D-29 supersedes D-18's 12).
+# Users may add any ticker via POST /watchlist.
 benchmark: SPY
 
 stocks:
@@ -8,9 +9,7 @@ stocks:
   - {ticker: JPM,  sector: financials}
   - {ticker: GS,   sector: financials}
   - {ticker: XOM,  sector: energy}
-  - {ticker: CVX,  sector: energy}
   - {ticker: WMT,  sector: consumer}
-  - {ticker: COST, sector: consumer}
   - {ticker: MCD,  sector: consumer}
   - {ticker: JNJ,  sector: healthcare}
   - {ticker: BA,   sector: industrials}

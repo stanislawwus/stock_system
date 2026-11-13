@@ -1,0 +1,8 @@
+[
+ {"category": "company", "datetime": 1785500000, "headline": "Apple beats on revenue", "id": 1, "image": "", "related": "AAPL", "source": "Reuters", "summary": "Revenue rose.", "url": "https://finnhub.io/api/news?id=a1"},
+ {"category": "company", "datetime": "1785400000", "headline": "Apple supplier news", "id": 2, "image": "", "related": "AAPL", "source": "Yahoo", "summary": "", "url": "https://finnhub.io/api/news?id=a2"},
+ {"category": "company", "datetime": 1785500000, "headline": "Apple beats on revenue", "id": 1, "image": "", "related": "AAPL", "source": "Reuters", "summary": "Revenue rose.", "url": "https://finnhub.io/api/news?id=a1"},
+ {"category": "company", "datetime": 0, "headline": "no time", "id": 3, "image": "", "related": "AAPL", "source": "X", "summary": "", "url": "https://finnhub.io/api/news?id=a3"},
+ {"category": "company", "datetime": 1785500000, "headline": "", "id": 4, "image": "", "related": "AAPL", "source": "X", "summary": "", "url": "https://finnhub.io/api/news?id=a4"},
+ {"category": "company", "datetime": 1700000000, "headline": "old item outside window", "id": 5, "image": "", "related": "AAPL", "source": "X", "summary": "", "url": "https://finnhub.io/api/news?id=a5"}
+]
