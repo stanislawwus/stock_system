@@ -98,34 +98,34 @@ result (plan, stage 5). "Why this metric" is required by AGENTS.md R4.
 **Out of scope**: real trading, intraday/high-frequency trading, non-US exchanges, derivatives,
 authentication and multi-user API, portfolio optimisation beyond the position limits.
 
-### API contract (prefix `/api/v1`, Swagger at `/docs`)
+### API contract (prefix `/api/v1`, Swagger at `/docs`; details in `docs/02_architecture.md`, D-27)
 
 | Endpoint | Does |
 |---|---|
-| `POST /watchlist` | intake: phrase → tickers and risk profile |
+| `GET /watchlist` | configured tickers and benchmark |
+| `GET /brief?day=` | morning brief: per-ticker card with last close, sentiment index, events, signal |
+| `GET /signals?ticker=&day=` | all strategy signals and the aggregated signal as of the cutoff of day D |
+| `GET /events/{ticker}` | 8-K filings with event labels and extracted facts |
+| `GET /evals` | latest eval result per component |
+| `GET /models` | configured free models and today's budget use |
+| `POST /analyze` | arbitrary text → sentiment, events, facts |
 | `POST /collect` | background collection → `job_id` |
-| `GET /prices/{ticker}` | prices from DuckDB |
-| `GET /news/{ticker}` | news with sentiment, relevance, event type |
-| `GET /events/{ticker}` | 8-K filings with classification and extracted facts |
-| `POST /analyze` | arbitrary text → sentiment, event, facts |
-| `GET /signals/{ticker}?date=` | all strategy signals and the aggregated signal as of that date |
-| `POST /backtest` | start a backtest → `job_id` |
-| `GET /jobs/{id}` | job status and result |
-| `GET /arena` | strategy leaderboard |
+| `POST /arena` | run all strategies and the simulator on a split → `job_id` |
 | `POST /chat` | question → answer with citations |
+| `GET /jobs/{id}` | job status and result |
 | `GET /health` | liveness (no prefix) |
 
 ### One input through the system (the demo trace)
 
 1. A watchlist company files an 8-K with item 2.02 (results). `POST /collect` stores it with
-   `available_at` = EDGAR acceptance time (next 06:00 ET if accepted after 17:30 ET).
+   `available_at` = EDGAR acceptance time (D-24).
 2. `GET /events/{ticker}`: event classifier → "quarterly results"; fact extraction → revenue, EPS;
    XBRL later confirms them (eval).
 3. `GET /news/{ticker}`: sentiment of the release and the related Finnhub news; duplicates collapsed.
 4. Impact estimate gives a direction and strength for 1–3 days.
-5. `GET /signals/{ticker}?date=D`: every strategy's signal as of 09:00 ET on D, the Hedge aggregate with
-   confidence (e.g. "buy, 0.72"), the risk manager's verdict.
-6. `POST /backtest` → `GET /jobs/{id}`: the simulator fills at the open of D and shows the trade on the
+5. `GET /signals?ticker=X&day=D`: every strategy's signal as of 09:00 ET on D, the Hedge aggregate
+   with `calibrated_p` (e.g. "buy, 0.72"), the risk manager's verdict.
+6. `POST /arena` → `GET /jobs/{id}`: the simulator fills at the open of D and shows the trade on the
    equity curve.
 7. Streamlit shows the trade and the "for / against" breakdown; `POST /chat` answers "why?" citing the
    filing and the news, in co-occurrence wording.

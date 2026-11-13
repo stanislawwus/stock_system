@@ -51,7 +51,9 @@ with `available_at <= as_of`. For a decision on trading day D, `as_of` is **09:0
 (just before the open) and the trade executes **at the open price of D**. The open of D is execution
 data: only `src/sim` may read it, through a separate accessor, never a strategy, NLP, or impact module.
 Store timestamps in UTC; naive datetimes are a bug (ruff rule set `DTZ` is on). The per-source mapping of
-`available_at` is `D-04`; derived features inherit the latest `available_at` of their inputs (`D-16`).
+`available_at` is `D-24` (price bar = bar close, news = provider datetime, filing = EDGAR
+acceptance, XBRL fact = filed date); derived features inherit the `available_at` of their source
+(`D-16`). Inside `src.db.guarded()` any direct database access raises (`D-25`).
 Forward-looking labels (impact, forward returns) live in a labels table that `MarketView` never serves.
 
 **R3 — Frozen splits, test once.** `config/splits.yaml` is frozen; its sha256 is pinned in
@@ -90,8 +92,9 @@ collector CLI (`make collect-*`, `make features`) or the API's background collec
 lock (`data/.duckdb.write.lock`). Everything else (strategies, evals, API reads, `MarketView`) opens the
 database `read_only=True`. The UI never touches the database.
 
-**R8 — Long-only.** A strategy returns `Signal(value in [-1, 1], confidence in [0, 1], reasons)`.
-A `value <= 0` means **cash** (close the position, no shorts). Position size derives from the aggregated
+**R8 — Long-only.** A strategy returns `Signal(ticker, as_of, score in [-1, 1], calibrated_p in
+[0, 1] | None, reasons[])` (`src/schemas.py`). A `score <= 0` means **cash** (close the position, no
+shorts). Position size derives from the aggregated
 signal under the limits in `config/risk.yaml`; the risk manager can veto any trade. No threshold is
 hard-coded.
 
@@ -109,7 +112,10 @@ Every UI page and every signal-bearing API response carries the disclaimer from 
 
 **R12 — No feature without a test.** Every new function or endpoint comes with a pytest test in
 `tests/`. Tests run offline: no network, no API keys, fixtures in `tests/fixtures/`. Endpoints get a
-contract test with FastAPI `TestClient`. `make test` must stay green on a clean clone.
+contract test with FastAPI `TestClient`. `make test` must stay green on a clean clone. Tests written
+before their implementation (tests-first) are marked `xfail(strict=True, raises=NotImplementedError,
+reason="design phase: ...")`; implementing the feature means removing the marker in the same commit
+(strict mode fails the suite on an unexpected pass, so a stale marker cannot survive).
 
 **R13 — Architecture.** Logic lives in service functions inside each `src/<package>`; routers in
 `src/api` only validate, call a service, and return a pydantic schema. Request/response schemas and
@@ -173,8 +179,10 @@ AGENTS.md  CLAUDE.md  README.md  agent_log.md  Makefile  pyproject.toml  .env.ex
 .githooks/commit-msg        strips AI attribution lines (make setup enables it)
 .claude/skills/<name>/SKILL.md   agent skills (section 8)
 config/   splits.yaml (frozen) · llm.yaml · watchlist.yaml · risk.yaml · strategies.yaml
-docs/     inputs/ (assignment, plan, free models) · 01_business_understanding.md · decisions.md · evals.md · ...
+docs/     inputs/ · 01_business_understanding.md · 02_architecture.md · 03_eval_plan.md · decisions.md · openapi.json
 src/
+  schemas.py    every record (all with available_at), API bodies, DISCLAIMER
+  db.py         connect() single writer + lock; guarded() makes direct access raise (R7)
   llm.py        the only LLM gateway (R5)
   collectors/   yfinance, Binance, Finnhub, SEC EDGAR → DuckDB with available_at (R2, R7)
   marketview/   MarketView(as_of): the only read path for history (R2)

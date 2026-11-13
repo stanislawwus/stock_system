@@ -27,10 +27,10 @@ backtest number meaningless, so this check runs before any number is reported.
 4. **Schema check.** Open DuckDB read-only and verify every table written by collectors and features
    has `available_at TIMESTAMPTZ NOT NULL`; list rows where `available_at` is null or earlier than the
    event time (publication, acceptance, candle close). Zero rows expected.
-5. **Mapping check.** Compare each collector's `available_at` rule to D-04 (prices: close + 30 min;
-   news: Finnhub publication time; SEC: acceptance time, next 06:00 ET if accepted after 17:30 ET;
-   XBRL: acceptance of the filing that carried the fact; crypto: candle close). Derived features:
-   `available_at = max(available_at of inputs)` (D-16).
+5. **Mapping check.** Compare each collector's `available_at` rule to D-24 (price bar: bar close
+   time; news: provider datetime; filing: EDGAR acceptanceDateTime; XBRL fact: filed date; crypto:
+   candle close). Derived features: `available_at` of their source text (D-16). Impact labels
+   (`gap_ar`, `drift_ar`, D-28) live only in `impact_labels`.
 6. **Probe test.** Run `tests/test_marketview_leak.py` (create it if missing): insert a row with
    `available_at = as_of + 1 second`, assert `MarketView(as_of)` does not return it; a row at exactly
    `as_of` is returned.

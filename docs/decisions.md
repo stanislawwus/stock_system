@@ -121,6 +121,42 @@ should hold even when a prompt forgets it.
 **D-21 (2026-11-13) — Makefile uses `.RECIPEPREFIX = >`.** Why: Windows editors replace tabs with
 spaces and silently break recipes; GNU make ≥ 3.82 is available on the dev machine and in Git Bash.
 
+**D-23 (2026-11-13) — All schemas in one module `src/schemas.py`** (supersedes the schema placement
+in D-01). Why: the brief asks for it; one import for collectors, NLP, API and LLM structured output;
+the file is small enough to read in one go. Component packages do not define their own models.
+
+**D-24 (2026-11-13) — Availability rules** (supersedes D-04). price bar = bar close time (16:00 ET
+stocks, candle close crypto); news = provider `datetime`; filing = EDGAR `acceptanceDateTime` (no
+next-morning adjustment); XBRL fact = filed date of the 10-Q/10-K at 00:00 UTC; derived features =
+their source's `available_at` (D-16 stands); signal = `as_of`; trade = fill time. Why: simpler, matches
+the brief, and errs on the side of "known slightly earlier" only for filings accepted after 17:30 ET,
+which the time-leak shift test tolerates because the cutoff is the next morning anyway.
+
+**D-25 (2026-11-13) — `src/db.py` is the single connection factory and carries the access guard.**
+`connect()` is read-only by default; `writer=True` takes `data/.duckdb.write.lock`. `guarded()` is a
+context manager (contextvar) under which `connect()` raises `DirectDataAccessError`; `MarketView` uses
+a private connection path. Strategies, features, impact and chat tools run inside the guard. Why: the
+rule "all history through MarketView" becomes a runtime error instead of a code-review item. Rejected:
+monkeypatching `duckdb.connect` globally (hides collector bugs).
+
+**D-26 (2026-11-13) — Tests-first convention.** Tests written before the implementation are marked
+`xfail(strict=True, raises=NotImplementedError)`; the suite stays green, the tests still execute and
+fail for the stated reason, and an implementation must remove the marker (strict XPASS fails). Why:
+AGENTS.md R1 requires green tests before a commit; this keeps both rules.
+
+**D-27 (2026-11-13) — API surface for the two-day build** (supersedes the endpoint table that was in
+docs/01): GET `/watchlist`, `/brief`, `/signals?ticker&day`, `/events/{ticker}`, `/evals`, `/models`,
+`/jobs/{id}`; POST `/analyze`, `/collect`, `/arena`, `/chat`; `/health`. The intake service (phrase →
+tickers) stays a Must service used by the UI; `POST /watchlist` and `/backtest` are folded into
+`/arena` and dropped from the stub. Every endpoint answers 501 until its service exists, so the OpenAPI
+contract is complete from day one.
+
+**D-28 (2026-11-13) — Impact labels.** `gap_ar` = abnormal return (vs SPY) from close(D−1) to open(D),
+realised at our entry, diagnostic only; `drift_ar` = abnormal return from open(D) to close(D+1), the
+tradable target and the impact model's label. D = first trading day whose cutoff is ≥ the event's
+`available_at`. Both in `impact_labels`, never served by MarketView. Supersedes the 1–3 day horizon of
+D-11: one fixed horizon (D+1 close) keeps the label unambiguous and matches how the simulator trades.
+
 **D-22 (2026-11-13) — Dependencies declared now** (all pinned by `uv.lock`): pydantic, pyyaml,
 python-dotenv, tzdata (zoneinfo on Windows), duckdb, pandas, numpy, pyarrow, httpx, yfinance, fastapi,
 uvicorn, streamlit; dev: pytest, ruff; optional extra `finbert`: torch, transformers. Anything else
