@@ -1,0 +1,1548 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Stock Awareness Assistant",
+    "description": "News + SEC filings -> sentiment/events -> impact -> strategy arena -> simulator -> chat with citations. Every output is a simulation, not investment advice.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/watchlist": {
+      "get": {
+        "tags": [
+          "watchlist"
+        ],
+        "summary": "Configured watchlist and benchmark",
+        "operationId": "get_watchlist_api_v1_watchlist_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/brief": {
+      "get": {
+        "tags": [
+          "brief"
+        ],
+        "summary": "Morning brief for the watchlist as of day D",
+        "operationId": "get_brief_api_v1_brief_get",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "trading day D; default: today",
+              "title": "Day"
+            },
+            "description": "trading day D; default: today"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Brief"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/signals": {
+      "get": {
+        "tags": [
+          "signals"
+        ],
+        "summary": "All strategy signals and the aggregated signal for a ticker as of the cutoff of day D",
+        "operationId": "get_signals_api_v1_signals_get",
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Ticker"
+            }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "trading day D; default: today",
+              "title": "Day"
+            },
+            "description": "trading day D; default: today"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignalsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{ticker}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "8-K filings with event labels and extracted facts",
+        "operationId": "get_events_api_v1_events__ticker__get",
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ticker"
+            }
+          },
+          {
+            "name": "lookback_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 400,
+              "minimum": 1,
+              "default": 90,
+              "title": "Lookback Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evals": {
+      "get": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Latest eval result per component",
+        "operationId": "get_evals_api_v1_evals_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvalResult"
+                  },
+                  "type": "array",
+                  "title": "Response Get Evals Api V1 Evals Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Configured free models and budget use",
+        "operationId": "get_models_api_v1_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelInfo"
+                  },
+                  "type": "array",
+                  "title": "Response Get Models Api V1 Models Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyze": {
+      "post": {
+        "tags": [
+          "nlp"
+        ],
+        "summary": "Arbitrary text -> sentiment, events, facts",
+        "operationId": "post_analyze_api_v1_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/collect": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Start data collection for the given periods (background job)",
+        "operationId": "post_collect_api_v1_collect_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/arena": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Run every strategy on a split and refresh the leaderboard (background job)",
+        "operationId": "post_arena_api_v1_arena_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArenaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Status and result of a job",
+        "operationId": "get_job_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Question -> answer with citations",
+        "operationId": "post_chat_api_v1_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalyzeRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AnalyzeRequest"
+      },
+      "AnalyzeResponse": {
+        "properties": {
+          "sentiment": {
+            "$ref": "#/components/schemas/Sentiment"
+          },
+          "events": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "type": "array",
+            "title": "Facts"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules",
+              "lexicon",
+              "index",
+              "xbrl",
+              "regex",
+              "model"
+            ],
+            "title": "Method"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "This is a simulation, not investment advice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "sentiment",
+          "events",
+          "facts",
+          "method"
+        ],
+        "title": "AnalyzeResponse"
+      },
+      "ArenaRequest": {
+        "properties": {
+          "split": {
+            "type": "string",
+            "enum": [
+              "train",
+              "validation"
+            ],
+            "title": "Split"
+          }
+        },
+        "type": "object",
+        "required": [
+          "split"
+        ],
+        "title": "ArenaRequest"
+      },
+      "Brief": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BriefItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "This is a simulation, not investment advice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "items"
+        ],
+        "title": "Brief"
+      },
+      "BriefItem": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "last_close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Close"
+          },
+          "change_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Pct"
+          },
+          "sentiment_index": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentiment Index"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Signal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "last_close",
+          "change_pct",
+          "sentiment_index"
+        ],
+        "title": "BriefItem"
+      },
+      "ChatRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules",
+              "lexicon",
+              "index",
+              "xbrl",
+              "regex",
+              "model"
+            ],
+            "title": "Method"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "This is a simulation, not investment advice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "citations",
+          "method"
+        ],
+        "title": "ChatResponse"
+      },
+      "Citation": {
+        "properties": {
+          "source_ref": {
+            "type": "string",
+            "title": "Source Ref"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "news",
+              "filing",
+              "fact",
+              "price"
+            ],
+            "title": "Kind"
+          },
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_ref",
+          "kind",
+          "available_at",
+          "quote"
+        ],
+        "title": "Citation"
+      },
+      "CollectRequest": {
+        "properties": {
+          "periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "warmup",
+                "train",
+                "validation",
+                "test"
+              ]
+            },
+            "type": "array",
+            "title": "Periods"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periods"
+        ],
+        "title": "CollectRequest"
+      },
+      "EvalResult": {
+        "properties": {
+          "component": {
+            "type": "string",
+            "title": "Component"
+          },
+          "metric": {
+            "type": "string",
+            "title": "Metric"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "target": {
+            "type": "number",
+            "title": "Target"
+          },
+          "why_this_metric": {
+            "type": "string",
+            "title": "Why This Metric"
+          },
+          "gold_set": {
+            "type": "string",
+            "title": "Gold Set"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "split": {
+            "type": "string",
+            "title": "Split"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "git_sha": {
+            "type": "string",
+            "title": "Git Sha"
+          },
+          "run_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Run At"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "component",
+          "metric",
+          "value",
+          "target",
+          "why_this_metric",
+          "gold_set",
+          "n",
+          "split",
+          "model",
+          "git_sha",
+          "run_at"
+        ],
+        "title": "EvalResult",
+        "description": "Mirror of evals/results/<component>.json (AGENTS.md section 5)."
+      },
+      "Event": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "source_ref": {
+            "type": "string",
+            "title": "Source Ref"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "labels": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "1.01",
+                "2.01",
+                "2.02",
+                "2.05",
+                "3.02",
+                "5.02",
+                "5.07",
+                "7.01",
+                "8.01",
+                "9.01",
+                "other_item",
+                "none"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Labels"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules",
+              "lexicon",
+              "index",
+              "xbrl",
+              "regex",
+              "model"
+            ],
+            "title": "Method"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "source_ref",
+          "ticker",
+          "labels",
+          "confidence",
+          "method"
+        ],
+        "title": "Event",
+        "description": "Multi-label event classification of a news item or filing. available_at = source's."
+      },
+      "EventsResponse": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "filings": {
+            "items": {
+              "$ref": "#/components/schemas/Filing"
+            },
+            "type": "array",
+            "title": "Filings"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "type": "array",
+            "title": "Facts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "filings",
+          "events",
+          "facts"
+        ],
+        "title": "EventsResponse"
+      },
+      "Fact": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "eps_diluted",
+              "net_income"
+            ],
+            "title": "Name"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USD/share"
+            ],
+            "title": "Unit"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "fiscal_period": {
+            "type": "string",
+            "title": "Fiscal Period",
+            "description": "e.g. Q3-2026"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules",
+              "lexicon",
+              "index",
+              "xbrl",
+              "regex",
+              "model"
+            ],
+            "title": "Method"
+          },
+          "source_ref": {
+            "type": "string",
+            "title": "Source Ref"
+          },
+          "grounding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Span"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "ticker",
+          "name",
+          "value",
+          "unit",
+          "period_end",
+          "fiscal_period",
+          "method",
+          "source_ref"
+        ],
+        "title": "Fact",
+        "description": "A financial number. XBRL facts: available_at = filed date of the 10-Q/10-K (gold).\nExtracted facts: available_at = that of the source text; `grounding` is required."
+      },
+      "Filing": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "accession_no": {
+            "type": "string",
+            "title": "Accession No"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "cik": {
+            "type": "string",
+            "title": "Cik"
+          },
+          "form": {
+            "type": "string",
+            "enum": [
+              "8-K",
+              "10-Q",
+              "10-K",
+              "4"
+            ],
+            "title": "Form"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "8-K item numbers from the index"
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Accepted At"
+          },
+          "filed_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Filed Date"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "text_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Path",
+            "description": "raw cache path of the main document"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "accession_no",
+          "ticker",
+          "cik",
+          "form",
+          "accepted_at",
+          "filed_date",
+          "url"
+        ],
+        "title": "Filing",
+        "description": "SEC filing header. available_at = EDGAR acceptanceDateTime."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobAccepted": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "queued",
+            "title": "Status",
+            "default": "queued"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "title": "JobAccepted"
+      },
+      "JobStatus": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "status"
+        ],
+        "title": "JobStatus"
+      },
+      "ModelInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          },
+          "use_for": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Use For"
+          },
+          "calls_today": {
+            "type": "integer",
+            "title": "Calls Today"
+          },
+          "daily_budget": {
+            "type": "integer",
+            "title": "Daily Budget"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "priority",
+          "use_for",
+          "calls_today",
+          "daily_budget"
+        ],
+        "title": "ModelInfo"
+      },
+      "Sentiment": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "source_ref": {
+            "type": "string",
+            "title": "Source Ref"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "label": {
+            "type": "integer",
+            "enum": [
+              -1,
+              0,
+              1
+            ],
+            "title": "Label"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Score"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules",
+              "lexicon",
+              "index",
+              "xbrl",
+              "regex",
+              "model"
+            ],
+            "title": "Method"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "source_ref",
+          "ticker",
+          "label",
+          "score",
+          "method"
+        ],
+        "title": "Sentiment",
+        "description": "available_at = that of the source text (D-16)."
+      },
+      "Signal": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "strategy": {
+            "type": "string",
+            "title": "Strategy"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Score"
+          },
+          "calibrated_p": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibrated P",
+            "description": "P(drift_ar > 0)"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons",
+            "description": "source_refs or indicator names"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "ticker",
+          "as_of",
+          "strategy",
+          "score"
+        ],
+        "title": "Signal",
+        "description": "Strategy output for one ticker at one cutoff. Long-only: score <= 0 means cash (R8).\navailable_at == as_of."
+      },
+      "SignalsResponse": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "signals": {
+            "items": {
+              "$ref": "#/components/schemas/Signal"
+            },
+            "type": "array",
+            "title": "Signals"
+          },
+          "aggregated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Signal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "risk_verdict": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "veto",
+              "n/a"
+            ],
+            "title": "Risk Verdict",
+            "default": "n/a"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "This is a simulation, not investment advice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "as_of",
+          "signals",
+          "aggregated"
+        ],
+        "title": "SignalsResponse"
+      },
+      "Span": {
+        "properties": {
+          "source_ref": {
+            "type": "string",
+            "title": "Source Ref",
+            "description": "news id or accession number"
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "End"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_ref",
+          "start",
+          "end",
+          "quote"
+        ],
+        "title": "Span",
+        "description": "Grounding of an extracted value in its source text."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Watchlist": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WatchlistItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "benchmark": {
+            "type": "string",
+            "title": "Benchmark"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "benchmark"
+        ],
+        "title": "Watchlist"
+      },
+      "WatchlistItem": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "crypto",
+              "benchmark"
+            ],
+            "title": "Kind",
+            "default": "stock"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker"
+        ],
+        "title": "WatchlistItem"
+      }
+    }
+  }
+}
