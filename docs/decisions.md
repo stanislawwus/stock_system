@@ -571,3 +571,30 @@ is in-sample for those two rules; the name accuracy (0.974; misses Walt Disney, 
 name) is not, no alias was added. Rejected: adding "Walt Disney" / "International Business
 Machines" as aliases (that tunes the table to the gold set); human-labelled dialogues (no time;
 docs/03's 25 synthetic dialogues incl. risk profile remain open).
+
+**D-46 (2026-11-14) — Chat agent: fixed plan, template composer, no LLM in the path**
+(docs/01 Must row "chat agent"; `src/chat/`, `POST /api/v1/chat`, `evals/eval_chat.py`).
+Rules parse the question into an intent (why_move, price, news, signals, backtest, refuse), a
+universe ticker (`src.nlp.intake.extract_tickers`) and a day (ISO or "Jul 15"; default the last
+validation day). Each intent has a fixed tool plan (`agent.PLANS`); why_move runs get_prices ->
+get_news -> get_events on `MarketView(16:00 ET of D)` inside `guarded()`: the move is close(D-1)
+-> close(D), abnormal return = r - r_SPY (the impact_labels convention), and candidates are news
+and 8-Ks with available_at in (close(D-1), close(D)], news ranked by 0.5 relevance (headline 1.0
+/ summary 0.5 names the company) + 0.3 |FinBERT| + 0.2 recency (config/chat.yaml). The answer is
+a deterministic template over tool outputs with [n] citations (news id or accession number);
+headlines appear stripped, truncated and inside the gateway's delimiters (R6); wording is
+"coincided in time" (R11); the disclaimer ends every answer. Refused (200, `refused=true`):
+tickers outside the universe, requests for guaranteed / risk-free profit, test-period dates
+(R3), no ticker. Why no LLM in the path: the free models take 32-142 s per call (D-39) against
+a p95 target of 10 s. Rephrasing exists behind `rephrase.enabled` / `CHAT_REPHRASE=1` and only
+replays the cache (`src.llm.cached_json`: no provider call, no budget, no trace); a rephrase is
+accepted only if it keeps the template's numbers, markers and quoted spans and adds no causal
+verb, else the template is the answer. `ChatRequest.as_of` was removed (the day comes from the
+question; an unused field would mislead). `run_backtest_summary` reads the committed backtest
+record (a simulation is a long job, R13). The tools live in `src/chat/tools.py`, not a new
+`src/services/`: AGENTS.md section 6 puts service functions inside each package. The eval is
+code-only with 0 LLM calls (the user's override of the original "<= 25 cached calls" plan);
+questions in `evals/chat_questions.yaml` are agent-written intents/refusals, not human labels,
+because every expected value is derived from DuckDB. Rejected: an LLM planner (latency, budget,
+injection surface); an LLM judge (budget; code checks suffice for numbers and citations);
+serving the 8-K `events` table (empty: filings' 8-K item numbers are used directly).
