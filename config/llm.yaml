@@ -16,6 +16,8 @@ max_consecutive_failures: 2   # a model is skipped for the rest of the run after
 max_retries: 3
 retry_backoff_seconds: 2
 timeout_seconds: 60
+max_tokens: 8192              # completion cap; reasoning models spend part of it on reasoning (D-39)
+reasoning_effort: low         # OpenRouter unified `reasoning.effort`; ignored by non-reasoning models
 cache_dir: data/cache/llm
 trace_dir: data/traces
 

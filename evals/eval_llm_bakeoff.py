@@ -84,7 +84,6 @@ def run(models: list[str] = MODELS) -> dict[str, Any]:
         r = llm.call_json(
             "facts", FACTS_PROMPT, r_items, FilingFacts,
             fallback=lambda b: [extract_regex(x["release"]) for x in b], models=[model],
-            params=llm.LLMParams(max_tokens=2048),
         )  # fmt: skip
         recs = [x for x in (*h.records, *r.records) if x.status != "fallback"]
         for x in recs:

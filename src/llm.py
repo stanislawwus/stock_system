@@ -59,6 +59,11 @@ class LLMError(RuntimeError):
     """All models failed (network, rate limit, invalid JSON after retries)."""
 
 
+class EmptyContent(LLMError):
+    """The provider answered 200 but with no text (typically a reasoning model that spent all of
+    `max_tokens` on reasoning; finish_reason=length)."""
+
+
 class BudgetExceeded(LLMError):
     """The daily call cap is reached; the caller must use its deterministic fallback."""
 
@@ -80,7 +85,9 @@ class CallRecord(BaseModel):
     n_items: int
     prompt_sha256: str
     cache_hit: bool
-    status: Literal["ok", "invalid_json", "http_error", "budget_exceeded", "fallback"]
+    status: Literal[
+        "ok", "invalid_json", "empty_content", "http_error", "budget_exceeded", "fallback"
+    ]
     latency_ms: int
     error: str | None = None
 
@@ -315,14 +322,29 @@ def _http_post(model: str, messages: list[dict[str, str]], params: LLMParams, cf
             "max_tokens": params.max_tokens,
             "seed": params.seed,
             "response_format": {"type": "json_object"},
+            "reasoning": {"effort": cfg["reasoning_effort"]},
         },
         timeout=float(cfg["timeout_seconds"]),
     )
     resp.raise_for_status()
-    content = resp.json()["choices"][0]["message"]["content"]
-    if not isinstance(content, str):
-        raise ValueError("model returned no text content")
-    return content
+    return _extract_content(resp.json())
+
+
+def _extract_content(data: dict[str, Any]) -> str:
+    """Text of the first choice, or EmptyContent with finish_reason, tokens and reasoning size."""
+    choice = data["choices"][0]
+    message = choice.get("message") or {}
+    content = message.get("content")
+    if isinstance(content, str) and content.strip():
+        return content
+    usage = data.get("usage") or {}
+    reasoning = message.get("reasoning") or ""
+    raise EmptyContent(
+        f"empty content: finish_reason={choice.get('finish_reason')}, "
+        f"completion_tokens={usage.get('completion_tokens')}, "
+        f"reasoning_chars={len(reasoning) if isinstance(reasoning, str) else 'n/a'}; "
+        "raise max_tokens or lower reasoning_effort in config/llm.yaml"
+    )
 
 
 def _transport(
@@ -374,6 +396,7 @@ def _run_batch(
         {"role": "user", "content": _user_prompt(prompt, batch, max_chars)},
     ]
     sha = hashlib.sha256(json.dumps(messages, sort_keys=True).encode("utf-8")).hexdigest()
+    last_error = ""
     for model in model_ids:
         if _consecutive_failures.get(model, 0) >= max_fail:
             continue
@@ -410,12 +433,14 @@ def _run_batch(
                 )
                 raise
             t0 = time.perf_counter()
-            status: Literal["invalid_json", "http_error"]
+            status: Literal["invalid_json", "empty_content", "http_error"]
             try:
                 raw = _transport(model, messages, params, cfg)
                 outputs = _parse(raw, schema, len(batch))
             except (ValidationError, ValueError) as exc:  # JSONDecodeError is a ValueError
                 status, err = "invalid_json", str(exc)[:300]
+            except EmptyContent as exc:
+                status, err = "empty_content", str(exc)[:300]
             except (httpx.HTTPError, LLMError, KeyError, IndexError) as exc:
                 status, err = "http_error", f"{type(exc).__name__}: {str(exc)[:300]}"
             else:
@@ -452,7 +477,9 @@ def _run_batch(
             if mode == "live" and attempt < int(cfg["max_retries"]):
                 time.sleep(float(cfg["retry_backoff_seconds"]) * 2 ** (attempt - 1))
         _consecutive_failures[model] = _consecutive_failures.get(model, 0) + 1
-    raise LLMError(f"all models failed for task {task}")
+        last_error = f"{model}: {status}: {err}"
+    detail = f"; last error: {last_error}" if last_error else ""
+    raise LLMError(f"all models failed for task {task}{detail}")
 
 
 def call_json(
@@ -470,7 +497,7 @@ def call_json(
     `fallback` is mandatory: a deterministic function producing the same schema without a model.
     """
     cfg = load_config()
-    params = params or LLMParams()
+    params = params or LLMParams(max_tokens=int(cfg["max_tokens"]))
     model_ids = _select_models(task, models, cfg)
     counter = DailyCounter(BUDGET_PATH)
     cache = DiskCache(_cache_dir(cfg))

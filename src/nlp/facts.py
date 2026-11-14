@@ -190,5 +190,4 @@ def extract_llm(texts: Sequence[str]):  # -> LLMResult[FilingFacts]
         items,
         FilingFacts,
         fallback=lambda batch: [extract_regex(b["release"]) for b in batch],
-        params=llm.LLMParams(max_tokens=2048),
     )

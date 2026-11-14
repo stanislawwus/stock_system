@@ -403,3 +403,9 @@ redrawn the committed strata). New rows go to `news_100.v2.csv`.
 - *Budget counter fix*: `src/llm.py` consumes the daily counter only for real provider calls
   (mode `live`). Mock-mode attempts (tests, dry-runs) are free; earlier dry-runs had inflated
   `.llm_budget.json` with 30 phantom calls. Test: `test_mock_attempts_do_not_consume_the_daily_budget`.
+- *Empty-content fix (2026-11-14)*: the first live bake-off scored 0.0 adherence because every
+  reply had `content: null` (reasoning models spent the 1024/2048 `max_tokens` on reasoning) and
+  the gateway logged it as `invalid_json` / "all models failed". Now `max_tokens: 8192` and
+  `reasoning_effort: low` come from `config/llm.yaml`; an empty reply is status `empty_content`
+  with finish_reason, completion tokens and reasoning size; the final error names the last cause.
+  The 0.0 result in `evals/results/llm_bakeoff.json` is an artefact of this bug, not a model score.
