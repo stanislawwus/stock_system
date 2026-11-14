@@ -5,8 +5,10 @@ SHELL := /bin/sh
 
 export PYTHONPATH := .
 RUN := uv run
+# Servers bind to loopback only: nothing here is meant to be reachable from a network.
 API_PORT ?= 8000
 UI_PORT ?= 8501
+HOST ?= 127.0.0.1
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
 .PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final
@@ -24,15 +26,15 @@ setup: ## install deps, enable git hooks, create .env from the example
 > @echo "setup done. Fill in .env (OPENROUTER_API_KEY, FINNHUB_API_KEY, SEC_USER_AGENT)."
 
 up: ## run API (:$(API_PORT), Swagger at /docs) and Streamlit UI (:$(UI_PORT)) together
-> @sh -c '$(RUN) uvicorn src.api.main:app --host 0.0.0.0 --port $(API_PORT) & api=$$!; \
+> @sh -c '$(RUN) uvicorn src.api.main:app --host $(HOST) --port $(API_PORT) & api=$$!; \
 >   trap "kill $$api 2>/dev/null" EXIT INT TERM; \
->   $(RUN) streamlit run src/ui/app.py --server.port $(UI_PORT) --server.headless true'
+>   $(RUN) streamlit run src/ui/app.py --server.address $(HOST) --server.port $(UI_PORT) --server.headless true'
 
 api: ## run only the API with reload
-> $(RUN) uvicorn src.api.main:app --host 0.0.0.0 --port $(API_PORT) --reload
+> $(RUN) uvicorn src.api.main:app --host $(HOST) --port $(API_PORT) --reload
 
 ui: ## run only the Streamlit client
-> $(RUN) streamlit run src/ui/app.py --server.port $(UI_PORT)
+> $(RUN) streamlit run src/ui/app.py --server.address $(HOST) --server.port $(UI_PORT)
 
 test: ## offline unit + contract tests
 > $(RUN) pytest
