@@ -1,0 +1,17 @@
+# Eval settings (evals/*.py). No magic numbers in eval code (AGENTS.md R14). Decisions: D-39.
+
+bootstrap:                 # i.i.d. bootstrap over gold items (classification evals)
+  n_resamples: 2000
+  ci: 0.95
+  seed: 20261114
+
+# Second sentiment gold set, public, not PhraseBank (FinBERT was fine-tuned on PhraseBank).
+# Cached raw in data/raw/hf/<name>/ (R15); the sha256 pins the exact file that was scored.
+twitter_financial:
+  name: twitter_financial_news_sentiment
+  url: https://huggingface.co/datasets/zeroshot/twitter-financial-news-sentiment/resolve/ccbe24de388e287beb92dd393a335c376b350ac3/sent_valid.csv
+  revision: ccbe24de388e287beb92dd393a335c376b350ac3
+  file: sent_valid.csv
+  sha256: 31ea8274c98b52212daa68f2fb962811bf1913c1efe51b99765c8e2311806de6
+  label_map: {0: neg, 1: pos, 2: neu}    # dataset card: 0 Bearish, 1 Bullish, 2 Neutral
+  strip_urls: true                        # every tweet ends in a t.co link; not text

@@ -8,9 +8,9 @@
   "n": 150,
   "split": "train+validation",
   "model": "ProsusAI/finbert@0bc2ac1",
-  "git_sha": "84f0a6a",
-  "run_at": "2026-11-14T16:20:39+00:00",
-  "notes": "macro-F1 0.5155 below 0.8; per class {'pos': 0.4819, 'neu': 0.6774, 'neg': 0.3871}. Explanation in docs/evals.md (sentiment).",
+  "git_sha": "57babdc",
+  "run_at": "2026-11-14T17:29:12+00:00",
+  "notes": "macro-F1 0.5155 (95% CI (0.419, 0.6083)) below 0.8; recall per class {'pos': 0.6061, 'neu': 0.5727, 'neg': 0.8571}. Explanation in docs/evals.md (sentiment).",
   "details": {
     "gold_distribution": {
       "pos": 33,
@@ -19,21 +19,52 @@
     },
     "finbert": {
       "macro_f1": 0.5155,
-      "f1_per_class": {
-        "pos": 0.4819,
-        "neu": 0.6774,
-        "neg": 0.3871
-      },
       "accuracy": 0.5933,
-      "confusion_gold_to_pred": {
-        "neg->neg": 6,
-        "neg->neu": 1,
-        "neu->neg": 17,
-        "neu->neu": 63,
-        "neu->pos": 30,
-        "pos->neg": 1,
-        "pos->neu": 12,
-        "pos->pos": 20
+      "per_class": {
+        "pos": {
+          "precision": 0.4,
+          "recall": 0.6061,
+          "f1": 0.4819,
+          "support": 33
+        },
+        "neu": {
+          "precision": 0.8289,
+          "recall": 0.5727,
+          "f1": 0.6774,
+          "support": 110
+        },
+        "neg": {
+          "precision": 0.25,
+          "recall": 0.8571,
+          "f1": 0.3871,
+          "support": 7
+        }
+      },
+      "confusion_gold_rows_pred_cols": {
+        "pos": {
+          "pos": 20,
+          "neu": 12,
+          "neg": 1
+        },
+        "neu": {
+          "pos": 30,
+          "neu": 63,
+          "neg": 17
+        },
+        "neg": {
+          "pos": 0,
+          "neu": 1,
+          "neg": 6
+        }
+      },
+      "macro_f1_ci95": [
+        0.419,
+        0.6083
+      ],
+      "recall_per_class": {
+        "pos": 0.6061,
+        "neu": 0.5727,
+        "neg": 0.8571
       }
     },
     "relevant_subset": {
@@ -45,41 +76,212 @@
       },
       "finbert": {
         "macro_f1": 0.5868,
-        "f1_per_class": {
-          "pos": 0.5,
-          "neu": 0.6604,
-          "neg": 0.6
-        },
         "accuracy": 0.6022,
-        "confusion_gold_to_pred": {
-          "neg->neg": 6,
-          "neg->neu": 1,
-          "neu->neg": 6,
-          "neu->neu": 35,
-          "neu->pos": 18,
-          "pos->neg": 1,
-          "pos->neu": 11,
-          "pos->pos": 15
+        "per_class": {
+          "pos": {
+            "precision": 0.4545,
+            "recall": 0.5556,
+            "f1": 0.5,
+            "support": 27
+          },
+          "neu": {
+            "precision": 0.7447,
+            "recall": 0.5932,
+            "f1": 0.6604,
+            "support": 59
+          },
+          "neg": {
+            "precision": 0.4615,
+            "recall": 0.8571,
+            "f1": 0.6,
+            "support": 7
+          }
+        },
+        "confusion_gold_rows_pred_cols": {
+          "pos": {
+            "pos": 15,
+            "neu": 11,
+            "neg": 1
+          },
+          "neu": {
+            "pos": 18,
+            "neu": 35,
+            "neg": 6
+          },
+          "neg": {
+            "pos": 0,
+            "neu": 1,
+            "neg": 6
+          }
+        },
+        "macro_f1_ci95": [
+          0.4545,
+          0.6975
+        ],
+        "recall_per_class": {
+          "pos": 0.5556,
+          "neu": 0.5932,
+          "neg": 0.8571
         }
       }
     },
     "lexicon_baseline": {
       "macro_f1": 0.5521,
-      "f1_per_class": {
-        "pos": 0.6133,
-        "neu": 0.8077,
-        "neg": 0.2353
-      },
       "accuracy": 0.7267,
-      "confusion_gold_to_pred": {
-        "neg->neg": 2,
-        "neg->neu": 5,
-        "neu->neg": 7,
-        "neu->neu": 84,
-        "neu->pos": 19,
-        "pos->neg": 1,
-        "pos->neu": 9,
-        "pos->pos": 23
+      "per_class": {
+        "pos": {
+          "precision": 0.5476,
+          "recall": 0.697,
+          "f1": 0.6133,
+          "support": 33
+        },
+        "neu": {
+          "precision": 0.8571,
+          "recall": 0.7636,
+          "f1": 0.8077,
+          "support": 110
+        },
+        "neg": {
+          "precision": 0.2,
+          "recall": 0.2857,
+          "f1": 0.2353,
+          "support": 7
+        }
+      },
+      "confusion_gold_rows_pred_cols": {
+        "pos": {
+          "pos": 23,
+          "neu": 9,
+          "neg": 1
+        },
+        "neu": {
+          "pos": 19,
+          "neu": 84,
+          "neg": 7
+        },
+        "neg": {
+          "pos": 0,
+          "neu": 5,
+          "neg": 2
+        }
+      },
+      "macro_f1_ci95": [
+        0.4442,
+        0.6584
+      ],
+      "recall_per_class": {
+        "pos": 0.697,
+        "neu": 0.7636,
+        "neg": 0.2857
+      }
+    },
+    "twitter_financial": {
+      "source": "hf:zeroshot/twitter-financial-news-sentiment@ccbe24d/sent_valid.csv",
+      "n": 2388,
+      "gold_distribution": {
+        "neg": 347,
+        "pos": 475,
+        "neu": 1566
+      },
+      "finbert": {
+        "macro_f1": 0.6632,
+        "accuracy": 0.7178,
+        "per_class": {
+          "pos": {
+            "precision": 0.5882,
+            "recall": 0.6105,
+            "f1": 0.5992,
+            "support": 475
+          },
+          "neu": {
+            "precision": 0.853,
+            "recall": 0.7414,
+            "f1": 0.7933,
+            "support": 1566
+          },
+          "neg": {
+            "precision": 0.4925,
+            "recall": 0.7579,
+            "f1": 0.597,
+            "support": 347
+          }
+        },
+        "confusion_gold_rows_pred_cols": {
+          "pos": {
+            "pos": 290,
+            "neu": 129,
+            "neg": 56
+          },
+          "neu": {
+            "pos": 190,
+            "neu": 1161,
+            "neg": 215
+          },
+          "neg": {
+            "pos": 13,
+            "neu": 71,
+            "neg": 263
+          }
+        },
+        "macro_f1_ci95": [
+          0.6422,
+          0.6828
+        ],
+        "recall_per_class": {
+          "pos": 0.6105,
+          "neu": 0.7414,
+          "neg": 0.7579
+        }
+      },
+      "lexicon_baseline": {
+        "macro_f1": 0.6111,
+        "accuracy": 0.7115,
+        "per_class": {
+          "pos": {
+            "precision": 0.5551,
+            "recall": 0.52,
+            "f1": 0.537,
+            "support": 475
+          },
+          "neu": {
+            "precision": 0.7669,
+            "recall": 0.834,
+            "f1": 0.799,
+            "support": 1566
+          },
+          "neg": {
+            "precision": 0.6083,
+            "recall": 0.4207,
+            "f1": 0.4974,
+            "support": 347
+          }
+        },
+        "confusion_gold_rows_pred_cols": {
+          "pos": {
+            "pos": 247,
+            "neu": 220,
+            "neg": 8
+          },
+          "neu": {
+            "pos": 174,
+            "neu": 1306,
+            "neg": 86
+          },
+          "neg": {
+            "pos": 24,
+            "neu": 177,
+            "neg": 146
+          }
+        },
+        "macro_f1_ci95": [
+          0.5865,
+          0.6353
+        ],
+        "recall_per_class": {
+          "pos": 0.52,
+          "neu": 0.834,
+          "neg": 0.4207
+        }
       }
     },
     "input": "headline only (the labelling guideline is headline only)"
