@@ -1,0 +1,40 @@
+{
+  "component": "simulator",
+  "metric": "hand_fixture_exact_share",
+  "value": 1.0,
+  "target": 1.0,
+  "why_this_metric": "simulator correctness is binary; one wrong fill or cost rule biases every backtest number",
+  "gold_set": "derived: evals/sim_fixtures.py (4 hand-worked fixtures)",
+  "n": 4,
+  "split": "n/a",
+  "model": "n/a",
+  "git_sha": "02ef822",
+  "run_at": "2026-11-14T15:46:55+00:00",
+  "notes": "",
+  "details": {
+    "toy_buy_and_hold": {
+      "expected_final": 1147.7023,
+      "simulated_final": 1147.7023,
+      "trades": 4,
+      "pass": true
+    },
+    "round_trip_costs": {
+      "expected_final": 999.0005,
+      "simulated_final": 999.0005,
+      "trades": 2,
+      "pass": true
+    },
+    "score_to_cash_at_open": {
+      "expected_final": 1100,
+      "simulated_final": 1100.0,
+      "trades": 2,
+      "pass": true
+    },
+    "horizon_exit_and_reentry": {
+      "expected_final": 1470.0,
+      "simulated_final": 1470.0,
+      "trades": 4,
+      "pass": true
+    }
+  }
+}

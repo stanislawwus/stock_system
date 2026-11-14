@@ -8,7 +8,14 @@ No result below uses the test period (AGENTS.md R3).
 <!-- results:begin -->
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
+| backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
+| backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
+| backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
+| backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
+| backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
+| backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 6fd4458 |
+| simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 02ef822 |
 <!-- results:end -->
 
 ## Notes per component
@@ -26,3 +33,38 @@ No result below uses the test period (AGENTS.md R3).
   period, news stamped before publication, bar stamped before the close, a missing session, a
   duplicate article, a +50 % spike). The quality checks must flag all six; the count is in
   `details.planted_errors`.
+
+### simulator
+
+- **Metric**: `hand_fixture_exact_share`, the share of hand-worked fixtures whose final equity
+  matches the hand computation to the cent and whose trade count matches.
+- **Gold set**: derived, `evals/sim_fixtures.py`: buy-and-hold toy (two names, 50 % cap, 10 bps),
+  round-trip costs on a flat price (5 bps), exit at the open when the score drops to 0, time exit
+  at the close of D+h with re-entry. The arithmetic is written next to each fixture.
+- **Target**: 1.0. **Why**: simulator correctness is binary; one wrong fill or cost rule biases
+  every backtest number.
+
+### backtests (`backtest_<strategy>_<split>`)
+
+- **Metric**: annualised Sharpe of daily close-to-close equity returns after 5 bps per side
+  (risk-free 0), with a 95 % moving-block bootstrap CI (2,000 resamples, 5-day blocks) in
+  `details`, next to total and annualised return, max drawdown, one-way turnover, hit rate per
+  round trip and costs paid. `make backtest STRATEGY=<name|all> SPLIT=<train|val>`.
+- **Gold set / target**: derived: the Sharpe of buy-and-hold on the same split and the same
+  10 watchlist names (target 0 for buy-and-hold itself).
+- **Why**: risk-adjusted return after costs; beating "hold what you trade" is the minimum bar
+  for a timing rule to be worth its turnover.
+- **Rules** (D-35): signals from `MarketView(09:00 ET of D)`, entry at the open of D, exit at the
+  close of D+h or at the open when the score is <= 0; equal weight capped at 20 % per name;
+  parameters are textbook defaults, not tuned on any split.
+- **Below target: `mean_reversion` on train** (Sharpe -0.02 vs 1.76). Fading 5-day drops in a
+  steadily rising train period (buy-and-hold +9.7 % in six months) left the strategy on average
+  24 % invested (fully in cash on 31 of 124 days), so it missed most of the trend, and 35 of its
+  66 round trips lost after costs; it paid 1.3 % of capital in costs at a one-way turnover of 13x.
+  Its validation Sharpe of 3.57 is the same rule in a choppier quarter (26 of 38 round trips won),
+  so neither number is evidence of skill.
+- **Read every number with its CI**: all six intervals contain their target (e.g. mean
+  reversion on validation [0.56, 6.49] vs 1.34, momentum [-1.34, 6.56]); with 64 and 124 days no
+  strategy is distinguishable from buy-and-hold. The validation Sharpes above 2 triggered the
+  time-leak-check: static scans, the shift test (`tests/sim/test_no_lookahead.py`) and the
+  train/validation reversal of mean reversion point to sampling noise, not look-ahead.
