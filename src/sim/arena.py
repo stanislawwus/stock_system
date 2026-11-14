@@ -60,6 +60,9 @@ TRIAL_FIELDS = [
 ]  # fmt: skip
 
 
+GRID_RESULT_KEYS = {"sharpe", "total_return", "round_trips", "costs_paid", "final_weights"}
+
+
 def arena_config() -> dict[str, Any]:
     return strategy_params("arena")
 
@@ -203,13 +206,20 @@ def trial_rows(
         ))  # fmt: skip
     for name, s in (selected or {}).items():
         for g in s["grid"]:
-            params = {"hold_days": g["hold_days"], "entry_threshold": g["entry_threshold"]}
+            if "hold_days" in g:  # hold x threshold grids (src/sim/select.py); ids kept stable
+                params = {"hold_days": g["hold_days"], "entry_threshold": g["entry_threshold"]}
+                tid = f"select:{name}:{s['period']}:h{g['hold_days']}:t{g['entry_threshold']}"
+            else:  # other grids (e.g. Hedge eta x p_min, src/sim/select_hedge.py)
+                params = {k: v for k, v in g.items() if k not in GRID_RESULT_KEYS}
+                tid = f"select:{name}:{s['period']}:" + ":".join(
+                    f"{k}={v}" for k, v in sorted(params.items())
+                )
             rows.append(_trial(
-                trial_id=f"select:{name}:{s['period']}:h{g['hold_days']}:t{g['entry_threshold']}",
+                trial_id=tid,
                 family="selection_grid", strategy=name, params=json.dumps(params),
                 period=s["period"], start=s["start"], end=s["end"], metric="sharpe",
                 value=g["sharpe"], sharpe_ann=g["sharpe"], round_trips=g["round_trips"],
-                source="make train (src/sim/select.py)",
+                source="make train (src/sim/select*.py)",
             ))  # fmt: skip
     if impact_report:
         for model in ("logreg", "hgb"):

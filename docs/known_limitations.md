@@ -92,9 +92,3 @@ imagined. The `events` gold was sampled with the rule method's own ±24 h window
 copies found by `clean.dedup_key` rather than planted.
 
 ## Scope
-
-**L-14 — Hedge aggregation and the confidence threshold are not built.** The Must item (D-17,
-docs/01 row "aggregation with online weights") is covered today by equal weights; `aggregator.
-confidence_threshold` is `null`. The arena exists since D-42 (`make arena`). *Fix*: the next
-Must session: Hedge over strategy scores with `lookback_days` from train, threshold from the val_a
-return curve (each variant logged in `evals/trials.csv`), then the `--final` entry points (L-01).

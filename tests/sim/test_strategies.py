@@ -62,7 +62,7 @@ def test_mean_reversion_z_score_by_hand() -> None:
 
 
 RULE_BASED = {"buy_and_hold", "momentum", "mean_reversion", "finbert_v0"}
-STACKED = {"event", "impact", "aggregate_equal"}  # need `make train` artifacts (D-40)
+STACKED = {"event", "impact", "aggregate_equal", "aggregate_hedge"}  # need `make train` (D-40)
 
 
 def test_registry_builds_every_strategy_from_config() -> None:

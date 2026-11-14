@@ -35,6 +35,8 @@ impact:                              # impact model + calibration (D-40); fit on
   calibrator: platt                  # platt | isotonic; Platt fixed a priori (val_a has ~300 rows)
   val_fit_fraction: 0.5              # first half of validation sessions = val_a (fit), rest = val_b (report)
   ece_bins: 10
+aggregate_hedge:                     # Hedge over the same components (D-44); eta, p_min in selected.json
+  components: [sentiment, event, impact]
 aggregate_equal:                     # equal weights of sentiment, event and impact scores (D-40)
   components: [sentiment, event, impact]
 selection:                           # hold period x entry threshold grid, Sharpe after costs (D-40)
@@ -58,12 +60,15 @@ smc:                                 # Should, crypto only
   min_risk_reward: 2.0
 aggregator:
   method: hedge                      # hedge | stacking | llm_researcher | equal
-  hedge_eta: 0.1
-  lookback_days: 20
-  confidence_threshold: null         # filled from the validation run, see config/risk.yaml
+  lookback_days: 20                  # Hedge weights from the last 20 realised sessions (D-17)
+  hedge_grid:                        # aggregate_hedge (D-44): chosen on val_a only, best Sharpe
+    eta: [0.0, 1.0, 3.0, 10.0]       # 0 = fixed equal weights; losses are daily means in [0, 1]
+    p_min: [null, 0.5, 0.52, 0.55]   # confidence threshold on the calibrated p (null = off)
+  confidence_threshold: null         # the score threshold stays in risk.yaml; p_min is above
 
 arena:                               # make arena (D-42): validation only, never the test period
-  strategies: [buy_and_hold, momentum, mean_reversion, finbert_v0, event, impact, aggregate_equal]
+  strategies: [buy_and_hold, momentum, mean_reversion, finbert_v0, event, impact, aggregate_equal,
+               aggregate_hedge]
   headline: aggregate_equal          # the strategy whose deflated Sharpe is the arena metric
   ablation_of: aggregate_equal       # drop-one ablation over its `components`
   random_controls:
@@ -81,4 +86,4 @@ backtest:                            # src/sim (D-35); costs and the position ca
     ci: 0.95
     seed: 20261114
   trading_days_per_year: 252
-  risk_managed: [event, impact, aggregate_equal]   # src/sim/risk.py applied to these (D-40)
+  risk_managed: [event, impact, aggregate_equal, aggregate_hedge]   # src/sim/risk.py (D-40)

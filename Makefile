@@ -11,7 +11,7 @@ FINAL_LOCK := evals/results/TEST_FINAL.lock
 
 .PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final
 TRAIN_ARTIFACTS := data/models/impact.joblib data/models/event_items.json data/models/selected.json
-STACKED := event impact aggregate_equal
+STACKED := event impact aggregate_equal aggregate_hedge
 
 help: ## list targets
 > @grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /  -  /'
@@ -58,9 +58,10 @@ eda: ## figures into docs/figs and docs/02_data_understanding.md, data-quality a
 features: ## precompute NLP features (sentiment, events, facts, impact) for dev splits
 > $(RUN) python -m src.nlp.features --splits train,validation
 
-train: ## impact features (cached parquet), models on train, calibrator on val_a, 8-K item table, hold/threshold selection (D-40)
+train: ## impact features (cached parquet), models on train, calibrator on val_a, 8-K item table, hold/threshold + Hedge eta/p_min selection on val_a (D-40, D-44)
 > $(RUN) python -m src.sim.impact_train
 > $(RUN) python -m src.sim.select
+> $(RUN) python -m src.sim.select_hedge
 
 need-train: ## fail early when the `make train` artifacts (git-ignored, D-41) are missing
 > @for f in $(TRAIN_ARTIFACTS); do test -f "$$f" || { \

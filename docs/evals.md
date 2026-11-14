@@ -288,7 +288,14 @@ backtest (-1.58) includes val_a, where its hold period and threshold were picked
 train shows Sharpe 7.19: that is in-sample (the model was fitted on those days) and must not be
 read as skill; on validation it is -0.63. `event` was tuned on train (Sharpe -0.48, hold 10 days,
 threshold 0) and gets 3.06 on validation from 10 round trips, CI -0.55 to 6.55, which contains
-buy-and-hold's 1.34: indistinguishable from it. Hedge weights were not built (time box).
+buy-and-hold's 1.34: indistinguishable from it.
+
+`aggregate_hedge` (D-44): Hedge weights updated daily on realised drift_ar plus a confidence
+threshold p_min on the calibrated p, chosen on val_a over 16 points that include fixed equal
+weights. Equal weights without a threshold won on val_a (Sharpe 1.14 vs 1.03 for the best Hedge,
+eta 3; every p_min lowered it, down to -3.5 at 0.55), so the chosen Hedge is the equal-weight
+aggregate and inherits its val_b result. With a 32-session val_a and three components that are
+near noise (impact AUC 0.50), the weights have little signal to learn from.
 
 ### risk
 

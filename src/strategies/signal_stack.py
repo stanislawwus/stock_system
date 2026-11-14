@@ -54,6 +54,8 @@ def load_impact_model() -> ImpactModel:
 def selected_params(name: str) -> dict[str, Any]:
     """{hold_days, entry_threshold} chosen by `src.sim.select` for strategy `name`."""
     sel = json.loads(_need(model_dir() / "selected.json").read_text(encoding="utf-8"))
+    if name not in sel:  # a FileNotFoundError: the API skips untrained strategies (D-40)
+        raise FileNotFoundError(f"{name} not in selected.json: run `make train` first")
     return dict(sel[name]["chosen"])
 
 
@@ -152,7 +154,9 @@ class AggregateEqual(_Stacked):
     def signal(self, ticker: str, view: MarketView) -> Signal:
         parts = self.parts(self._features(ticker, view))
         if self.parts_log is not None:
-            self.parts_log[(ticker, view.as_of.date())] = {k: v[0] for k, v in parts.items()}
+            logged = {k: v[0] for k, v in parts.items()}
+            logged["p"] = parts["impact"][1]  # calibrated probability (Hedge replay, D-44)
+            self.parts_log[(ticker, view.as_of.date())] = logged
         score = float(np.mean([parts[c][0] for c in self.components]))
         reasons = [f"{c}={parts[c][0]:.3f}" for c in self.components]
         return self._signal(ticker, view, score, parts["impact"][1], *reasons)

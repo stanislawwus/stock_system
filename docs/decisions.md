@@ -532,3 +532,23 @@ redirected to a scratch directory (the rehearsal found a `relative_to` crash in 
 path that would have failed a real final run after the lock; fixed). Rejected: two separate
 `--final` processes (the second either refuses or needs a weaker lock); writing the lock after
 the runs (the L-01 hole); a lock per stage (allows partial re-reads).
+
+**D-44 (2026-11-14) — Hedge aggregation and the confidence threshold** (completes D-17's Must;
+`src/strategies/hedge.py`, `src/sim/select_hedge.py`). `aggregate_hedge` weights the
+`aggregate_equal` components (sentiment, event, impact) by multiplicative weights over the last
+`aggregator.lookback_days` = 20 *realised* sessions: loss of a component on (ticker, d') =
+(1 − s·sign(drift_ar)) / 2, averaged over tickers; drift_ar of d' is computed from the view's own
+bars with `src.impact.labels.abnormal_returns`, so the newest usable label at the cutoff of D is
+d' = D−2 (no label table, no execution prices: R2; a test pins "never before its close"). The
+confidence threshold `p_min` turns a suggestion into cash when the impact model's calibrated p is
+below it; then the usual entry threshold applies. eta ∈ {0, 1, 3, 10} × p_min ∈ {off, 0.50,
+0.52, 0.55} are chosen on **val_a only** with the same rule as D-40 (best Sharpe after costs with
+the risk manager, ≥ 10 round trips); hold and entry threshold are `aggregate_equal`'s. eta = 0 /
+p_min off is fixed equal weights and is in the grid. **Result: equal weights without a threshold
+won on val_a (Sharpe 1.14, 69 round trips); every eta > 0 and every p_min was lower** (best
+alternative eta 3 / off 1.03; any p_min ≤ 0.66), so `aggregate_hedge` currently trades exactly
+like `aggregate_equal`. val_b of the rejected points was not computed (L-05). The 16 grid points
+enter `evals/trials.csv` (N of the deflated Sharpe) at the next `make arena`. The walk-forward
+strategy remembers the scores it computed earlier in the same run; a fresh object (e.g. one API
+call) starts with equal weights. Rejected: weights from a static val_a fit (not online, D-17);
+the label table inside the strategy (R2); a p_min grid above 0.55 (fewer than 10 round trips).
