@@ -19,6 +19,7 @@ No result below uses the test period (AGENTS.md R3).
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 3e25cdb |
 | events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
 | facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 3e25cdb |
+| llm_bakeoff | schema_adherence | 0.75 | 1.0 | **no** | 20 headlines of evals/labels/news_100.csv + 10 releases of the facts gold (XBRL) | 30 | nvidia/nemotron-3-ultra-550b-a55b:free | 44fc8b2 |
 | relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 3e25cdb |
 | sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 3e25cdb |
 | simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 3e25cdb |
@@ -195,17 +196,48 @@ No result below uses the test period (AGENTS.md R3).
   CMCSA "Revenue Increased 28% to $1.0 Billion"), 1 is a gold problem (AXP: the XBRL concept
   picked for revenue, 9.3 bn, is narrower than the reported total revenue of 15.8 bn), 1 is an
   EPS from another line (NFLX). The regex was not tuned on this gold set.
-- **LLM on 15 filings: not run in this session** (see llm_bakeoff); `details.head_to_head_first_k`
+- **LLM on 15 filings: not run in this session**; the bake-off's 10-release LLM numbers are in
+  the llm_bakeoff section (nemotron 0.63 within 1 % on 30 pairs); `details.head_to_head_first_k`
   shows `used_fallback: true`, i.e. regex numbers, and is labelled as such in `notes`.
 
-### llm_bakeoff (pending)
+### llm_bakeoff
 
 - **Metric**: JSON-schema adherence per HTTP call for `cohere/north-mini-code:free` vs
   `nvidia/nemotron-3-ultra-550b-a55b:free`, latency per call, quality on 20 gold headlines and
   10 gold releases as a tie-breaker. `evals/eval_llm_bakeoff.py`, at most 15 calls, 10 items per
-  call. **Not run yet**: the live run was stopped by the session's permission layer (the
-  budget counter needed a cap above 15 because mock dry-runs had counted 30 phantom calls, see
-  agent_log). No result file is committed, so no model choice is recorded yet (D-39).
+  call. **Target**: adherence 1.0. **Why**: on free tiers a model that breaks the schema burns
+  retries and falls back, so adherence and latency decide usefulness before quality.
+- **Gold set**: 20 headlines sampled (fixed seed) from `evals/labels/news_100.csv` and the first
+  10 releases of the facts gold (30 XBRL pairs). Run once live on 2026-11-14 (git 44fc8b2),
+  **10 HTTP calls in total** (cohere 6, nemotron 4), trace in `llm_bakeoff.calls.jsonl`.
+- **Sample size warning**: 20 headlines, 10 releases, 4-6 calls per model. One headline moves
+  event match by 0.05 and one call moves adherence by 0.17-0.25; the differences below are
+  indicative only, no CI is reported because it would span most of [0, 1].
+
+| | nemotron-3-ultra | north-mini-code |
+|---|---|---|
+| schema adherence (valid / HTTP calls) | **0.75** (3/4) | 0.33 (2/6) |
+| failures | 1 invalid_json (facts) | 1 invalid_json (events), 3 empty_content (facts) |
+| events exact-set match, 20 headlines | **0.90** | 0.85 |
+| sentiment macro-F1, 20 headlines | 0.43 | 0.38 |
+| facts within 1 %, 30 pairs | **0.63** | 0.40 (regex fallback) |
+| facts exact / coverage | 0.73 / 0.87 | 0.43 / 0.53 (regex fallback) |
+| facts grounding rate | 0.73 (19 of 26) | 1.00 (regex fallback) |
+| facts period = gold quarter, of found | **0.12** | 0.88 (regex fallback) |
+| latency per 10-item call | events 32-36 s, facts 139-142 s | events 17-20 s, facts 31-53 s (no content) |
+
+- **Below target (0.75 < 1.0)**: no model kept the schema on every call. Nemotron failed one
+  facts call with truncated JSON and recovered on retry; cohere's three facts calls all ended
+  with empty content (`finish_reason=length` twice at ~8,190 completion tokens, `error` once),
+  i.e. its reasoning used the whole token cap, so **every cohere facts number above is the
+  deterministic regex fallback, not the model**. Cohere's events calls worked (2 of 3).
+- **Decision (D-39, `config/llm.yaml`)**: nemotron is primary and cohere the fallback for
+  `events` and `facts`; sentiment stays on FinBERT (0.43 / 0.38 on 20 headlines does not beat
+  FinBERT's 0.52 on the 150-item gold, and the samples are not comparable enough to argue
+  otherwise). LLM fact extraction runs **only in offline batch** (139-142 s per call rules out a
+  synchronous API path), with `grounded_only` **mandatory** (27 % of nemotron's facts were
+  ungrounded) and the **period taken from XBRL**, never from the model (period match 0.12: the
+  model's period string rarely names the gold quarter; the cause was not analysed per fact).
 
 ### prompt injection (tests, not a scored eval)
 

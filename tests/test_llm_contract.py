@@ -81,3 +81,26 @@ def test_budget_exceeded_routes_to_fallback(
         "sentiment", "classify", [{"text": "good"}], _Out, fallback=lambda items: [_Out(label=0)]
     )
     assert res.used_fallback and res.model is None and res.outputs == [_Out(label=0)]
+
+
+def _route(task: str) -> list[str]:
+    cfg = yaml.safe_load((ROOT / "config/llm.yaml").read_text(encoding="utf-8"))
+    return [m["id"] for m in cfg["models"] if task in m.get("use_for", [])]
+
+
+def test_bakeoff_routing_is_recorded_in_config() -> None:
+    """D-39: nemotron primary, cohere fallback for events and facts; no LLM for sentiment."""
+    expected = ["nvidia/nemotron-3-ultra-550b-a55b:free", "cohere/north-mini-code:free"]
+    assert _route("events") == expected
+    assert _route("facts") == expected
+    assert _route("sentiment") == [], "sentiment stays on FinBERT (D-39)"
+
+
+def test_api_never_calls_llm_fact_extraction() -> None:
+    """D-39: LLM facts run only offline (139-142 s per call); the API serves stored facts."""
+    offenders = [
+        str(py.relative_to(ROOT))
+        for py in (ROOT / "src" / "api").rglob("*.py")
+        if re.search(r"extract_llm|call_json|from src import llm|src\.llm", py.read_text("utf-8"))
+    ]
+    assert not offenders, f"synchronous LLM path in the API: {offenders}"

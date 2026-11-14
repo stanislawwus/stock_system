@@ -22,18 +22,19 @@ cache_dir: data/cache/llm
 trace_dir: data/traces
 
 # Tried in order (filtered by use_for); skipped after max_consecutive_failures.
-# Order is provisional (D-39): the live bake-off has not run yet. Update after it.
+# Order from the bake-off (D-39, evals/results/llm_bakeoff.json, n = 20 headlines + 10 releases):
+#   events, facts: nemotron (primary) -> cohere (fallback) -> deterministic fallback below.
+#   sentiment: no LLM route; sentiment stays on FinBERT (config/nlp.yaml).
+# Facts policy (D-39): LLM facts run only in offline batch (make features / evals), never
+# synchronously from the API (139-142 s per 10-release call); grounded_only is mandatory;
+# the fiscal period comes from XBRL, never from the model (model period matched 0.12).
 models:
-  - id: cohere/north-mini-code:free            # primary: JSON schema output
-    use_for: [facts, events, sentiment, intake]
-  - id: nvidia/nemotron-3-ultra-550b-a55b:free # quality candidate: chat, facts
-    use_for: [chat, facts, events]
-  - id: thinkingmachines/inkling-2-small:free  # fallback 1
-    use_for: [facts, events, sentiment, chat, intake]
-  - id: liquid/lfm-3-1.7b:free                 # fast cheap fallback (weak accuracy)
-    use_for: [sentiment, events]
-  - id: liquid/lfm-2.5-2.6b:free               # short snippets only
-    use_for: [sentiment]
+  - id: nvidia/nemotron-3-ultra-550b-a55b:free # primary: adherence 0.75, events 0.90, facts 0.63
+    use_for: [events, facts, chat]
+  - id: cohere/north-mini-code:free            # fallback: adherence 0.33; facts calls gave 0/3 content
+    use_for: [events, facts, intake]
+  - id: thinkingmachines/inkling-2-small:free  # not measured; chat/intake only
+    use_for: [chat, intake]
 
 # Deterministic fallbacks when the budget is gone or every model fails.
 fallbacks:

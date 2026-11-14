@@ -391,15 +391,32 @@ redrawn the committed strata). New rows go to `news_100.v2.csv`.
 - *LLM evals and budget*: `make eval` sets `LLM_DAILY_BUDGET=0` unless `EVAL_LLM_LIVE=1`, so it
   serves cached responses and otherwise falls back; it never spends free-tier calls. The bake-off
   (`evals/eval_llm_bakeoff.py`, cohere/north-mini-code vs nvidia/nemotron-3-ultra, 3 calls each,
-  10 items per call, <= 15 calls) is run on purpose; the model choice and the fallback order
-  (then inkling-2-small, lfm-3-1.7b; never parallel/decisions-fast, it is web-grounded) are to
-  be recorded here after that run. Not run yet (agent_log 2026-11-14).
-- *Model order (provisional, 2026-11-14)*: the bake-off has NOT produced a result file, so no
-  bake-off winner exists. `config/llm.yaml` keeps the a-priori order: cohere/north-mini-code
-  (primary), nvidia/nemotron-3-ultra (facts/events/chat), thinkingmachines/inkling-2-small,
-  liquid/lfm-3-1.7b, liquid/lfm-2.5-2.6b (sentiment only); parallel/decisions-fast is never used.
-  Replace this bullet with the measured choice after `EVAL_LLM_LIVE=1` run of
-  `evals.eval_llm_bakeoff`.
+  10 items per call, <= 15 calls) is run on purpose (never parallel/decisions-fast, it is
+  web-grounded); it ran on 2026-11-14 with 10 live calls, result in the model-choice bullet below.
+- *Model choice (bake-off 2026-11-14, `evals/results/llm_bakeoff.json`, git 44fc8b2)*: for
+  `events` and `facts` the primary is `nvidia/nemotron-3-ultra-550b-a55b:free`, the fallback
+  `cohere/north-mini-code:free`, then the deterministic fallback of `config/llm.yaml`. Measured
+  (10 live HTTP calls in total, 20 headlines + 10 releases / 30 XBRL pairs, so every number is
+  indicative, not significant): schema adherence nemotron 0.75 (3/4 calls) vs cohere 0.33 (2/6);
+  event exact-set match 0.90 vs 0.85 (18 vs 17 of 20); facts within 1 % 0.63 vs 0.40, coverage
+  0.87, grounding 0.73, quarter match of found facts 0.12. Cohere's facts figures are the regex
+  fallback, not the model: all 3 of its facts calls returned empty content (reasoning used the
+  whole 8,192-token cap), so cohere is a fallback for `events` in practice and for `facts` only
+  nominally. Latency per 10-item call: nemotron 32-36 s (events) and 139-142 s (facts), cohere
+  17-20 s (events). inkling-2-small stays for chat/intake only; liquid/lfm-3-1.7b and
+  liquid/lfm-2.5-2.6b are removed (not measured, their only tasks were sentiment/events);
+  parallel/decisions-fast is never used.
+- *Sentiment stays on FinBERT* (`config/nlp.yaml`, ProsusAI/finbert): no LLM is routed for
+  `sentiment`. Bake-off macro-F1 on 20 headlines was 0.43 (nemotron) / 0.38 (cohere), not above
+  FinBERT's 0.52 on the 150-item gold, and an LLM in the final run would cost budget per day.
+- *LLM fact extraction policy*: (1) offline batch only (`make features` / evals), never called
+  synchronously from an API request: a 10-release call took 139-142 s; the API serves stored
+  facts. (2) The grounding check (`grounded_only`) is mandatory: 27 % of nemotron's facts were
+  ungrounded and are dropped, never repaired. (3) The fiscal period is taken from XBRL (the
+  filing's report period), never from the model: the model's period matched the gold quarter for
+  only 12 % of found facts. Rejected: LLM sentiment (no gain on 20 items, budget), cohere as
+  facts primary (0/3 facts calls returned content), synchronous LLM facts in `/api/v1/events`
+  (latency far above a request timeout).
 - *Budget counter fix*: `src/llm.py` consumes the daily counter only for real provider calls
   (mode `live`). Mock-mode attempts (tests, dry-runs) are free; earlier dry-runs had inflated
   `.llm_budget.json` with 30 phantom calls. Test: `test_mock_attempts_do_not_consume_the_daily_budget`.
