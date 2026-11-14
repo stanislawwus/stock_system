@@ -1,0 +1,577 @@
+{
+  "component": "facts",
+  "metric": "within_1pct",
+  "value": 0.3333,
+  "target": 0.9,
+  "why_this_metric": "a number is right or useless; +/-1 % covers the release's rounding; grounding makes every wrong value inspectable",
+  "gold_set": "derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings",
+  "n": 87,
+  "split": "warmup+train+validation (filings accepted by the last validation cutoff)",
+  "model": "regex (LLM fallback on 15 in details)",
+  "git_sha": "3e25cdb",
+  "run_at": "2026-11-14T18:07:04+00:00",
+  "notes": "regex within-1% 0.3333 (exact 0.3563, grounded 1.0) vs target 0.9; LLM on 15: within-1% 0.3182, grounded 1.0 (LLM not run: regex fallback). Explanation in docs/evals.md (facts).",
+  "details": {
+    "regex_all": {
+      "n_filings": 30,
+      "gold_pairs": 87,
+      "within_1pct": 0.3333,
+      "exact_match": 0.3563,
+      "coverage": 0.4368,
+      "grounding_rate": 1.0,
+      "n_extracted": 38,
+      "period_quarter_match_of_found": 0.8947,
+      "errors": [
+        {
+          "accession": "0001551152-24-000024",
+          "metric": "eps_diluted",
+          "gold": 0.77
+        },
+        {
+          "accession": "0001551152-24-000024",
+          "metric": "net_income",
+          "gold": 1370000000.0
+        },
+        {
+          "accession": "0001551152-24-000024",
+          "metric": "revenue",
+          "gold": 14462000000.0
+        },
+        {
+          "accession": "0000004962-24-000029",
+          "metric": "revenue",
+          "gold": 9339000000.0,
+          "pred": 15800000000.0,
+          "quote": "REVENUE INCREASED 11% TO $15.8 BILLION"
+        },
+        {
+          "accession": "0000004962-24-000029",
+          "metric": "net_income",
+          "gold": 2437000000.0,
+          "pred": 2400000000.0,
+          "quote": "net income of $2.4 billion"
+        },
+        {
+          "accession": "0000732717-24-000056",
+          "metric": "eps_diluted",
+          "gold": -0.03
+        },
+        {
+          "accession": "0000732717-24-000056",
+          "metric": "net_income",
+          "gold": -174000000.0,
+          "pred": 100000000.0,
+          "quote": "Net income of $0.1 billion"
+        },
+        {
+          "accession": "0000909832-25-000031",
+          "metric": "net_income",
+          "gold": 1903000000.0
+        },
+        {
+          "accession": "0000909832-25-000031",
+          "metric": "revenue",
+          "gold": 63205000000.0
+        },
+        {
+          "accession": "0000070858-24-000144",
+          "metric": "revenue",
+          "gold": 25818000000.0
+        },
+        {
+          "accession": "0000731766-24-000146",
+          "metric": "net_income",
+          "gold": -1409000000.0
+        },
+        {
+          "accession": "0000731766-24-000146",
+          "metric": "eps_diluted",
+          "gold": -1.53
+        },
+        {
+          "accession": "0001104659-26-090045",
+          "metric": "net_income",
+          "gold": -1335000000.0
+        },
+        {
+          "accession": "0001104659-26-090045",
+          "metric": "eps_diluted",
+          "gold": -0.54
+        },
+        {
+          "accession": "0000092122-25-000078",
+          "metric": "eps_diluted",
+          "gold": 0.79
+        },
+        {
+          "accession": "0000092122-25-000078",
+          "metric": "net_income",
+          "gold": 880000000.0
+        },
+        {
+          "accession": "0000732712-24-000062",
+          "metric": "eps_diluted",
+          "gold": 0.78
+        },
+        {
+          "accession": "0000732712-24-000062",
+          "metric": "net_income",
+          "gold": 3306000000.0,
+          "pred": 4900000000.0,
+          "quote": "net income of $4.9 billion"
+        },
+        {
+          "accession": "0001065280-25-000322",
+          "metric": "eps_diluted",
+          "gold": 7.19,
+          "pred": 4.88,
+          "quote": "Diluted EPS $ 4.88"
+        },
+        {
+          "accession": "0001065280-25-000322",
+          "metric": "revenue",
+          "gold": 11079166000.0
+        }
+      ]
+    },
+    "head_to_head_first_k": {
+      "regex": {
+        "n_filings": 15,
+        "gold_pairs": 44,
+        "within_1pct": 0.3182,
+        "exact_match": 0.3409,
+        "coverage": 0.4318,
+        "grounding_rate": 1.0,
+        "n_extracted": 19,
+        "period_quarter_match_of_found": 0.8421,
+        "errors": [
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "eps_diluted",
+            "gold": 0.77
+          },
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "net_income",
+            "gold": 1370000000.0
+          },
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "revenue",
+            "gold": 14462000000.0
+          },
+          {
+            "accession": "0000004962-24-000029",
+            "metric": "revenue",
+            "gold": 9339000000.0,
+            "pred": 15800000000.0,
+            "quote": "REVENUE INCREASED 11% TO $15.8 BILLION"
+          },
+          {
+            "accession": "0000004962-24-000029",
+            "metric": "net_income",
+            "gold": 2437000000.0,
+            "pred": 2400000000.0,
+            "quote": "net income of $2.4 billion"
+          },
+          {
+            "accession": "0000732717-24-000056",
+            "metric": "eps_diluted",
+            "gold": -0.03
+          },
+          {
+            "accession": "0000732717-24-000056",
+            "metric": "net_income",
+            "gold": -174000000.0,
+            "pred": 100000000.0,
+            "quote": "Net income of $0.1 billion"
+          },
+          {
+            "accession": "0000909832-25-000031",
+            "metric": "net_income",
+            "gold": 1903000000.0
+          },
+          {
+            "accession": "0000909832-25-000031",
+            "metric": "revenue",
+            "gold": 63205000000.0
+          },
+          {
+            "accession": "0000070858-24-000144",
+            "metric": "revenue",
+            "gold": 25818000000.0
+          },
+          {
+            "accession": "0000731766-24-000146",
+            "metric": "net_income",
+            "gold": -1409000000.0
+          },
+          {
+            "accession": "0000731766-24-000146",
+            "metric": "eps_diluted",
+            "gold": -1.53
+          },
+          {
+            "accession": "0001104659-26-090045",
+            "metric": "net_income",
+            "gold": -1335000000.0
+          },
+          {
+            "accession": "0001104659-26-090045",
+            "metric": "eps_diluted",
+            "gold": -0.54
+          },
+          {
+            "accession": "0000092122-25-000078",
+            "metric": "eps_diluted",
+            "gold": 0.79
+          },
+          {
+            "accession": "0000092122-25-000078",
+            "metric": "net_income",
+            "gold": 880000000.0
+          },
+          {
+            "accession": "0000732712-24-000062",
+            "metric": "eps_diluted",
+            "gold": 0.78
+          },
+          {
+            "accession": "0000732712-24-000062",
+            "metric": "net_income",
+            "gold": 3306000000.0,
+            "pred": 4900000000.0,
+            "quote": "net income of $4.9 billion"
+          },
+          {
+            "accession": "0001065280-25-000322",
+            "metric": "eps_diluted",
+            "gold": 7.19,
+            "pred": 4.88,
+            "quote": "Diluted EPS $ 4.88"
+          },
+          {
+            "accession": "0001065280-25-000322",
+            "metric": "revenue",
+            "gold": 11079166000.0
+          }
+        ]
+      },
+      "llm": {
+        "model": null,
+        "used_fallback": true,
+        "calls": {
+          "fallback": 2
+        },
+        "cache_hits": 0,
+        "n_filings": 15,
+        "gold_pairs": 44,
+        "within_1pct": 0.3182,
+        "exact_match": 0.3409,
+        "coverage": 0.4318,
+        "grounding_rate": 1.0,
+        "n_extracted": 19,
+        "period_quarter_match_of_found": 0.8421,
+        "errors": [
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "eps_diluted",
+            "gold": 0.77
+          },
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "net_income",
+            "gold": 1370000000.0
+          },
+          {
+            "accession": "0001551152-24-000024",
+            "metric": "revenue",
+            "gold": 14462000000.0
+          },
+          {
+            "accession": "0000004962-24-000029",
+            "metric": "revenue",
+            "gold": 9339000000.0,
+            "pred": 15800000000.0,
+            "quote": "REVENUE INCREASED 11% TO $15.8 BILLION"
+          },
+          {
+            "accession": "0000004962-24-000029",
+            "metric": "net_income",
+            "gold": 2437000000.0,
+            "pred": 2400000000.0,
+            "quote": "net income of $2.4 billion"
+          },
+          {
+            "accession": "0000732717-24-000056",
+            "metric": "eps_diluted",
+            "gold": -0.03
+          },
+          {
+            "accession": "0000732717-24-000056",
+            "metric": "net_income",
+            "gold": -174000000.0,
+            "pred": 100000000.0,
+            "quote": "Net income of $0.1 billion"
+          },
+          {
+            "accession": "0000909832-25-000031",
+            "metric": "net_income",
+            "gold": 1903000000.0
+          },
+          {
+            "accession": "0000909832-25-000031",
+            "metric": "revenue",
+            "gold": 63205000000.0
+          },
+          {
+            "accession": "0000070858-24-000144",
+            "metric": "revenue",
+            "gold": 25818000000.0
+          },
+          {
+            "accession": "0000731766-24-000146",
+            "metric": "net_income",
+            "gold": -1409000000.0
+          },
+          {
+            "accession": "0000731766-24-000146",
+            "metric": "eps_diluted",
+            "gold": -1.53
+          },
+          {
+            "accession": "0001104659-26-090045",
+            "metric": "net_income",
+            "gold": -1335000000.0
+          },
+          {
+            "accession": "0001104659-26-090045",
+            "metric": "eps_diluted",
+            "gold": -0.54
+          },
+          {
+            "accession": "0000092122-25-000078",
+            "metric": "eps_diluted",
+            "gold": 0.79
+          },
+          {
+            "accession": "0000092122-25-000078",
+            "metric": "net_income",
+            "gold": 880000000.0
+          },
+          {
+            "accession": "0000732712-24-000062",
+            "metric": "eps_diluted",
+            "gold": 0.78
+          },
+          {
+            "accession": "0000732712-24-000062",
+            "metric": "net_income",
+            "gold": 3306000000.0,
+            "pred": 4900000000.0,
+            "quote": "net income of $4.9 billion"
+          },
+          {
+            "accession": "0001065280-25-000322",
+            "metric": "eps_diluted",
+            "gold": 7.19,
+            "pred": 4.88,
+            "quote": "Diluted EPS $ 4.88"
+          },
+          {
+            "accession": "0001065280-25-000322",
+            "metric": "revenue",
+            "gold": 11079166000.0
+          }
+        ]
+      }
+    },
+    "filings": [
+      {
+        "accession": "0001551152-24-000024",
+        "ticker": "ABBV",
+        "fiscal_period": "Q2-2024",
+        "period_end": "2024-06-30"
+      },
+      {
+        "accession": "0000004962-24-000029",
+        "ticker": "AXP",
+        "fiscal_period": "Q1-2024",
+        "period_end": "2024-03-31"
+      },
+      {
+        "accession": "0000732717-24-000056",
+        "ticker": "T",
+        "fiscal_period": "Q3-2024",
+        "period_end": "2024-09-30"
+      },
+      {
+        "accession": "0000909832-25-000031",
+        "ticker": "COST",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-05-11"
+      },
+      {
+        "accession": "0000070858-24-000144",
+        "ticker": "BAC",
+        "fiscal_period": "Q1-2024",
+        "period_end": "2024-03-31"
+      },
+      {
+        "accession": "0000886982-26-000096",
+        "ticker": "GS",
+        "fiscal_period": "Q1-2026",
+        "period_end": "2026-03-31"
+      },
+      {
+        "accession": "0000731766-24-000146",
+        "ticker": "UNH",
+        "fiscal_period": "Q1-2024",
+        "period_end": "2024-03-31"
+      },
+      {
+        "accession": "0001104659-26-090045",
+        "ticker": "MRK",
+        "fiscal_period": "Q2-2026",
+        "period_end": "2026-06-30"
+      },
+      {
+        "accession": "0000092122-25-000078",
+        "ticker": "SO",
+        "fiscal_period": "Q2-2025",
+        "period_end": "2025-06-30"
+      },
+      {
+        "accession": "0000732712-24-000062",
+        "ticker": "VZ",
+        "fiscal_period": "Q3-2024",
+        "period_end": "2024-09-30"
+      },
+      {
+        "accession": "0001065280-25-000322",
+        "ticker": "NFLX",
+        "fiscal_period": "Q2-2025",
+        "period_end": "2025-06-30"
+      },
+      {
+        "accession": "0001628280-25-035738",
+        "ticker": "TSLA",
+        "fiscal_period": "Q2-2025",
+        "period_end": "2025-06-30"
+      },
+      {
+        "accession": "0001403161-25-000016",
+        "ticker": "V",
+        "fiscal_period": "Q1-2025",
+        "period_end": "2024-12-31"
+      },
+      {
+        "accession": "0000093410-26-000110",
+        "ticker": "CVX",
+        "fiscal_period": "Q1-2026",
+        "period_end": "2026-03-31"
+      },
+      {
+        "accession": "0001193125-26-027198",
+        "ticker": "MSFT",
+        "fiscal_period": "Q2-2026",
+        "period_end": "2025-12-31"
+      },
+      {
+        "accession": "0000034088-25-000040",
+        "ticker": "XOM",
+        "fiscal_period": "Q2-2025",
+        "period_end": "2025-06-30"
+      },
+      {
+        "accession": "0000077476-25-000055",
+        "ticker": "PEP",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-09-06"
+      },
+      {
+        "accession": "0001744489-25-000135",
+        "ticker": "DIS",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-06-28"
+      },
+      {
+        "accession": "0000078003-25-000149",
+        "ticker": "PFE",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-09-28"
+      },
+      {
+        "accession": "0000051143-26-000036",
+        "ticker": "IBM",
+        "fiscal_period": "Q1-2026",
+        "period_end": "2026-03-31"
+      },
+      {
+        "accession": "0001053507-25-000147",
+        "ticker": "AMT",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-09-30"
+      },
+      {
+        "accession": "0000896878-24-000024",
+        "ticker": "INTU",
+        "fiscal_period": "Q3-2024",
+        "period_end": "2024-04-30"
+      },
+      {
+        "accession": "0000316709-26-000016",
+        "ticker": "SCHW",
+        "fiscal_period": "Q1-2026",
+        "period_end": "2026-03-31"
+      },
+      {
+        "accession": "0000002488-24-000054",
+        "ticker": "AMD",
+        "fiscal_period": "Q1-2024",
+        "period_end": "2024-03-30"
+      },
+      {
+        "accession": "0000019617-24-000555",
+        "ticker": "JPM",
+        "fiscal_period": "Q3-2024",
+        "period_end": "2024-09-30"
+      },
+      {
+        "accession": "0000320193-25-000071",
+        "ticker": "AAPL",
+        "fiscal_period": "Q3-2025",
+        "period_end": "2025-06-28"
+      },
+      {
+        "accession": "0000101829-26-000025",
+        "ticker": "RTX",
+        "fiscal_period": "Q2-2026",
+        "period_end": "2026-06-30"
+      },
+      {
+        "accession": "0000060667-26-000062",
+        "ticker": "LOW",
+        "fiscal_period": "Q1-2026",
+        "period_end": "2026-05-01"
+      },
+      {
+        "accession": "0001166691-24-000046",
+        "ticker": "CMCSA",
+        "fiscal_period": "Q2-2024",
+        "period_end": "2024-06-30"
+      },
+      {
+        "accession": "0001141391-24-000085",
+        "ticker": "MA",
+        "fiscal_period": "Q1-2024",
+        "period_end": "2024-03-31"
+      }
+    ],
+    "gold_metric_counts": {
+      "revenue": 30,
+      "net_income": 28,
+      "eps_diluted": 29
+    }
+  }
+}

@@ -24,3 +24,13 @@ events:
     class_weight: balanced         # weak positives are rare (most headlines are 'none')
     max_iter: 2000
   threshold: 0.5                   # P(label) above which a label is predicted
+
+facts:
+  # EX-99.1 press release -> {metric, value, unit, period} with a grounding span (D-39).
+  snippet_chars: 4000            # the headline numbers sit at the top of the release
+  regex_context_chars: 40        # look-behind for "adjusted" / "non-GAAP" before a regex match
+  value_rel_tol: 0.01            # eval: within +/- 1 % of XBRL (docs/03_eval_plan.md)
+  gold_n_filings: 30             # 8-K item 2.02 filings of dev splits, one per ticker first
+  llm_n_filings: 15              # first 15 of the 30 go to the LLM (2 batched calls)
+  gold_max_days_after_period: 100  # XBRL quarter must end at most this long before the 8-K
+  sample_seed: 20261114
