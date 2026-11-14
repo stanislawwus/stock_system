@@ -100,7 +100,7 @@ No result below uses the test period (AGENTS.md R3).
 - **Metric**: macro-F1 over pos / neu / neg, headline only.
 - **Gold set**: `evals/labels/news_100.csv`, 150 human-labelled Finnhub headlines from train +
   validation (D-34; 110 neu, 33 pos, 7 neg), label = view of a holder of the tagged ticker.
-  Not yet frozen in git (see D-36).
+  Frozen on 2026-11-14 and hash-pinned in `tests/test_repo_rules.py` (D-37).
 - **Target**: 0.80. **Why**: the classes are imbalanced; macro-F1 weights negative and positive
   as much as neutral, so "always neutral" scores badly.
 - **Below target: FinBERT 0.52** (pos 0.48, neu 0.68, neg 0.39); the lexicon baseline scores

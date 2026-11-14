@@ -328,3 +328,14 @@ rebalancing to equal weight (turnover without information), i.i.d. bootstrap.
 - *Gold set*: the sentiment eval reads the human-labelled `evals/labels/news_100.csv` as-is.
   Freezing it (header update, removing the draft) was not done in this session: edits under
   `evals/labels/` were refused by the tool permission layer, so the user freezes it.
+
+**D-37 (2026-11-14) — `news_100` is frozen** (supersedes the gold-set bullet of D-36).
+The user asked for label-helper steps 5-8 after the human finished labelling. Step 5: no LLM
+suggestions, so kappa is n/a. Step 6: no planted errors, because the set has no LLM labeller or
+judge to test (the eval plan's planted errors are for LLM components); this is stated in the
+header. Step 7: only the provenance header changed (body byte-identical to the labelled file,
+non-label columns identical to the draft, every label within the D-10 / pos-neu-neg spaces),
+the draft was removed, and the set was committed alone. Step 8: README row, docs/evals.md.
+`news_100.csv` and `news_100.strata.csv` are hash-pinned in `tests/test_repo_rules.py`, and
+`evals/make_news_sheet.py` refuses to write once the frozen file exists (a rerun would have
+redrawn the committed strata). New rows go to `news_100.v2.csv`.
