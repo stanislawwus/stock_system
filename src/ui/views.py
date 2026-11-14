@@ -7,7 +7,14 @@ from typing import Any
 
 import pandas as pd
 
-from src.schemas import Brief, EvalResult, EventsResponse, NewsResponse, SignalsResponse
+from src.schemas import (
+    Brief,
+    EvalResult,
+    EventsResponse,
+    ModelInfo,
+    NewsResponse,
+    SignalsResponse,
+)
 
 
 def num(x: float | int | None, nd: int = 3) -> str:
@@ -19,6 +26,19 @@ def num(x: float | int | None, nd: int = 3) -> str:
 
 def ci_text(ci: tuple[float, float] | list[float] | None, nd: int = 2) -> str:
     return "n/a" if not ci else f"[{ci[0]:.{nd}f}, {ci[1]:.{nd}f}]"
+
+
+def llm_budget_exhausted(models: list[ModelInfo]) -> bool:
+    """True when today's LLM budget is used up. The app is then degraded, not broken: FinBERT,
+    the rules and the template chat answers do not need the budget (D-46, D-48)."""
+    return bool(models) and models[0].calls_today >= models[0].daily_budget
+
+
+DEGRADED_BUDGET = (
+    "Degraded mode: the daily LLM call budget is used up. Sentiment (FinBERT), event rules, "
+    "signals and template chat answers keep working; LLM-assisted steps use their deterministic "
+    "fallbacks."
+)
 
 
 def signals_table(resp: SignalsResponse) -> pd.DataFrame:

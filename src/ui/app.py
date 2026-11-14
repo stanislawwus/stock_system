@@ -8,8 +8,9 @@ from __future__ import annotations
 import streamlit as st
 
 from src.schemas import DISCLAIMER
-from src.ui.client import ApiClient
+from src.ui.client import ApiClient, ApiError, ApiUnreachable
 from src.ui.screens import analyzer, arena, ask, brief, evals, ticker
+from src.ui.views import DEGRADED_BUDGET, llm_budget_exhausted
 
 
 @st.cache_resource
@@ -25,6 +26,12 @@ def main() -> None:
     if not client.health():
         st.error("API not reachable: run `make up` (or `make api`) and reload this page.")
         st.stop()
+
+    try:
+        if llm_budget_exhausted(client.models()):
+            st.warning(DEGRADED_BUDGET)
+    except (ApiError, ApiUnreachable):
+        pass  # the banner is a courtesy; every page shows its own error state
 
     def page(module, title: str, path: str, default: bool = False) -> st.Page:
         return st.Page(lambda: module.render(client), title=title, url_path=path, default=default)
