@@ -11,7 +11,7 @@ Everything it outputs is a **simulation, not investment advice**.
 ```sh
 make setup      # uv sync, enable git hooks, create .env from .env.example
 # fill in .env: OPENROUTER_API_KEY, FINNHUB_API_KEY, SEC_USER_AGENT
-make up         # API http://localhost:8000/docs  ·  UI http://localhost:8501
+make up         # API http://127.0.0.1:8000/docs  ·  UI http://127.0.0.1:8501 (loopback only)
 make test       # offline tests
 make lint
 ```
@@ -40,7 +40,7 @@ uv sync --extra finbert   # optional: FinBERT (torch, CPU is fine); without it t
 make features             # FinBERT over train + validation news of the watchlist -> DuckDB `sentiment`
 make train                # impact model (train), calibrator (val_a), 8-K item table, hold/threshold grid -> data/models (D-40)
 make backtest STRATEGY=finbert_v0 SPLIT=val
-make up                   # then open http://localhost:8501, type a watchlist ticker
+make up                   # then open http://127.0.0.1:8501: Daily brief, Ticker, Ask, Strategy arena, Text analyzer, Evals
 ```
 
 ## API examples
