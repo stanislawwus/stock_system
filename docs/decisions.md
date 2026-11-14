@@ -466,3 +466,14 @@ aggregator, risk manager** (modeling phase, dev splits only).
   only, so earlier baselines (and the buy-and-hold target) keep their numbers.
 Rejected: shuffled CV (time leakage), calibrating on train predictions (in-sample), LightGBM
 (one more dependency for 1,220 rows), labelling events by news text (TF-IDF events F1 0.28).
+
+**D-41 (2026-11-14) — Trained artifacts are not committed; targets that need them guard on them.**
+`data/models/{impact.joblib,event_items.json,selected.json}` and `data/features/*.parquet` are
+produced by `make train` on dev data and stay git-ignored (binary, reproducible, ~150 kB, and a
+committed model would freeze a choice that `make train` is meant to re-derive). `make eval`,
+`make arena` and `make backtest` for `all` or a stacked strategy depend on `need-train`, which
+fails with a `make train` hint; `make backtest STRATEGY=momentum` and friends do not. Why: on a
+fresh checkout `evals/run_all.py` caught the missing-model `FileNotFoundError` as "gold set not
+on disk" and skipped the aggregator and six backtest records without failing (found in the Gate 2
+review, `docs/gate2_review.md`). Rejected: committing the artifacts (see above), guarding inside
+Python only (the Makefile is where a grader starts; the Python-side fix is `L-12`).
