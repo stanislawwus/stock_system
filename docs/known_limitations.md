@@ -15,13 +15,6 @@ way. *Fix*: one function returning the cut date from the session list, used by b
 last val_a session from the fit set (or shift the cut by one); a test with a fixture DB that the
 panel cut equals the session cut.
 
-**L-03 — The shift test covers only momentum and mean reversion.**
-`tests/sim/test_no_lookahead.py::test_signals_for_d_ignore_bars_of_d_and_later` corrupts future
-bars; `finbert_v0`, `event`, `impact` and `aggregate_equal` are protected only by the static
-import scan and by `MarketView` filtering. *Fix*: a fixture DB with news, sentiment, filings and
-facts; run the four strategies (with an in-memory item table and a constant model) for days
-D1..Dn, then append future news/filings/facts/sentiment rows and bars and assert equality.
-
 **L-04 — Holiday skew between the live window and the item table.** `src/nlp/daily.previous_cutoff`
 steps back to the previous *weekday*, not the previous *session*: on the day after a market
 holiday the window starts at the holiday's 09:00 cutoff, so news and 8-Ks accepted on the eve of
