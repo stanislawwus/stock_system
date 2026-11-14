@@ -49,7 +49,8 @@ extend-immutable-calls = ["fastapi.Query", "fastapi.Depends", "fastapi.Path", "f
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["DTZ"]
-"src/eda/quality.py" = ["E501"]  # the generated-document template has long table rows
+"src/eda/quality.py" = ["E501"]  # generated-document templates have long table rows
+"src/eda/run.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

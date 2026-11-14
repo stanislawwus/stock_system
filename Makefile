@@ -9,7 +9,7 @@ API_PORT ?= 8000
 UI_PORT ?= 8501
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
-.PHONY: help setup up api ui test lint fmt eval features collect-dev collect-test backtest arena test-final
+.PHONY: eda help setup up api ui test lint fmt eval features collect-dev collect-test backtest arena test-final
 
 help: ## list targets
 > @grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /  -  /'
@@ -48,6 +48,10 @@ collect-dev: ## collect warmup + train + validation periods into DuckDB (single 
 
 collect-test: ## collect the test period only; run right before test-final (decisions D-13)
 > $(RUN) python -m src.collectors.run --periods test
+
+eda: ## figures into docs/figs and docs/02_data_understanding.md, data-quality audit docs/04
+> $(RUN) python -m src.eda.quality
+> $(RUN) python -m src.eda.run
 
 features: ## precompute NLP features (sentiment, events, facts, impact) for dev splits
 > $(RUN) python -m src.nlp.features --splits train,validation
