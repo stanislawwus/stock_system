@@ -61,6 +61,10 @@ Forward-looking labels (impact, forward returns) live in a labels table that `Ma
 confidence threshold and the LLM-researcher iterations use `validation` only; the `test` period runs
 **exactly once** through `make test-final`, which refuses to run when `evals/results/TEST_FINAL.lock`
 exists. Commit the lock file. Never look at test-period metrics before that run, never tune after it.
+One exception (`D-38`): `make features-test` (`src/nlp/features_test.py`, the only allowlisted
+module) may run frozen-model FinBERT inference on test-period news text ahead of the final run and
+writes `data/test_scores.parquet`, not DuckDB. It reads no prices, returns or labels, runs no
+strategy, prints only counts, and nobody inspects its scores before `make test-final`.
 
 **R4 — Every component ships with an eval.** A component is done when it has: a service function, a unit
 test, an eval script, and a result file `evals/results/<component>.json` with the fields in section 5.
@@ -207,6 +211,7 @@ data/         git-ignored except data/demo/
 | `make collect-dev` | collect warmup + train + validation periods into DuckDB (single writer) |
 | `make collect-test` | collect the test period; run only right before `make test-final` (`D-13`) |
 | `make features` | precompute NLP features per split (uses the LLM budget, cached) |
+| `make features-test` | FinBERT inference on test-period news -> `data/test_scores.parquet` (resumable, `D-38`) |
 | `make eval` | run every component eval, write `evals/results/*.json`, refresh `docs/evals.md` table |
 | `make arena` | run all strategies on validation, write the leaderboard |
 | `make backtest` | run the aggregated strategy in the simulator on validation |
