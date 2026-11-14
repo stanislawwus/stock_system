@@ -11,7 +11,7 @@ UI_PORT ?= 8501
 HOST ?= 127.0.0.1
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
-.PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final eval-chat
+.PHONY: eda help setup up down up-local demo demo-build api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final eval-chat eval-api
 TRAIN_ARTIFACTS := data/models/impact.joblib data/models/event_items.json data/models/selected.json
 STACKED := event impact aggregate_equal aggregate_hedge
 
@@ -25,10 +25,23 @@ setup: ## install deps, enable git hooks, create .env from the example
 > @mkdir -p data/raw data/cache/llm data/traces evals/results
 > @echo "setup done. Fill in .env (OPENROUTER_API_KEY, FINNHUB_API_KEY, SEC_USER_AGENT)."
 
-up: ## run API (:$(API_PORT), Swagger at /docs) and Streamlit UI (:$(UI_PORT)) together
+up: ## build and start API (127.0.0.1:8000) and UI (127.0.0.1:8501) in Docker on the demo data (D-48)
+> docker compose up --build -d --wait
+> @echo "API  http://127.0.0.1:8000/docs   UI  http://127.0.0.1:8501   (make down to stop)"
+
+down: ## stop and remove the Docker stack
+> docker compose down
+
+up-local: ## run API and Streamlit without Docker (needs `make setup`, `make demo` or a full database)
 > @sh -c '$(RUN) uvicorn src.api.main:app --host $(HOST) --port $(API_PORT) & api=$$!; \
 >   trap "kill $$api 2>/dev/null" EXIT INT TERM; \
 >   $(RUN) streamlit run src/ui/app.py --server.address $(HOST) --server.port $(UI_PORT) --server.headless true'
+
+demo: ## create data/stock.duckdb, data/models and the LLM cache from the committed data/demo slice
+> $(RUN) python -m src.demo load
+
+demo-build: ## rewrite data/demo from the full dev database (maintainers; see README)
+> $(RUN) python -m src.demo build
 
 api: ## run only the API with reload
 > $(RUN) uvicorn src.api.main:app --host $(HOST) --port $(API_PORT) --reload
@@ -77,6 +90,9 @@ eval: need-train ## run every component eval, write evals/results/*.json and the
 
 eval-chat: ## chat agent eval: code checks only, 0 LLM calls -> evals/results/chat.json (D-46)
 > $(RUN) python -m evals.eval_chat
+
+eval-api: ## API eval: contract tests, LLM schema validity from saved traces, latency; no live LLM call -> evals/results/api.json (D-48)
+> $(RUN) python -m evals.eval_api
 
 arena: need-train ## run all strategies on the validation split and write the leaderboard
 > $(RUN) python -m src.strategies.arena --split validation

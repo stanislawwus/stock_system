@@ -1,0 +1,30 @@
+# Demo stack: API and Streamlit UI, published on the loopback interface only (D-48).
+# No secrets are passed in: the demo works without API keys. LLM_DAILY_BUDGET=0 simulates an
+# exhausted budget (the UI then shows "degraded"); scripts/clean_clone_check.sh uses it.
+x-app: &app
+  build: .
+  image: stock-awareness:demo
+  environment:
+    LLM_DAILY_BUDGET: ${LLM_DAILY_BUDGET:-}
+    LLM_MODE: ${LLM_MODE:-live}
+
+services:
+  api:
+    <<: *app
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+  ui:
+    <<: *app
+    command: ["streamlit", "run", "src/ui/app.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--server.headless", "true", "--browser.gatherUsageStats", "false"]
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy

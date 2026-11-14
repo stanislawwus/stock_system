@@ -1,0 +1,11 @@
+.git
+.venv
+.env
+.llm_budget.json
+**/__pycache__
+.pytest_cache
+.ruff_cache
+# the full dev data stays out of the image: only the committed demo slice goes in
+data/*
+!data/demo
+!data/demo/**
