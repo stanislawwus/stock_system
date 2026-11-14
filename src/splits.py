@@ -2,15 +2,17 @@
 
 `MarketView` calls `assert_readable(as_of)`. Any view at or after the first test cutoff raises
 `TestPeriodLockedError` unless the process runs inside `final_run()`, which only the `--final`
-entry points of `make test-final` open, and which itself refuses once `TEST_FINAL.lock` exists.
+entry points of `make test-final` open (both call `src.sim.final.run_final`), and which writes
+`TEST_FINAL.lock` on entry and refuses once it exists (L-01, D-43).
 """
 
 from __future__ import annotations
 
 import contextvars
+import subprocess
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 
@@ -48,16 +50,50 @@ def assert_readable(as_of: datetime) -> None:
         )
 
 
+FINAL_SPLIT = "test"  # the split name only the final run may simulate
+
+
+def in_final_run() -> bool:
+    return _final.get()
+
+
+NL = chr(10)  # lock file lines end in LF on every platform
+
+
+def _now() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+def _git_sha() -> str:
+    out = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False
+    )
+    return out.stdout.strip() or "unknown"
+
+
 @contextmanager
 def final_run() -> Iterator[None]:
-    """Open the test period. Refuses when the lock file shows the final run already happened."""
-    if FINAL_LOCK.exists():
-        raise TestPeriodLockedError(f"{FINAL_LOCK.name} exists: the test period was used once")
+    """Open the test period, once. The lock is written **before** anything is read (L-01): it is
+    created with exclusive create, so a crash, a retry or a second process can never read the
+    period again. On exit the outcome (`status=ok|failed`) is appended; a failed final run still
+    counts as the one run (R3)."""
+    FINAL_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with FINAL_LOCK.open("x", encoding="utf-8", newline=NL) as fh:
+            fh.write(f"started_at={_now()}{NL}git_sha={_git_sha()}{NL}")
+    except FileExistsError:
+        raise TestPeriodLockedError(
+            f"{FINAL_LOCK.name} exists: the test period was used once"
+        ) from None
     token = _final.set(True)
+    status = "failed"
     try:
         yield
+        status = "ok"
     finally:
         _final.reset(token)
+        with FINAL_LOCK.open("a", encoding="utf-8", newline=NL) as fh:
+            fh.write(f"finished_at={_now()}{NL}status={status}{NL}")
 
 
 def final_scores_path() -> Path:

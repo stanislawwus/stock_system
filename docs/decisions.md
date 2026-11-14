@@ -514,3 +514,21 @@ Rejected: N = arena strategies only (ignores the 60-point selection grids, the r
 permutation of daily returns as the control (destroys the trade structure and exposure);
 rejection-sampled placement (biased against long trips, under-filled dense strategies). Not
 done: the masking experiment (out of scope by request), `--final` entry points (L-01).
+
+**D-43 (2026-11-14) — The final run is one function and takes the lock first** (fixes L-01).
+`src/sim/final.py::run_final()` is the only code that opens `splits.final_run()`; both `--final`
+entry points (`src.strategies.arena`, `src.sim.run`) call it, and `make test-final` calls one of
+them once (after `need-train`, `collect-test`, `features-test`). Order: (1) `preflight()` checks
+file existence only (models in `data/models`, `data/test_scores.parquet` with a complete
+manifest, no lock): a missing prerequisite leaves the period unused; (2) `final_run()` creates
+`TEST_FINAL.lock` with exclusive create (started_at, git sha) **before** anything is read and
+appends `finished_at` + `status=ok|failed` on exit, so a crash consumes the period instead of
+allowing a second read; (3) the arena on the test split (same code as validation; no val_b
+column; `evals/trials.csv` is read for N, not extended) and one `backtest_<strategy>_test`
+record per strategy from the same simulations. Outputs: `evals/results/arena_test.json`,
+`backtest_*_test.json`, `docs/06_final_run.md`. `resolve_split` accepts the test split only
+while `final_run()` is open. Rehearsed on validation with the split name, lock and outputs
+redirected to a scratch directory (the rehearsal found a `relative_to` crash in the report
+path that would have failed a real final run after the lock; fixed). Rejected: two separate
+`--final` processes (the second either refuses or needs a weaker lock); writing the lock after
+the runs (the L-01 hole); a lock per stage (allows partial re-reads).

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from src import splits
 from src.collectors.common import load_periods, load_universe, load_yaml, watchlist_tickers
 from src.marketview.clock import bar_close_for
 from src.schemas import BacktestResult
@@ -24,6 +25,9 @@ DEV_SPLITS = {"train": "train", "validation": "validation", "val": "validation"}
 
 
 def resolve_split(name: str) -> str:
+    """A development split; the test split only during the final run (R3, D-43)."""
+    if name == splits.FINAL_SPLIT and splits.in_final_run():
+        return name
     if name not in DEV_SPLITS:
         raise ValueError(f"split {name!r} not allowed; use one of {sorted(DEV_SPLITS)} (R3)")
     return DEV_SPLITS[name]

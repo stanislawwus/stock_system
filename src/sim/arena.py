@@ -34,6 +34,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from src import splits
 from src.collectors.common import ROOT
 from src.marketview import MarketView
 from src.schemas import DISCLAIMER, Signal
@@ -48,6 +49,7 @@ from src.strategies.signal_stack import AggregateEqual, model_dir
 
 RESULTS = ROOT / "evals" / "results"
 DOC = ROOT / "docs" / "05_arena.md"
+DOC_FINAL = ROOT / "docs" / "06_final_run.md"  # written once, by the final run (D-43)
 WHY = (
     "the deflated Sharpe asks whether the headline strategy's Sharpe beats what the best of all "
     "N configurations we tried would reach by luck; a plain Sharpe ignores that search"
@@ -116,9 +118,9 @@ def choice_period(name: str) -> str:
     return "fixed a priori (config, D-35)"
 
 
-def leaderboard_row(name: str, run: Run, val_b_start: date) -> dict[str, Any]:
+def leaderboard_row(name: str, run: Run, val_b_start: date | None) -> dict[str, Any]:
     res, r, dpy = run.result, _returns(run), int(backtest_config()["trading_days_per_year"])
-    rb = r[r.index >= val_b_start].to_numpy()
+    rb = r[r.index >= val_b_start].to_numpy() if val_b_start else r.iloc[:0].to_numpy()
     choice = choice_period(name)
     return {
         "strategy": name,
@@ -228,13 +230,17 @@ def trial_rows(
     return rows
 
 
+def read_trials(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8", newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
 def upsert_trials(path: Path, rows: list[dict[str, Any]], now: str) -> list[dict[str, Any]]:
     """Merge `rows` into the CSV by trial id: keep first_logged_at, refresh everything else.
     Trials logged by other runs (absent from `rows`) are kept: the log only grows."""
-    old: dict[str, dict[str, Any]] = {}
-    if path.exists():
-        with path.open(encoding="utf-8", newline="") as fh:
-            old = {r["trial_id"]: r for r in csv.DictReader(fh)}
+    old = {r["trial_id"]: r for r in read_trials(path)}
     for r in rows:
         prev = old.get(r["trial_id"])
         r = {k: _r(v) if isinstance(v, float) else v for k, v in r.items()}
@@ -270,12 +276,19 @@ def _load_json(path: Path) -> dict[str, Any] | None:
 
 
 def run_arena(
-    split: str = "validation", db_path: Path | None = None, n_random: int | None = None
+    split: str = "validation",
+    db_path: Path | None = None,
+    n_random: int | None = None,
+    runs_out: dict[str, Run] | None = None,
 ) -> dict[str, Any]:
+    """The arena on `split`. On the test split (reachable only in the final run, D-43) there
+    is no val_b column and the trials log is read, not extended: the final run is not a trial.
+    `runs_out` receives the simulations (the final run writes backtest records from them)."""
     split = resolve_split(split)
+    is_final = split == splits.FINAL_SPLIT
     cfg = arena_config()
     dpy = int(backtest_config()["trading_days_per_year"])
-    val_b_start = val_b_range(db_path)[0]
+    val_b_start = None if is_final else val_b_range(db_path)[0]
     runs: dict[str, Run] = {}
     parts: dict[tuple[str, date], dict[str, float]] = {}
     prices = None
@@ -308,12 +321,17 @@ def run_arena(
 
     days = runs[cfg["strategies"][0]].sim.days
     now = datetime.now(UTC).isoformat(timespec="seconds")
-    trials = upsert_trials(
-        ROOT / cfg["trials_log"],
-        trial_rows(board, abl, (days[0], days[-1]), _load_json(model_dir() / "selected.json"),
-                   _load_json(model_dir() / "impact_report.json")),
-        now,
-    )  # fmt: skip
+    if is_final:
+        trials = read_trials(ROOT / cfg["trials_log"])
+    else:
+        trials = upsert_trials(
+            ROOT / cfg["trials_log"],
+            trial_rows(board, abl, (days[0], days[-1]), _load_json(model_dir() / "selected.json"),
+                       _load_json(model_dir() / "impact_report.json")),
+            now,
+        )  # fmt: skip
+    if runs_out is not None:
+        runs_out.update(runs)
     trial_sr = trial_sharpes_daily(trials, dpy)
     dsr = {n: m.deflated_sharpe(_returns(r).to_numpy(), trial_sr, len(trials))
            for n, r in runs.items()}  # fmt: skip
@@ -321,7 +339,7 @@ def run_arena(
         "split": split,
         "start": days[0].isoformat(),
         "end": days[-1].isoformat(),
-        "val_b_start": val_b_start.isoformat(),
+        "val_b_start": val_b_start.isoformat() if val_b_start else None,
         "n_days": len(days),
         "leaderboard": board,
         "correlation": {a: {b: corr.loc[a, b] for b in corr.columns} for a in corr.index},
@@ -341,6 +359,15 @@ def run_arena(
     }
 
 
+def component(split: str) -> str:
+    """`arena` for validation, `arena_<split>` otherwise (the final run: never overwrites)."""
+    return "arena" if split == "validation" else f"arena_{split}"
+
+
+def doc_path(split: str) -> Path:
+    return DOC if split == "validation" else DOC_FINAL
+
+
 def record(arena: dict[str, Any]) -> dict[str, Any]:
     cfg = arena_config()
     head = cfg["headline"]
@@ -355,19 +382,21 @@ def record(arena: dict[str, Any]) -> dict[str, Any]:
     row = next(b for b in arena["leaderboard"] if b["strategy"] == head)
     ann = math.sqrt(int(backtest_config()["trading_days_per_year"]))
     pct = rc.get("percentile")
+    on = arena["split"]
+    if arena.get("val_b_start"):
+        on += f" (val_b only {_f(row['sharpe_val_b'])})"
     notes = (
-        f"{head}: Sharpe {_f(row['sharpe'])} on validation (val_b only "
-        f"{_f(row['sharpe_val_b'])}); deflated Sharpe {value:.3f} with N = "
+        f"{head}: Sharpe {_f(row['sharpe'])} on {on}; deflated Sharpe {value:.3f} with N = "
         f"{arena['trials']['n']} trials (SR0 {d['sr0_daily'] * ann:.2f} annualised); "
         f"random-control percentile {_f(pct, 1)} (same entry days, random names)."
     )
     if value < target:
         notes += (
             " Below target: the Sharpe is not distinguishable from the best of N unskilled "
-            "configurations. See docs/05_arena.md."
+            f"configurations. See docs/{doc_path(arena['split']).name}."
         )
     return {
-        "component": "arena",
+        "component": component(arena["split"]),
         "metric": f"deflated_sharpe_{head}",
         "value": round(value, 4),
         "target": target,
@@ -402,10 +431,10 @@ def render(rec: dict[str, Any]) -> str:
     head = arena_config()["headline"]
     ann = math.sqrt(int(backtest_config()["trading_days_per_year"]))
     lines = [
-        "# Strategy arena (validation)",
+        f"# Strategy arena ({a['split']})",
         "",
-        "Generated by `make arena` (`src/sim/arena.py`, D-42) from `evals/results/arena.json`; do "
-        "not edit by hand.",
+        f"Generated by `src/sim/arena.py` (D-42) from `evals/results/{rec['component']}.json`; "
+        "do not edit by hand.",
         "",
         f"> {DISCLAIMER}",
         "",
@@ -520,8 +549,14 @@ def render(rec: dict[str, Any]) -> str:
         f"- {a['n_days']} sessions is short: every CI above is wide, and one regime "
         "(summer 2026) dominates. Buy-and-hold on a 10-name watchlist chosen with "
         "hindsight is a strong, survivorship-flattered benchmark (L-07).",
-        "- `impact` and `aggregate_equal` chose their calibrator and hold/threshold on val_a; "
-        "their full-validation Sharpe is partly in-sample. The val_b column is the honest one.",
+        (
+            "- `impact` and `aggregate_equal` chose their calibrator and hold/threshold on "
+            "val_a; their full-validation Sharpe is partly in-sample. The val_b column is the "
+            "honest one."
+            if a.get("val_b_start")
+            else "- This is the single test-period run (R3): every choice was made before it, "
+            "nothing may be tuned after it."
+        ),
         "- Random controls run without the risk manager (the stacked strategies run with it), so "
         "a stop that cut a losing trip short is kept as a shorter trip, not as a rule.",
         "- The masking experiment (LLM memory check) was not run in this session.",
@@ -531,17 +566,24 @@ def render(rec: dict[str, Any]) -> str:
 
 
 def write(rec: dict[str, Any]) -> tuple[Path, Path]:
-    path = RESULTS / "arena.json"
+    path = RESULTS / f"{rec['component']}.json"
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8", newline="\n")
-    DOC.write_text(render(rec), encoding="utf-8", newline="\n")
-    return path, DOC
+    doc = doc_path(rec["split"])
+    doc.write_text(render(rec), encoding="utf-8", newline="\n")
+    return path, doc
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--split", default="validation", choices=sorted(DEV_SPLITS))
     ap.add_argument("--n-random", type=int, default=None, help="override random_controls.n")
+    ap.add_argument("--final", action="store_true", help="the single test-period run (D-43)")
     args = ap.parse_args(argv)
+    if args.final:
+        from src.sim.final import run_final  # late import: final imports this module
+
+        run_final()
+        return 0
     rec = record(run_arena(args.split, n_random=args.n_random))
     p, d = write(rec)
     print(f"arena: {rec['metric']} = {rec['value']} (target {rec['target']}) -> "

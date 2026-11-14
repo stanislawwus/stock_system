@@ -88,6 +88,10 @@ ALLOWED = {
     "src/nlp/features_test.py": "make features-test: FinBERT on test news -> parquet (D-38)",
     "src/schemas.py": "request/response Literals",
     "evals/eval_collectors.py": "plants a test-period row to prove the checks catch it",
+    "src/sim/final.py": "make test-final: the single run, opens final_run() (D-43)",
+    "src/sim/backtest.py": "resolve_split accepts the test split only during the final run",
+    "src/sim/arena.py": "--final entry point (delegates to src.sim.final)",
+    "src/sim/run.py": "--final entry point (delegates to src.sim.final)",
 }
 PATTERN = re.compile(
     r"test_period\(|first_test_cutoff|final_run\(|\[.test.\]|--final|periods test"
@@ -140,11 +144,11 @@ def test_features_test_reads_news_through_the_dev_query_only() -> None:
     assert "pending(" in code and not re.search(r"SELECT|FROM |JOIN ", code)
 
 
-def test_final_run_is_opened_only_where_the_lock_is_defined_for_now() -> None:
+def test_final_run_is_opened_only_by_the_final_module() -> None:
     users = [_rel(p) for p in _sources() if re.search(r"\bfinal_run\(", p.read_text("utf-8"))]
-    assert users == ["src/splits.py"], (
-        "final_run() may be opened only from the --final entry points of make test-final "
-        f"(src.strategies.arena, src.sim.run); add them here when they exist: {users}"
+    assert users == ["src/sim/final.py", "src/splits.py"], (
+        "final_run() may be opened only by src.sim.final.run_final, which both --final entry "
+        f"points of make test-final call (L-01, D-43): {users}"
     )
 
 

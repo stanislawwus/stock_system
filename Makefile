@@ -81,12 +81,9 @@ backtest: ## simulate STRATEGY=<all|buy_and_hold|momentum|mean_reversion|finbert
 > @case " all $(STACKED) " in *" $(STRATEGY) "*) $(MAKE) --no-print-directory need-train ;; esac
 > $(RUN) python -m src.sim.run --strategy $(STRATEGY) --split $(SPLIT)
 
-test-final: ## the ONE run on the test period; refuses to run twice (AGENTS.md R3)
-> @if [ -f "$(FINAL_LOCK)" ]; then \
->   echo "ERROR: $(FINAL_LOCK) exists - the test period has already been used once."; exit 1; fi
+test-final: need-train ## the ONE run on the test period; lock written at its start (R3, L-01, D-43)
+> @if [ -f "$(FINAL_LOCK)" ]; then echo "ERROR: $(FINAL_LOCK) exists - the test period has already been used once."; exit 1; fi
 > $(RUN) python -m src.collectors.run --periods test
 > $(RUN) python -m src.nlp.features_test
-> $(RUN) python -m src.strategies.arena --split test --final
-> $(RUN) python -m src.sim.run --split test --final
-> @printf 'run_at=%s\ngit_sha=%s\n' "$$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$$(git rev-parse HEAD)" > "$(FINAL_LOCK)"
-> @echo "Test period used. Commit $(FINAL_LOCK) now: git add $(FINAL_LOCK) evals/results && git commit -m 'eval: final test run'"
+> $(RUN) python -m src.strategies.arena --final
+> @echo "Test period used. Commit it now: git add $(FINAL_LOCK) evals/results docs && git commit -m 'eval: final test run'"

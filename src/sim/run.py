@@ -98,7 +98,13 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--strategy", default="all", choices=["all", *sorted(BUILDERS)])
     ap.add_argument("--split", default="validation", choices=sorted(DEV_SPLITS))
+    ap.add_argument("--final", action="store_true", help="the single test-period run (D-43)")
     args = ap.parse_args(argv)
+    if args.final:
+        from src.sim.final import run_final  # late import: final imports this module
+
+        run_final()
+        return 0
     names = sorted(BUILDERS) if args.strategy == "all" else [args.strategy]
     for name in names:
         rec = evaluate(name, args.split)

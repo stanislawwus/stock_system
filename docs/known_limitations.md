@@ -6,15 +6,6 @@ commit that fixes it and cite the row in the commit message.
 
 ## Time and splits
 
-**L-01 — `make test-final` is not atomic.** The Makefile writes `TEST_FINAL.lock` only after both
-`--final` runs succeed. If `src.sim.run --final` fails after `src.strategies.arena --final` has
-already read the test period, the period has been read once and no lock exists, so a retry reads
-it twice (R3). Today the target cannot run at all: `src/strategies/arena.py` does not exist and the
-`--final` flags are not implemented. *Fix*: create the lock (run_at + git sha) **before** the two
-runs and refuse when it exists; alternatively let `splits.final_run()` write it on entry. Record
-the choice as a `D-nn`; add the two entry points to
-`tests/test_test_period_lock.py::test_final_run_is_opened_only_where_the_lock_is_defined_for_now`.
-
 **L-02 — One session of val_b is used by val_a.** `drift_ar` for the last val_a session needs the
 close of the first val_b session (`src/sim/labels.py`), so the calibrator and the hold/threshold
 grid see one val_b close. The cut is also computed twice: `impact_train.split_validation` from the
