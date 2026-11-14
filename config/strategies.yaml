@@ -13,6 +13,10 @@ mean_reversion:                      # short-term reversal on a volatility-scale
   entry_z: 1.0                       # long only when z <= -entry_z
   z_scale: 2.0                       # score = clip((-z - entry_z) / z_scale, -1, 1)
   horizon_days: 5
+finbert_v0:                          # walking-skeleton news strategy (D-36)
+  method: finbert                    # sentiment.method rows to average (finbert | lexicon)
+  min_articles: 1                    # fewer relevant, deduplicated, scored items -> cash
+  horizon_days: 1                    # exit at the close of D+1 (the drift_ar horizon, D-28)
 news_sentiment:
   baseline_window_days: 20
   min_articles_per_day: 1

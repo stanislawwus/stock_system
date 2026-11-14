@@ -61,7 +61,7 @@ def test_mean_reversion_z_score_by_hand() -> None:
 
 
 def test_registry_builds_every_strategy_from_config() -> None:
-    assert set(BUILDERS) == {"buy_and_hold", "momentum", "mean_reversion"}
+    assert set(BUILDERS) == {"buy_and_hold", "momentum", "mean_reversion", "finbert_v0"}
     for name in BUILDERS:
         s = build(name)
         assert isinstance(s, Strategy) and s.name == name
