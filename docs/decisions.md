@@ -252,3 +252,34 @@ free quota while the counter says otherwise).
   is renamed to `news_100.csv` and frozen only after the human fills it; R4 freezes committed gold
   sets). Rejected: a `llm_suggestion` column (the task forbids pre-filling), proportional sampling
   (2.02/5.02/1.01 would get ~0 rows).
+
+**D-35 (2026-11-14) — Simulator and the first three strategies** (modeling phase).
+- *Timing*: the decision for D uses `MarketView(cutoff_for(D))` (newest bar = close of D-1);
+  fills at the open of D; a position closes at the close of D+h (`horizon_days` per strategy) or
+  at the next open whose score is <= 0, whichever comes first; everything left is sold at the
+  last close of the split, so every trade is a closed round trip. The open and close of D come
+  from `src/sim/execution.py`, loaded once for the split's dates and never passed to a strategy.
+- *Strategy contract*: `signal(ticker, view)`; no separate `as_of` argument (the view carries
+  it, so the two cannot disagree). Runs inside `src.db.guarded()`.
+- *Sizing*: equal weight `min(1/N, max_position_pct)` of equity marked at the open, N = names
+  held after today's entries; existing positions are not resized (no turnover from drift);
+  a buy spends at most the cash there is (no leverage); fractional shares.
+- *Costs*: 5 bps per side on traded notional (task requirement), stored as
+  `commission_pct_per_side: 0.0005` and `slippage_pct: 0` in `config/risk.yaml`; supersedes the
+  10 + 5 bps of D-19. Stop-loss and drawdown halt in `risk.yaml` are not applied yet (risk manager
+  is a separate component).
+- *Momentum*: simplified 12-1 as *time-series* momentum, `close[t-21]/close[t-252] - 1 > 0`;
+  per-ticker so it fits the `Signal` contract and a 10-name watchlist (a cross-sectional
+  top-decile rank needs a larger universe). h = 20.
+- *Mean reversion*: 5-day return scaled by 60-day daily volatility; long when z <= -1, h = 5.
+  Replaces the RSI(14) placeholder in `config/strategies.yaml`.
+- *Metrics*: Sharpe with rf = 0 and sqrt(252); max drawdown from the initial capital; one-way
+  turnover = (buys + sells) / 2 / mean equity; hit rate per closed round trip after costs;
+  95 % CIs by moving-block bootstrap (5-day blocks, fixed seed) because positions persist across
+  days and i.i.d. resampling would understate the variance.
+- *Universe*: the 10-name watchlist by default (`backtest.universe`). Target of a backtest eval =
+  buy-and-hold Sharpe on the same names and split.
+- *Splits*: `make backtest` accepts train and validation only; the test-period entry point
+  (`--final`) is not written yet, so `make test-final` cannot run until it is.
+Rejected: fills at the close of D (would use intraday data the signal did not see), daily
+rebalancing to equal weight (turnover without information), i.i.d. bootstrap.
