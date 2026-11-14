@@ -52,7 +52,7 @@ stocks:
   - {ticker: GS, sector: financials, cik: '0000886982'}
   - {ticker: MS, sector: financials, cik: '0000895421'}
   - {ticker: C, sector: financials, cik: '0000831001'}
-  - {ticker: BLK, sector: financials, cik: '0002012383'}
+  - {ticker: BLK, sector: financials, cik: '0002012383', former_ciks: ['0001364742']}  # holding-company reorganisation, Oct 2024
   - {ticker: SCHW, sector: financials, cik: '0000316709'}
   - {ticker: AXP, sector: financials, cik: '0000004962'}
   - {ticker: V, sector: financials, cik: '0001403161'}
