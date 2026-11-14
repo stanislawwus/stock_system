@@ -296,21 +296,33 @@ class ArenaRequest(BaseModel):
 
 
 class Citation(BaseModel):
-    source_ref: str
+    n: int = Field(default=0, ge=0, description="the [n] marker in the answer text (chat)")
+    source_ref: str = Field(description="news id, 8-K accession number, or fact/price ref")
     kind: Literal["news", "filing", "fact", "price"]
+    ticker: str | None = None
     available_at: AwareDatetime
     quote: str
 
 
 class ChatRequest(BaseModel):
-    question: str = Field(min_length=1, max_length=2000)
-    as_of: AwareDatetime | None = None
+    question: str = Field(
+        min_length=1, max_length=2000, description="e.g. 'Why did AAPL move on 2026-07-15?'"
+    )
+
+
+ChatIntent = Literal["why_move", "price", "news", "signals", "backtest", "refuse"]
 
 
 class ChatResponse(BaseModel):
     answer: str
     citations: list[Citation]
-    method: Method
+    method: Method = Field(description="rules = template composer; llm = cached rephrase (D-46)")
+    intent: ChatIntent
+    ticker: str | None = None
+    as_of: AwareDatetime | None = None
+    tools_used: list[str] = Field(default_factory=list, description="tool plan, in call order")
+    refused: bool = False
+    refusal_reason: str | None = None
     disclaimer: str = DISCLAIMER
 
 

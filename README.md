@@ -51,6 +51,7 @@ curl "http://localhost:8000/api/v1/signals?ticker=AAPL&as_of=2026-08-14"     # c
 curl "http://localhost:8000/api/v1/signals?ticker=AAPL"                      # default: last validation day
 curl -X POST http://localhost:8000/api/v1/analyze -H "Content-Type: application/json"      -d '{"text": "Boeing shares plunge after FAA grounds jets", "ticker": "BA"}'
 curl "http://localhost:8000/api/v1/evals?component=backtest_finbert_v0_validation"
+curl -X POST http://localhost:8000/api/v1/chat -H "Content-Type: application/json"         -d '{"question": "Why did NVDA fall on 2026-06-05?"}'                # template answer, numbered citations
 ```
 
 `/signals` refuses dates in the test period (403, AGENTS.md R3) and unknown tickers (404).

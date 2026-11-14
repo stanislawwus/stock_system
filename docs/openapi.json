@@ -459,7 +459,8 @@
         "tags": [
           "chat"
         ],
-        "summary": "Question -> answer with citations",
+        "summary": "Question -> answer from read-only tools with numbered citations (no LLM in the path)",
+        "description": "Refusals (unknown ticker, guaranteed profit, test period) are 200 with `refused=true`.",
         "operationId": "post_chat_api_v1_chat_post",
         "requestBody": {
           "content": {
@@ -481,6 +482,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "database missing, or busy while a writer holds it"
           },
           "422": {
             "description": "Validation Error",
@@ -741,19 +745,8 @@
             "type": "string",
             "maxLength": 2000,
             "minLength": 1,
-            "title": "Question"
-          },
-          "as_of": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "As Of"
+            "title": "Question",
+            "description": "e.g. 'Why did AAPL move on 2026-07-15?'"
           }
         },
         "type": "object",
@@ -787,7 +780,67 @@
               "regex",
               "model"
             ],
-            "title": "Method"
+            "title": "Method",
+            "description": "rules = template composer; llm = cached rephrase (D-46)"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "why_move",
+              "price",
+              "news",
+              "signals",
+              "backtest",
+              "refuse"
+            ],
+            "title": "Intent"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "tools_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tools Used",
+            "description": "tool plan, in call order"
+          },
+          "refused": {
+            "type": "boolean",
+            "title": "Refused",
+            "default": false
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal Reason"
           },
           "disclaimer": {
             "type": "string",
@@ -799,15 +852,24 @@
         "required": [
           "answer",
           "citations",
-          "method"
+          "method",
+          "intent"
         ],
         "title": "ChatResponse"
       },
       "Citation": {
         "properties": {
+          "n": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "N",
+            "description": "the [n] marker in the answer text (chat)",
+            "default": 0
+          },
           "source_ref": {
             "type": "string",
-            "title": "Source Ref"
+            "title": "Source Ref",
+            "description": "news id, 8-K accession number, or fact/price ref"
           },
           "kind": {
             "type": "string",
@@ -818,6 +880,17 @@
               "price"
             ],
             "title": "Kind"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
           },
           "available_at": {
             "type": "string",

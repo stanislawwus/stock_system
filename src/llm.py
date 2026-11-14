@@ -551,3 +551,32 @@ def call_json(
         _trace(trace_dir, rec)
     model_out = used_models[-1] if used_models else None
     return LLMResult(outputs, model_out, used_fallback, cache_hits, records)
+
+
+def cached_json(
+    task: Task,
+    prompt: str,
+    items: Sequence[dict],
+    schema: type[T],
+    *,
+    params: LLMParams | None = None,
+    models: Sequence[str] | None = None,
+) -> list[T] | None:
+    """Replay a cached answer for (`prompt`, `items`) without ever calling a provider (D-46).
+
+    Tries each configured model of `task` in order; returns the first cache entry that validates
+    against `schema` with one entry per item, else None. Consumes no budget and writes no trace:
+    nothing is sent anywhere. Used by interactive paths that must not wait for a free model.
+    """
+    cfg = load_config()
+    params = params or LLMParams(max_tokens=int(cfg["max_tokens"]))
+    cache = DiskCache(_cache_dir(cfg))
+    for model in _select_models(task, models, cfg):
+        cached = cache.get(DiskCache.key(model, prompt, params, schema, list(items)))
+        if cached is None or len(cached) != len(items):
+            continue
+        try:
+            return [schema.model_validate(x) for x in cached]
+        except ValidationError:
+            continue
+    return None

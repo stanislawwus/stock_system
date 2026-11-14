@@ -1,0 +1,48 @@
+# Chat agent (POST /api/v1/chat), D-46. Deterministic template composer; the LLM is not in the
+# interactive path (free models take 32-142 s per call). Rephrasing reads cached responses only.
+
+# "why did X move on D?": the move is close(D-1) -> close(D); as_of = 16:00 ET of D (bar close).
+# News and filings in (close(D-1) - extra_hours_before, close(D)] are candidates.
+window:
+  extra_hours_before: 0
+  max_lookback_calendar_days: 7      # bars searched back to find D-1
+benchmark: SPY
+
+# |SPY return| at or beyond this counts as a market-wide move ("the whole market fell/rose").
+market_move_threshold: 0.01
+# |abnormal return| below this: the move was mostly in line with the market.
+small_abnormal_threshold: 0.005
+
+ranking:                     # score = w_rel * relevance + w_sent * |sentiment| + w_rec * recency
+  w_relevance: 0.5
+  w_sentiment: 0.3
+  w_recency: 0.2
+  top_news: 3
+  top_filings: 2
+  min_relevance: 0.5         # 1.0 = headline names the company, 0.5 = only the summary does
+
+headline_max_chars: 200      # untrusted text is truncated before it is shown
+
+# Default question day when none is given: the last validation day (test period is locked, R3).
+default_day: last_validation_day
+
+rephrase:
+  enabled: false             # env CHAT_REPHRASE=1 also enables it; reads the LLM cache only
+
+# Requests the agent refuses (case-insensitive regexes).
+refuse_patterns:
+  guaranteed_profit:
+    - "guarantee"
+    - "risk[- ]free (profit|return|money)"
+    - "can'?t lose"
+    - "sure (thing|bet|profit|win)"
+    - "100 ?% (profit|return|sure|certain)"
+    - "certain (profit|to (rise|go up|double))"
+    - "double my money"
+
+# Upper-case words that are not tickers when deciding whether a question names an unknown one.
+not_tickers: [I, A, WHY, WHAT, HOW, DID, DO, THE, ON, IN, OF, FOR, AND, OR, IS, IT, US, USA, CEO,
+  CFO, EPS, ETF, AI, IPO, SEC, OK, UTC, ET, NYSE, GDP, CPI, FED, Q1, Q2, Q3, Q4, YOY, ME, MY,
+  TO, AT, BY, UP, ALL, ANY, BUY, SELL]
+
+# Strategy names the backtest intent recognises are taken from src/strategies/registry.
