@@ -1,0 +1,788 @@
+{
+  "event": {
+    "period": "train",
+    "start": "2025-12-01",
+    "end": "2026-05-29",
+    "chosen": {
+      "hold_days": 10,
+      "entry_threshold": 0.0
+    },
+    "chosen_row": {
+      "hold_days": 10,
+      "entry_threshold": 0.0,
+      "sharpe": -0.4815,
+      "total_return": -0.0192,
+      "round_trips": 20,
+      "costs_paid": 395.19
+    },
+    "eligible": true,
+    "grid": [
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.0,
+        "sharpe": -1.1724,
+        "total_return": -0.0236,
+        "round_trips": 21,
+        "costs_paid": 417.96
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.05,
+        "sharpe": -1.4968,
+        "total_return": -0.0285,
+        "round_trips": 19,
+        "costs_paid": 376.77
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.1,
+        "sharpe": -2.6026,
+        "total_return": -0.0438,
+        "round_trips": 15,
+        "costs_paid": 293.61
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.2,
+        "sharpe": -2.6026,
+        "total_return": -0.0438,
+        "round_trips": 15,
+        "costs_paid": 293.61
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.0,
+        "sharpe": -1.5049,
+        "total_return": -0.0343,
+        "round_trips": 20,
+        "costs_paid": 396.07
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.05,
+        "sharpe": -1.112,
+        "total_return": -0.0263,
+        "round_trips": 19,
+        "costs_paid": 379.05
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.1,
+        "sharpe": -2.2818,
+        "total_return": -0.0439,
+        "round_trips": 15,
+        "costs_paid": 294.05
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.2,
+        "sharpe": -2.2818,
+        "total_return": -0.0439,
+        "round_trips": 15,
+        "costs_paid": 294.05
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.0,
+        "sharpe": -1.4354,
+        "total_return": -0.0407,
+        "round_trips": 20,
+        "costs_paid": 395.77
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.05,
+        "sharpe": -1.3646,
+        "total_return": -0.0393,
+        "round_trips": 19,
+        "costs_paid": 374.96
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.1,
+        "sharpe": -2.4742,
+        "total_return": -0.0558,
+        "round_trips": 15,
+        "costs_paid": 291.33
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.2,
+        "sharpe": -2.4742,
+        "total_return": -0.0558,
+        "round_trips": 15,
+        "costs_paid": 291.33
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.0,
+        "sharpe": -0.4815,
+        "total_return": -0.0192,
+        "round_trips": 20,
+        "costs_paid": 395.19
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.05,
+        "sharpe": -0.617,
+        "total_return": -0.0208,
+        "round_trips": 19,
+        "costs_paid": 354.49
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.1,
+        "sharpe": -1.5986,
+        "total_return": -0.0442,
+        "round_trips": 15,
+        "costs_paid": 292.77
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.2,
+        "sharpe": -1.5986,
+        "total_return": -0.0442,
+        "round_trips": 15,
+        "costs_paid": 292.77
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      }
+    ]
+  },
+  "impact": {
+    "period": "val_a",
+    "start": "2026-06-01",
+    "end": "2026-07-16",
+    "chosen": {
+      "hold_days": 1,
+      "entry_threshold": 0.2
+    },
+    "chosen_row": {
+      "hold_days": 1,
+      "entry_threshold": 0.2,
+      "sharpe": 1.0205,
+      "total_return": 0.0062,
+      "round_trips": 10,
+      "costs_paid": 199.3
+    },
+    "eligible": true,
+    "grid": [
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.0,
+        "sharpe": -0.6524,
+        "total_return": -0.0103,
+        "round_trips": 63,
+        "costs_paid": 1156.25
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.05,
+        "sharpe": -0.5201,
+        "total_return": -0.0083,
+        "round_trips": 50,
+        "costs_paid": 957.14
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.1,
+        "sharpe": -2.1841,
+        "total_return": -0.0291,
+        "round_trips": 41,
+        "costs_paid": 772.66
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.2,
+        "sharpe": 1.0205,
+        "total_return": 0.0062,
+        "round_trips": 10,
+        "costs_paid": 199.3
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.0,
+        "sharpe": 0.5483,
+        "total_return": 0.0078,
+        "round_trips": 49,
+        "costs_paid": 705.8
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.05,
+        "sharpe": 0.595,
+        "total_return": 0.0099,
+        "round_trips": 38,
+        "costs_paid": 666.46
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.1,
+        "sharpe": -0.5975,
+        "total_return": -0.0126,
+        "round_trips": 32,
+        "costs_paid": 543.73
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.2,
+        "sharpe": 4.3868,
+        "total_return": 0.0425,
+        "round_trips": 9,
+        "costs_paid": 183.28
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.0,
+        "sharpe": -0.7753,
+        "total_return": -0.016,
+        "round_trips": 40,
+        "costs_paid": 488.14
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.05,
+        "sharpe": 0.078,
+        "total_return": 0.0002,
+        "round_trips": 31,
+        "costs_paid": 471.01
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.1,
+        "sharpe": 0.3764,
+        "total_return": 0.0059,
+        "round_trips": 27,
+        "costs_paid": 450.42
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.2,
+        "sharpe": 3.7091,
+        "total_return": 0.03,
+        "round_trips": 7,
+        "costs_paid": 142.46
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.0,
+        "sharpe": 0.1266,
+        "total_return": 0.001,
+        "round_trips": 27,
+        "costs_paid": 322.81
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.05,
+        "sharpe": -0.2481,
+        "total_return": -0.0065,
+        "round_trips": 23,
+        "costs_paid": 337.31
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.1,
+        "sharpe": -2.2967,
+        "total_return": -0.0442,
+        "round_trips": 19,
+        "costs_paid": 303.91
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.2,
+        "sharpe": 1.9588,
+        "total_return": 0.0211,
+        "round_trips": 7,
+        "costs_paid": 142.27
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.3,
+        "sharpe": null,
+        "total_return": 0.0,
+        "round_trips": 0,
+        "costs_paid": 0.0
+      }
+    ]
+  },
+  "aggregate_equal": {
+    "period": "val_a",
+    "start": "2026-06-01",
+    "end": "2026-07-16",
+    "chosen": {
+      "hold_days": 1,
+      "entry_threshold": 0.0
+    },
+    "chosen_row": {
+      "hold_days": 1,
+      "entry_threshold": 0.0,
+      "sharpe": 1.1423,
+      "total_return": 0.016,
+      "round_trips": 69,
+      "costs_paid": 1180.79
+    },
+    "eligible": true,
+    "grid": [
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.0,
+        "sharpe": 1.1423,
+        "total_return": 0.016,
+        "round_trips": 69,
+        "costs_paid": 1180.79
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.05,
+        "sharpe": 0.2245,
+        "total_return": 0.0026,
+        "round_trips": 68,
+        "costs_paid": 1200.39
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.1,
+        "sharpe": -0.9995,
+        "total_return": -0.0136,
+        "round_trips": 38,
+        "costs_paid": 727.2
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.2,
+        "sharpe": -3.8753,
+        "total_return": -0.0092,
+        "round_trips": 5,
+        "costs_paid": 99.01
+      },
+      {
+        "hold_days": 1,
+        "entry_threshold": 0.3,
+        "sharpe": -1.5012,
+        "total_return": -0.0022,
+        "round_trips": 1,
+        "costs_paid": 19.89
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.0,
+        "sharpe": 0.8761,
+        "total_return": 0.014,
+        "round_trips": 53,
+        "costs_paid": 759.91
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.05,
+        "sharpe": -2.1257,
+        "total_return": -0.038,
+        "round_trips": 49,
+        "costs_paid": 740.3
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.1,
+        "sharpe": -1.3048,
+        "total_return": -0.0261,
+        "round_trips": 32,
+        "costs_paid": 605.11
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.2,
+        "sharpe": -1.1691,
+        "total_return": -0.0059,
+        "round_trips": 5,
+        "costs_paid": 99.5
+      },
+      {
+        "hold_days": 3,
+        "entry_threshold": 0.3,
+        "sharpe": 2.3186,
+        "total_return": 0.007,
+        "round_trips": 1,
+        "costs_paid": 20.35
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.0,
+        "sharpe": -1.6272,
+        "total_return": -0.0274,
+        "round_trips": 40,
+        "costs_paid": 499.92
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.05,
+        "sharpe": 1.0312,
+        "total_return": 0.0154,
+        "round_trips": 38,
+        "costs_paid": 523.84
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.1,
+        "sharpe": -0.5256,
+        "total_return": -0.0105,
+        "round_trips": 29,
+        "costs_paid": 472.76
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.2,
+        "sharpe": -0.0056,
+        "total_return": -0.0001,
+        "round_trips": 5,
+        "costs_paid": 100.3
+      },
+      {
+        "hold_days": 5,
+        "entry_threshold": 0.3,
+        "sharpe": 2.8539,
+        "total_return": 0.0117,
+        "round_trips": 1,
+        "costs_paid": 20.59
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.0,
+        "sharpe": -1.2171,
+        "total_return": -0.0197,
+        "round_trips": 28,
+        "costs_paid": 333.89
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.05,
+        "sharpe": -0.7378,
+        "total_return": -0.0133,
+        "round_trips": 25,
+        "costs_paid": 328.23
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.1,
+        "sharpe": 0.3434,
+        "total_return": 0.0051,
+        "round_trips": 23,
+        "costs_paid": 331.93
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.2,
+        "sharpe": 1.977,
+        "total_return": 0.0167,
+        "round_trips": 5,
+        "costs_paid": 101.88
+      },
+      {
+        "hold_days": 10,
+        "entry_threshold": 0.3,
+        "sharpe": -0.281,
+        "total_return": -0.0016,
+        "round_trips": 1,
+        "costs_paid": 19.92
+      }
+    ]
+  },
+  "aggregate_hedge": {
+    "period": "val_a",
+    "start": "2026-06-01",
+    "end": "2026-07-16",
+    "chosen": {
+      "eta": 0.0,
+      "p_min": null
+    },
+    "chosen_row": {
+      "eta": 0.0,
+      "p_min": null,
+      "sharpe": 1.1423,
+      "total_return": 0.016,
+      "round_trips": 69,
+      "costs_paid": 1180.79,
+      "final_weights": {
+        "sentiment": 0.333,
+        "event": 0.333,
+        "impact": 0.333
+      }
+    },
+    "eligible": true,
+    "equal_weights_row": {
+      "eta": 0.0,
+      "p_min": null,
+      "sharpe": 1.1423,
+      "total_return": 0.016,
+      "round_trips": 69,
+      "costs_paid": 1180.79,
+      "final_weights": {
+        "sentiment": 0.333,
+        "event": 0.333,
+        "impact": 0.333
+      }
+    },
+    "grid": [
+      {
+        "eta": 0.0,
+        "p_min": null,
+        "sharpe": 1.1423,
+        "total_return": 0.016,
+        "round_trips": 69,
+        "costs_paid": 1180.79,
+        "final_weights": {
+          "sentiment": 0.333,
+          "event": 0.333,
+          "impact": 0.333
+        }
+      },
+      {
+        "eta": 0.0,
+        "p_min": 0.5,
+        "sharpe": -0.4948,
+        "total_return": -0.0074,
+        "round_trips": 62,
+        "costs_paid": 1153.63,
+        "final_weights": {
+          "sentiment": 0.333,
+          "event": 0.333,
+          "impact": 0.333
+        }
+      },
+      {
+        "eta": 0.0,
+        "p_min": 0.52,
+        "sharpe": -0.4949,
+        "total_return": -0.0067,
+        "round_trips": 50,
+        "costs_paid": 932.05,
+        "final_weights": {
+          "sentiment": 0.333,
+          "event": 0.333,
+          "impact": 0.333
+        }
+      },
+      {
+        "eta": 0.0,
+        "p_min": 0.55,
+        "sharpe": -2.7635,
+        "total_return": -0.0375,
+        "round_trips": 31,
+        "costs_paid": 589.67,
+        "final_weights": {
+          "sentiment": 0.333,
+          "event": 0.333,
+          "impact": 0.333
+        }
+      },
+      {
+        "eta": 1.0,
+        "p_min": null,
+        "sharpe": 0.9148,
+        "total_return": 0.0132,
+        "round_trips": 68,
+        "costs_paid": 1211.6,
+        "final_weights": {
+          "sentiment": 0.259,
+          "event": 0.366,
+          "impact": 0.375
+        }
+      },
+      {
+        "eta": 1.0,
+        "p_min": 0.5,
+        "sharpe": -0.4349,
+        "total_return": -0.0066,
+        "round_trips": 62,
+        "costs_paid": 1150.25,
+        "final_weights": {
+          "sentiment": 0.259,
+          "event": 0.366,
+          "impact": 0.375
+        }
+      },
+      {
+        "eta": 1.0,
+        "p_min": 0.52,
+        "sharpe": -0.2651,
+        "total_return": -0.0039,
+        "round_trips": 51,
+        "costs_paid": 952.05,
+        "final_weights": {
+          "sentiment": 0.259,
+          "event": 0.366,
+          "impact": 0.375
+        }
+      },
+      {
+        "eta": 1.0,
+        "p_min": 0.55,
+        "sharpe": -2.5531,
+        "total_return": -0.0348,
+        "round_trips": 32,
+        "costs_paid": 608.98,
+        "final_weights": {
+          "sentiment": 0.259,
+          "event": 0.366,
+          "impact": 0.375
+        }
+      },
+      {
+        "eta": 3.0,
+        "p_min": null,
+        "sharpe": 1.0284,
+        "total_return": 0.0153,
+        "round_trips": 68,
+        "costs_paid": 1208.46,
+        "final_weights": {
+          "sentiment": 0.147,
+          "event": 0.411,
+          "impact": 0.442
+        }
+      },
+      {
+        "eta": 3.0,
+        "p_min": 0.5,
+        "sharpe": 0.6635,
+        "total_return": 0.0091,
+        "round_trips": 63,
+        "costs_paid": 1175.44,
+        "final_weights": {
+          "sentiment": 0.147,
+          "event": 0.411,
+          "impact": 0.442
+        }
+      },
+      {
+        "eta": 3.0,
+        "p_min": 0.52,
+        "sharpe": -0.6096,
+        "total_return": -0.0085,
+        "round_trips": 52,
+        "costs_paid": 985.93,
+        "final_weights": {
+          "sentiment": 0.147,
+          "event": 0.411,
+          "impact": 0.442
+        }
+      },
+      {
+        "eta": 3.0,
+        "p_min": 0.55,
+        "sharpe": -3.5156,
+        "total_return": -0.0461,
+        "round_trips": 31,
+        "costs_paid": 586.01,
+        "final_weights": {
+          "sentiment": 0.147,
+          "event": 0.411,
+          "impact": 0.442
+        }
+      },
+      {
+        "eta": 10.0,
+        "p_min": null,
+        "sharpe": -0.0274,
+        "total_return": -0.0013,
+        "round_trips": 67,
+        "costs_paid": 1183.51,
+        "final_weights": {
+          "sentiment": 0.014,
+          "event": 0.435,
+          "impact": 0.551
+        }
+      },
+      {
+        "eta": 10.0,
+        "p_min": 0.5,
+        "sharpe": -0.6839,
+        "total_return": -0.0104,
+        "round_trips": 61,
+        "costs_paid": 1076.75,
+        "final_weights": {
+          "sentiment": 0.014,
+          "event": 0.435,
+          "impact": 0.551
+        }
+      },
+      {
+        "eta": 10.0,
+        "p_min": 0.52,
+        "sharpe": -1.4929,
+        "total_return": -0.0202,
+        "round_trips": 53,
+        "costs_paid": 1005.74,
+        "final_weights": {
+          "sentiment": 0.014,
+          "event": 0.435,
+          "impact": 0.551
+        }
+      },
+      {
+        "eta": 10.0,
+        "p_min": 0.55,
+        "sharpe": -2.8226,
+        "total_return": -0.0396,
+        "round_trips": 32,
+        "costs_paid": 609.2,
+        "final_weights": {
+          "sentiment": 0.014,
+          "event": 0.435,
+          "impact": 0.551
+        }
+      }
+    ]
+  }
+}

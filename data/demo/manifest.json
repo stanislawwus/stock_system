@@ -1,0 +1,44 @@
+{
+  "cutoff_utc": "2026-08-31T20:00:00+00:00",
+  "tickers": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "JPM",
+    "GS",
+    "XOM",
+    "WMT",
+    "MCD",
+    "JNJ",
+    "BA",
+    "SPY"
+  ],
+  "news_days": 21,
+  "tables": {
+    "price_bars": {
+      "rows": 7348,
+      "sha256": "fe6cd42a728f36d9451af8f6a2f3b6536858d1e71790ca72153ffc2c17c518d8",
+      "bytes": 136408
+    },
+    "news": {
+      "rows": 2809,
+      "sha256": "b95d6e8a3ba049a4c798430dc92a692cd64d48971a1b271e11b80662173387ec",
+      "bytes": 390208
+    },
+    "sentiment": {
+      "rows": 2729,
+      "sha256": "55180abfc8794e24721144858050e088131c721bca8e85f7f98e8b9c4fb8e897",
+      "bytes": 79194
+    },
+    "filings": {
+      "rows": 2997,
+      "sha256": "955988d4ec739088dfd1681e05916fd24868ec1444a0e108d2fefbb39272f998",
+      "bytes": 72727
+    },
+    "facts": {
+      "rows": 330,
+      "sha256": "390a6f7b934eb921a1f7f826ea7bfa7e70caf6da0c4b8bbf1096c18a8429efe9",
+      "bytes": 5577
+    }
+  }
+}
