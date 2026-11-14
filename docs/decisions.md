@@ -501,6 +501,9 @@ through the simulator and writes `evals/results/arena.json` and `docs/05_arena.m
   fix). Placement is uniform over free (ticker, start) slots from an occupancy grid, not
   rejection sampling (which left trips unplaced). No risk manager on controls (its vetoes
   would break the trade-count match). Percentile = share of controls with a lower Sharpe.
+  n = 200 per strategy and mode (final, set by the user; the first request said 1,000): a
+  percentile then moves in steps of 0.5 points, enough to tell 50 from 95, and the run takes
+  ~3 min instead of ~10.
 - *Deflated Sharpe* (Bailey & Lopez de Prado 2014): N = every row of `evals/trials.csv`
   (selection grids of `make train`, impact model and calibrator alternatives, arena strategies,
   ablation variants); the variance of trial Sharpes uses the rows that have one (annualised in

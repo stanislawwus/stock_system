@@ -75,10 +75,10 @@ dividend-adjusted benchmark returns; report the cost share next to every Sharpe 
 
 **L-10 — No multiplicity control on the selection grid.** `src/sim/select.py` tries 20 (hold,
 threshold) points per strategy and keeps the best Sharpe; `impact` kept a point with exactly
-`min_trades` = 10 round trips. The eval plan's deflated Sharpe, random long-only control and
-ablation are not implemented. *Fix*: report the deflated Sharpe over the 20 attempts in
-`selected.json`; add the random-strategy control (same trade count, same names) to
-`evals/eval_impact.evaluate_aggregator`.
+`min_trades` = 10 round trips. *Partly fixed (D-42)*: `make arena` logs every grid point in
+`evals/trials.csv`, reports the deflated Sharpe with N = all logged trials, matched random
+controls and the drop-one ablation (`docs/05_arena.md`). *Still open*: the aggregator eval
+(`evals/eval_impact.evaluate_aggregator`, val_b) has no random control of its own.
 
 **L-11 — Point estimates without intervals.** `impact` (AUC), `calibration` (Brier skill),
 `facts` (within 1 %) and `relevance` (dedup F1) report no CI; `backtest_impact_train` shows
@@ -104,6 +104,6 @@ copies found by `clean.dedup_key` rather than planted.
 
 **L-14 — Hedge aggregation and the confidence threshold are not built.** The Must item (D-17,
 docs/01 row "aggregation with online weights") is covered today by equal weights; `aggregator.
-confidence_threshold` is `null`. `make arena` fails (`src.strategies.arena` missing). *Fix*: the
-next Must session: Hedge over strategy scores with `lookback_days` from train, threshold from the
-val_a return curve, arena leaderboard, then the `--final` entry points (L-01).
+confidence_threshold` is `null`. The arena exists since D-42 (`make arena`). *Fix*: the next
+Must session: Hedge over strategy scores with `lookback_days` from train, threshold from the val_a
+return curve (each variant logged in `evals/trials.csv`), then the `--final` entry points (L-01).

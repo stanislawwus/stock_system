@@ -67,7 +67,7 @@ arena:                               # make arena (D-42): validation only, never
   headline: aggregate_equal          # the strategy whose deflated Sharpe is the arena metric
   ablation_of: aggregate_equal       # drop-one ablation over its `components`
   random_controls:
-    n: 1000                          # matched random strategies per non-benchmark strategy
+    n: 200                           # matched random strategies per strategy and mode (user, 2026-11-14)
     seed: 20261114
     modes: [names, timing_and_names]   # names = same entry days, random tickers (strict match)
   dsr_target: 0.95                   # deflated Sharpe = P(true Sharpe > best-of-N luck)

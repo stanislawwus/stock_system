@@ -1,0 +1,574 @@
+{
+  "component": "arena",
+  "metric": "deflated_sharpe_aggregate_equal",
+  "value": 0.0014,
+  "target": 0.95,
+  "why_this_metric": "the deflated Sharpe asks whether the headline strategy's Sharpe beats what the best of all N configurations we tried would reach by luck; a plain Sharpe ignores that search",
+  "gold_set": "derived: 74 trials in evals/trials.csv; matched random controls",
+  "n": 64,
+  "split": "validation",
+  "model": "rules + impact model (data/models)",
+  "git_sha": "5898771",
+  "run_at": "2026-11-14T20:08:19+00:00",
+  "notes": "aggregate_equal: Sharpe -1.58 on validation (val_b only -4.33); deflated Sharpe 0.001 with N = 74 trials (SR0 4.24 annualised); random-control percentile 13.5 (same entry days, random names). Below target: the Sharpe is not distinguishable from the best of N unskilled configurations. See docs/05_arena.md.",
+  "details": {
+    "split": "validation",
+    "start": "2026-06-01",
+    "end": "2026-08-31",
+    "val_b_start": "2026-07-17",
+    "n_days": 64,
+    "leaderboard": [
+      {
+        "strategy": "buy_and_hold",
+        "sharpe": 1.3374,
+        "sharpe_ci95": [
+          -2.4093,
+          5.3048
+        ],
+        "total_return": 0.0391,
+        "max_drawdown": 0.0394,
+        "n_trades": 20,
+        "round_trips": 10,
+        "hit_rate": 0.7,
+        "turnover": 1.0046,
+        "costs_paid": 101.9578,
+        "mean_exposure": 0.9844,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": 1.606,
+        "sharpe_val_b_ci95": [
+          -2.7008,
+          8.6794
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "momentum",
+        "sharpe": 2.3792,
+        "sharpe_ci95": [
+          -1.3396,
+          6.5554
+        ],
+        "total_return": 0.0733,
+        "max_drawdown": 0.0289,
+        "n_trades": 62,
+        "round_trips": 31,
+        "hit_rate": 0.5484,
+        "turnover": 4.104,
+        "costs_paid": 428.2477,
+        "mean_exposure": 0.9056,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": 1.2359,
+        "sharpe_val_b_ci95": [
+          -3.1748,
+          9.0195
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "mean_reversion",
+        "sharpe": 3.5702,
+        "sharpe_ci95": [
+          0.5607,
+          6.4914
+        ],
+        "total_return": 0.0811,
+        "max_drawdown": 0.0199,
+        "n_trades": 76,
+        "round_trips": 38,
+        "hit_rate": 0.6842,
+        "turnover": 7.5662,
+        "costs_paid": 792.1851,
+        "mean_exposure": 0.2869,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": 4.6883,
+        "sharpe_val_b_ci95": [
+          -0.3125,
+          8.4022
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "finbert_v0",
+        "sharpe": -0.5917,
+        "sharpe_ci95": [
+          -4.4454,
+          3.1361
+        ],
+        "total_return": -0.0236,
+        "max_drawdown": 0.0731,
+        "n_trades": 502,
+        "round_trips": 251,
+        "hit_rate": 0.49,
+        "turnover": 34.9034,
+        "costs_paid": 3414.0911,
+        "mean_exposure": 0.5293,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (D-36)",
+        "validation_in_sample": false,
+        "sharpe_val_b": 0.2272,
+        "sharpe_val_b_ci95": [
+          -4.1202,
+          5.7836
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "event",
+        "sharpe": 3.0577,
+        "sharpe_ci95": [
+          -0.5481,
+          6.5492
+        ],
+        "total_return": 0.0673,
+        "max_drawdown": 0.0209,
+        "n_trades": 20,
+        "round_trips": 10,
+        "hit_rate": 0.6,
+        "turnover": 2.0304,
+        "costs_paid": 208.7287,
+        "mean_exposure": 0.2791,
+        "risk_managed": true,
+        "choice_period": "train",
+        "validation_in_sample": false,
+        "sharpe_val_b": 4.1853,
+        "sharpe_val_b_ci95": [
+          -1.5104,
+          10.5262
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "impact",
+        "sharpe": -0.6327,
+        "sharpe_ci95": [
+          -3.5092,
+          4.1704
+        ],
+        "total_return": -0.0071,
+        "max_drawdown": 0.017,
+        "n_trades": 36,
+        "round_trips": 18,
+        "hit_rate": 0.6111,
+        "turnover": 3.5945,
+        "costs_paid": 358.2744,
+        "mean_exposure": 0.053,
+        "risk_managed": true,
+        "choice_period": "val_a (+ impact model on train, calibrator on val_a)",
+        "validation_in_sample": true,
+        "sharpe_val_b": -2.8291,
+        "sharpe_val_b_ci95": [
+          -6.1353,
+          3.6589
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      },
+      {
+        "strategy": "aggregate_equal",
+        "sharpe": -1.5849,
+        "sharpe_ci95": [
+          -4.533,
+          1.7086
+        ],
+        "total_return": -0.0476,
+        "max_drawdown": 0.076,
+        "n_trades": 262,
+        "round_trips": 131,
+        "hit_rate": 0.4275,
+        "turnover": 23.4479,
+        "costs_paid": 2343.2138,
+        "mean_exposure": 0.3569,
+        "risk_managed": true,
+        "choice_period": "val_a (+ impact model on train, calibrator on val_a)",
+        "validation_in_sample": true,
+        "sharpe_val_b": -4.3306,
+        "sharpe_val_b_ci95": [
+          -7.4719,
+          0.5153
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
+      }
+    ],
+    "correlation": {
+      "buy_and_hold": {
+        "buy_and_hold": 1.0,
+        "momentum": 0.8634,
+        "mean_reversion": 0.3311,
+        "finbert_v0": 0.8674,
+        "event": 0.4571,
+        "impact": 0.368,
+        "aggregate_equal": 0.6458
+      },
+      "momentum": {
+        "buy_and_hold": 0.8634,
+        "momentum": 1.0,
+        "mean_reversion": 0.2145,
+        "finbert_v0": 0.8156,
+        "event": 0.3556,
+        "impact": 0.244,
+        "aggregate_equal": 0.7045
+      },
+      "mean_reversion": {
+        "buy_and_hold": 0.3311,
+        "momentum": 0.2145,
+        "mean_reversion": 1.0,
+        "finbert_v0": 0.1384,
+        "event": -0.0582,
+        "impact": 0.1426,
+        "aggregate_equal": 0.2295
+      },
+      "finbert_v0": {
+        "buy_and_hold": 0.8674,
+        "momentum": 0.8156,
+        "mean_reversion": 0.1384,
+        "finbert_v0": 1.0,
+        "event": 0.4896,
+        "impact": 0.2393,
+        "aggregate_equal": 0.6413
+      },
+      "event": {
+        "buy_and_hold": 0.4571,
+        "momentum": 0.3556,
+        "mean_reversion": -0.0582,
+        "finbert_v0": 0.4896,
+        "event": 1.0,
+        "impact": 0.1178,
+        "aggregate_equal": 0.2871
+      },
+      "impact": {
+        "buy_and_hold": 0.368,
+        "momentum": 0.244,
+        "mean_reversion": 0.1426,
+        "finbert_v0": 0.2393,
+        "event": 0.1178,
+        "impact": 1.0,
+        "aggregate_equal": 0.295
+      },
+      "aggregate_equal": {
+        "buy_and_hold": 0.6458,
+        "momentum": 0.7045,
+        "mean_reversion": 0.2295,
+        "finbert_v0": 0.6413,
+        "event": 0.2871,
+        "impact": 0.295,
+        "aggregate_equal": 1.0
+      }
+    },
+    "ablation": [
+      {
+        "variant": "all components",
+        "dropped": null,
+        "sharpe": -1.5849,
+        "sharpe_ci95": [
+          -4.533,
+          1.7086
+        ],
+        "total_return": -0.0476,
+        "round_trips": 131,
+        "delta_sharpe_vs_all": 0.0
+      },
+      {
+        "variant": "without_sentiment",
+        "dropped": "sentiment",
+        "sharpe": 0.9586,
+        "sharpe_ci95": [
+          -2.4131,
+          4.3829
+        ],
+        "total_return": 0.0233,
+        "round_trips": 130,
+        "delta_sharpe_vs_all": 2.5436
+      },
+      {
+        "variant": "without_event",
+        "dropped": "event",
+        "sharpe": -1.5613,
+        "sharpe_ci95": [
+          -4.4778,
+          1.7643
+        ],
+        "total_return": -0.047,
+        "round_trips": 131,
+        "delta_sharpe_vs_all": 0.0237
+      },
+      {
+        "variant": "without_impact",
+        "dropped": "impact",
+        "sharpe": 0.8465,
+        "sharpe_ci95": [
+          -2.4354,
+          4.751
+        ],
+        "total_return": 0.0234,
+        "round_trips": 131,
+        "delta_sharpe_vs_all": 2.4315
+      }
+    ],
+    "random_controls": {
+      "momentum": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 2.3792,
+          "percentile": 90.5,
+          "random_sharpe_p05": 0.2174,
+          "random_sharpe_median": 1.4337,
+          "random_sharpe_p95": 2.7235,
+          "round_trips": 31,
+          "random_round_trips_mean": 31.0,
+          "mean_exposure": 0.9056,
+          "random_mean_exposure": 0.9064
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 2.3792,
+          "percentile": 83.5,
+          "random_sharpe_p05": -0.2705,
+          "random_sharpe_median": 1.3045,
+          "random_sharpe_p95": 3.2028,
+          "round_trips": 31,
+          "random_round_trips_mean": 27.19,
+          "mean_exposure": 0.9056,
+          "random_mean_exposure": 0.7619
+        }
+      },
+      "mean_reversion": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 3.5702,
+          "percentile": 94.5,
+          "random_sharpe_p05": -2.0015,
+          "random_sharpe_median": 0.8677,
+          "random_sharpe_p95": 3.653,
+          "round_trips": 38,
+          "random_round_trips_mean": 38.0,
+          "mean_exposure": 0.2869,
+          "random_mean_exposure": 0.2875
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 3.5702,
+          "percentile": 98.5,
+          "random_sharpe_p05": -2.5533,
+          "random_sharpe_median": 0.3356,
+          "random_sharpe_p95": 2.7433,
+          "round_trips": 38,
+          "random_round_trips_mean": 38.0,
+          "mean_exposure": 0.2869,
+          "random_mean_exposure": 0.287
+        }
+      },
+      "finbert_v0": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -0.5917,
+          "percentile": 49.5,
+          "random_sharpe_p05": -2.3738,
+          "random_sharpe_median": -0.5636,
+          "random_sharpe_p95": 1.0226,
+          "round_trips": 251,
+          "random_round_trips_mean": 249.92,
+          "mean_exposure": 0.5293,
+          "random_mean_exposure": 0.5335
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -0.5917,
+          "percentile": 51.5,
+          "random_sharpe_p05": -2.4393,
+          "random_sharpe_median": -0.6236,
+          "random_sharpe_p95": 1.0928,
+          "round_trips": 251,
+          "random_round_trips_mean": 240.355,
+          "mean_exposure": 0.5293,
+          "random_mean_exposure": 0.5481
+        }
+      },
+      "event": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 3.0577,
+          "percentile": 73.0,
+          "random_sharpe_p05": -1.0366,
+          "random_sharpe_median": 1.9855,
+          "random_sharpe_p95": 4.9577,
+          "round_trips": 10,
+          "random_round_trips_mean": 10.0,
+          "mean_exposure": 0.2791,
+          "random_mean_exposure": 0.2777
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 3.0577,
+          "percentile": 94.0,
+          "random_sharpe_p05": -2.6012,
+          "random_sharpe_median": 0.4092,
+          "random_sharpe_p95": 3.1009,
+          "round_trips": 10,
+          "random_round_trips_mean": 10.0,
+          "mean_exposure": 0.2791,
+          "random_mean_exposure": 0.2775
+        }
+      },
+      "impact": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -0.6327,
+          "percentile": 41.0,
+          "random_sharpe_p05": -2.9739,
+          "random_sharpe_median": -0.1904,
+          "random_sharpe_p95": 2.9393,
+          "round_trips": 18,
+          "random_round_trips_mean": 18.0,
+          "mean_exposure": 0.053,
+          "random_mean_exposure": 0.0532
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -0.6327,
+          "percentile": 43.5,
+          "random_sharpe_p05": -3.0341,
+          "random_sharpe_median": -0.2931,
+          "random_sharpe_p95": 2.3961,
+          "round_trips": 18,
+          "random_round_trips_mean": 18.0,
+          "mean_exposure": 0.053,
+          "random_mean_exposure": 0.0531
+        }
+      },
+      "aggregate_equal": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -1.5849,
+          "percentile": 13.5,
+          "random_sharpe_p05": -2.7071,
+          "random_sharpe_median": -0.1779,
+          "random_sharpe_p95": 1.7344,
+          "round_trips": 131,
+          "random_round_trips_mean": 131.0,
+          "mean_exposure": 0.3569,
+          "random_mean_exposure": 0.3566
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -1.5849,
+          "percentile": 31.5,
+          "random_sharpe_p05": -3.4542,
+          "random_sharpe_median": -0.8211,
+          "random_sharpe_p95": 1.4549,
+          "round_trips": 131,
+          "random_round_trips_mean": 130.19,
+          "mean_exposure": 0.3569,
+          "random_mean_exposure": 0.3704
+        }
+      }
+    },
+    "deflated_sharpe": {
+      "buy_and_hold": {
+        "sharpe_daily": 0.0842,
+        "sr0_daily": 0.2668,
+        "skew": -0.0881,
+        "kurtosis": 3.4263,
+        "dsr": 0.0748,
+        "psr_vs_zero": 0.7469
+      },
+      "momentum": {
+        "sharpe_daily": 0.1499,
+        "sr0_daily": 0.2668,
+        "skew": -0.178,
+        "kurtosis": 3.9569,
+        "dsr": 0.1817,
+        "psr_vs_zero": 0.8779
+      },
+      "mean_reversion": {
+        "sharpe_daily": 0.2249,
+        "sr0_daily": 0.2668,
+        "skew": 0.7567,
+        "kurtosis": 5.4691,
+        "dsr": 0.3618,
+        "psr_vs_zero": 0.971
+      },
+      "finbert_v0": {
+        "sharpe_daily": -0.0373,
+        "sr0_daily": 0.2668,
+        "skew": 0.024,
+        "kurtosis": 4.6538,
+        "dsr": 0.0079,
+        "psr_vs_zero": 0.3838
+      },
+      "event": {
+        "sharpe_daily": 0.1926,
+        "sr0_daily": 0.2668,
+        "skew": 1.5665,
+        "kurtosis": 7.6778,
+        "dsr": 0.2496,
+        "psr_vs_zero": 0.9602
+      },
+      "impact": {
+        "sharpe_daily": -0.0399,
+        "sr0_daily": 0.2668,
+        "skew": -0.5691,
+        "kurtosis": 7.2378,
+        "dsr": 0.007,
+        "psr_vs_zero": 0.3746
+      },
+      "aggregate_equal": {
+        "sharpe_daily": -0.0998,
+        "sr0_daily": 0.2668,
+        "skew": -0.5806,
+        "kurtosis": 5.9137,
+        "dsr": 0.0014,
+        "psr_vs_zero": 0.2086
+      }
+    },
+    "trials": {
+      "n": 74,
+      "n_with_sharpe": 62,
+      "by_family": {
+        "selection_grid": 60,
+        "arena": 7,
+        "ablation": 3,
+        "calibrator": 2,
+        "impact_model": 2
+      },
+      "path": "evals/trials.csv"
+    },
+    "run_at": "2026-11-14T20:08:19+00:00",
+    "disclaimer": "This is a simulation, not investment advice."
+  }
+}

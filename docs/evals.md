@@ -9,6 +9,7 @@ No result below uses the test period (AGENTS.md R3).
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
 | aggregator | sharpe_val_b | -3.1453 | 2.0519 | **no** | derived: buy_and_hold on val_b, same tickers | 32 | equal weights (sentiment, event, impact) | c77a97f |
+| arena | deflated_sharpe_aggregate_equal | 0.0014 | 0.95 | **no** | derived: 74 trials in evals/trials.csv; matched random controls | 64 | rules + impact model (data/models) | 5898771 |
 | backtest_aggregate_equal_train | sharpe | -0.9527 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_aggregate_equal_validation | sharpe | -1.5849 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
 | backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
@@ -266,6 +267,18 @@ and lowers Brier (0.266 -> 0.257), but stays worse than predicting val_b's base 
 Brier skill -0.03. Isotonic is worse on val_b (0.271) though perfect in-sample (ECE 0), the
 expected overfit on about 300 rows. Calibration cannot add discrimination the model lacks; the
 up-share also moved from 0.53 (val_a) to 0.47 (val_b). Plot: `docs/figs/reliability_impact.png`.
+
+### arena (`make arena`, D-42; full report `docs/05_arena.md`)
+
+Metric: deflated Sharpe of `aggregate_equal` on validation, N = 74 trials logged in
+`evals/trials.csv` (60 selection-grid points, 7 arena strategies, 3 ablation variants, 2 models,
+2 calibrators); target 0.95. Value 0.001: its Sharpe (-1.58) is far below the 4.24 that the best
+of 74 unskilled trials reaches by luck, and in the matched random control (same entry days and
+holding lengths, random names, 200 draws) it sits at the 13.5th percentile. SR0 is high because
+each trial covers only 32-124 sessions, so trial Sharpes vary widely; even the best strategy
+(mean reversion, 3.57, 94.5th percentile of its controls) has a DSR of only 0.36. The drop-one
+ablation shows the aggregate coincided with better validation returns without sentiment (0.96)
+or without impact (0.85) than with all three, both CIs overlapping zero.
 
 ### aggregator, event, impact backtests
 
