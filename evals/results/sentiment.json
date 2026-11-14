@@ -8,8 +8,8 @@
   "n": 150,
   "split": "train+validation",
   "model": "ProsusAI/finbert@0bc2ac1",
-  "git_sha": "9811515",
-  "run_at": "2026-11-14T16:08:05+00:00",
+  "git_sha": "84f0a6a",
+  "run_at": "2026-11-14T16:20:39+00:00",
   "notes": "macro-F1 0.5155 below 0.8; per class {'pos': 0.4819, 'neu': 0.6774, 'neg': 0.3871}. Explanation in docs/evals.md (sentiment).",
   "details": {
     "gold_distribution": {
@@ -34,6 +34,33 @@
         "pos->neg": 1,
         "pos->neu": 12,
         "pos->pos": 20
+      }
+    },
+    "relevant_subset": {
+      "n": 93,
+      "gold_distribution": {
+        "pos": 27,
+        "neu": 59,
+        "neg": 7
+      },
+      "finbert": {
+        "macro_f1": 0.5868,
+        "f1_per_class": {
+          "pos": 0.5,
+          "neu": 0.6604,
+          "neg": 0.6
+        },
+        "accuracy": 0.6022,
+        "confusion_gold_to_pred": {
+          "neg->neg": 6,
+          "neg->neu": 1,
+          "neu->neg": 6,
+          "neu->neu": 35,
+          "neu->pos": 18,
+          "pos->neg": 1,
+          "pos->neu": 11,
+          "pos->pos": 15
+        }
       }
     },
     "lexicon_baseline": {

@@ -9,7 +9,9 @@
   positive as much as neutral, so "always neutral" scores badly.
 
 `value` is the configured backend (FinBERT when the extra is installed); the lexicon is always
-reported in `details` as the baseline (D-09). Offline once the model is in the local HF cache.
+reported in `details` as the baseline (D-09). `details.relevant_subset` repeats the score on the
+headlines that name the tagged company (what finbert_v0 averages after its relevance filter).
+Offline once the model is in the local HF cache.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from src.collectors.common import ROOT
+from src.nlp.relevance import mentions
 from src.nlp.sentiment import Backend, LexiconBackend, cfg, get_backend, news_text, score_texts
 
 GOLD = ROOT / "evals" / "labels" / "news_100.csv"
@@ -78,6 +81,9 @@ def evaluate(backend: Backend | None = None) -> dict[str, Any]:
     main = backend or get_backend()
     res = score_backend(rows, main)
     lex = score_backend(rows, LexiconBackend.from_config())
+    # the subset finbert_v0 actually uses: headlines that name the tagged company (D-36)
+    relevant = [r for r in rows if mentions(r["ticker"], r["headline"])]
+    res_rel = score_backend(relevant, main)
     model = (
         f"{cfg()['finbert_model']}@{cfg()['finbert_revision'][:7]}"
         if main.method == "finbert"
@@ -107,6 +113,11 @@ def evaluate(backend: Backend | None = None) -> dict[str, Any]:
         "details": {
             "gold_distribution": dict(Counter(r["sentiment"] for r in rows)),
             main.method: res,
+            "relevant_subset": {
+                "n": len(relevant),
+                "gold_distribution": dict(Counter(r["sentiment"] for r in relevant)),
+                main.method: res_rel,
+            },
             **({} if main.method == "lexicon" else {"lexicon_baseline": lex}),
             "input": "headline only (the labelling guideline is headline only)",
         },
