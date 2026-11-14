@@ -10,6 +10,7 @@ from functools import partial
 from typing import Any
 
 from evals import (
+    eval_chat,
     eval_collectors,
     eval_events,
     eval_facts,
@@ -33,6 +34,7 @@ EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "events": eval_events.evaluate,
     "facts": eval_facts.evaluate,
     "intake": eval_intake.evaluate,
+    "chat": eval_chat.evaluate,
     "impact": eval_impact.evaluate_impact,
     "calibration": eval_impact.evaluate_calibration,
     "aggregator": eval_impact.evaluate_aggregator,

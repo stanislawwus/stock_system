@@ -9,7 +9,7 @@ API_PORT ?= 8000
 UI_PORT ?= 8501
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
-.PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final
+.PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final eval-chat
 TRAIN_ARTIFACTS := data/models/impact.joblib data/models/event_items.json data/models/selected.json
 STACKED := event impact aggregate_equal aggregate_hedge
 
@@ -72,6 +72,9 @@ features-test: ## FinBERT inference on test news -> data/test_scores.parquet, re
 
 eval: need-train ## run every component eval, write evals/results/*.json and the table in docs/evals.md
 > $(RUN) python -m evals.run_all
+
+eval-chat: ## chat agent eval: code checks only, 0 LLM calls -> evals/results/chat.json (D-46)
+> $(RUN) python -m evals.eval_chat
 
 arena: need-train ## run all strategies on the validation split and write the leaderboard
 > $(RUN) python -m src.strategies.arena --split validation

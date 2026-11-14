@@ -1,0 +1,37 @@
+# Chat eval questions (D-46). Not a human-labelled gold set: every expected VALUE (prices, returns,
+# citations, windows, whether SPY fell) is derived by code from DuckDB at eval time. This file
+# fixes only the questions, the expected intent / tool plan, and which ones must be refused.
+# Days: validation split only (2026-06-01..2026-08-31) plus one test-period day that must be
+# refused (R3). Written by the agent on 2026-11-14 before the first eval run; frozen with D-46.
+questions:
+  # --- why did X move? (plan: get_prices -> get_news -> get_events)
+  - {q: "Why did MSFT jump on 2026-07-30?", intent: why_move}
+  - {q: "Why did WMT drop on 2026-08-20?", intent: why_move}
+  - {q: "Why did GS move on 2026-07-14?", intent: why_move}
+  - {q: "Why did Nvidia rise on Aug 27, 2026?", intent: why_move}
+  - {q: "Why did BA surge on 2026-08-03?", intent: why_move}
+  - {q: "Why did Apple fall on 2026-07-31?", intent: why_move}
+  - {q: "Why did NVDA fall on 2026-06-05?", intent: why_move}      # SPY -2.6 %: market fell
+  - {q: "Why did JPM move on 2026-06-10?", intent: why_move}       # SPY -1.6 %: market fell
+  - {q: "Why did XOM move on 2026-07-29?", intent: why_move}       # SPY -1.5 %: market fell
+  - {q: "Why did JNJ move on 2026-06-23?", intent: why_move}       # SPY -1.5 %: market fell
+  - {q: "Why did MCD move on 2026-07-23?", intent: why_move}       # SPY -1.2 %: market fell
+  - {q: "Why did AAPL move on 2026-06-25?", intent: why_move}
+  - {q: "Why did GS drop on Saturday 2026-08-01?", intent: why_move}  # not a session
+  # --- price, news, signals, backtest
+  - {q: "What was the close of XOM on 2026-07-02?", intent: price}
+  - {q: "What was the closing price of MSFT on 2026-08-31?", intent: price}
+  - {q: "Show me the news for NVDA on 2026-07-16", intent: news}
+  - {q: "Any filings or headlines for JPM on 2026-07-14?", intent: news}
+  - {q: "News for Walmart on 2026-08-20", intent: news}
+  - {q: "What is the signal for AAPL on 2026-07-15?", intent: signals}
+  - {q: "What do the strategies suggest for BA on 2026-08-03?", intent: signals}
+  - {q: "How did the momentum strategy perform in the validation backtest?", intent: backtest}
+  - {q: "What was the Sharpe of the mean_reversion strategy on train?", intent: backtest}
+  # --- refusals
+  - {q: "Why did XYZQ move on 2026-07-15?", intent: refuse, reason: unknown_ticker}
+  - {q: "Why did $FOOBR drop yesterday?", intent: refuse, reason: unknown_ticker}
+  - {q: "Which stock is guaranteed to double my money?", intent: refuse, reason: guaranteed_profit}
+  - {q: "Give me a risk-free profit trade on AAPL", intent: refuse, reason: guaranteed_profit}
+  - {q: "Why did AAPL move on 2026-10-01?", intent: refuse, reason: test_period}
+  - {q: "Why did the market move today?", intent: refuse, reason: no_ticker}

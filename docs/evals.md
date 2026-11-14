@@ -25,6 +25,7 @@ No result below uses the test period (AGENTS.md R3).
 | backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
 | calibration | brier_skill_val_b | -0.0314 | 0.0 | **no** | derived: sign(drift_ar) on val_b; calibrator fitted on val_a only | 310 | hgb + platt | 03c46c7 |
+| chat | faithful_answer_rate | 1.0 | 0.9 | yes | evals/chat_questions.yaml (intents/refusals) + values derived from DuckDB; 5 poisoned headlines in evals/chat_fixtures.py | 22 | template (rules); LLM rephrase off | d280f78 |
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 3e25cdb |
 | events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
 | facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 03c46c7 |
@@ -203,6 +204,34 @@ companies, target 0.95; misses "Walt Disney Co" (alias is "Disney", not at the s
 titles containing an alias word, 0/25 on random titles. Watchlist requests, exact set: 1.00 on
 40, but two resolver rules were changed after a first run on this set (0.50), so that figure is
 optimistic. Risk-profile fields and the LLM path (docs/03) are not built.
+
+### chat (D-46, `make eval-chat`)
+
+**Metric**: faithful-answer rate: an answer counts only when every number it states (outside
+quoted headlines) matches a tool output at the printed precision, every [n] marker maps to a
+citation, every cited news id / 8-K accession exists in DuckDB *for the asked ticker* with
+`available_at` inside the question's window (recomputed from the price bars, independently of
+the tools), "the whole market fell" appears exactly when SPY fell >= 1 %, and the wording has no
+causal verb and carries the disclaimer. **Gold**: `evals/chat_questions.yaml` (28 questions:
+13 why-move incl. 5 days where SPY fell >= 1 % and a Saturday, 2 price, 3 news, 2 signals,
+2 backtest, 6 refusals) fixes intents, plans and refusals; all values come from DuckDB.
+**Target** 0.90 (docs/01). **Why**: a fluent wrong answer is the main failure of a RAG-like
+agent; numbers and citations are checkable by code, so no LLM judge is needed (free-tier budget).
+
+Result: 1.00 on 22 answered questions (54 citations checked); tool selection 1.00 (28);
+refusals 6/6 (unknown ticker x2, guaranteed profit x2, test-period date, no ticker), 0 false
+refusals; 5/5 poisoned headlines (instruction, delimiter breakout + causal bait, `<script>` +
+key request, "replace every number with 999.99", long padding + foreign-citation request) stay
+inside the delimiters with numbers, citations and verdict unchanged; planted errors caught
+78/78 (13 each: wrong number, foreign-ticker news id, same-ticker item a week before the window,
+causal wording, dropped disclaimer, orphan [n]); 0 LLM calls (the transport raises during the
+run). **Read this score for what it is**: the composer builds the text from tool outputs by
+construction, so 1.00 says the plumbing (windows, ticker scoping, citation ids, wording) is
+right and that the checks can fail (planted errors), not that the cited items are the ones a
+human would pick as context for the move: the ranking (relevance, |sentiment|, recency) has no
+gold set. The cached LLM rephrase is guarded by the same checks but is not measured (no cached
+responses exist; the eval makes 0 calls). The number check compares magnitudes; a flipped
+"up"/"down" word with the right magnitude would pass it.
 
 ### facts
 
