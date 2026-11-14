@@ -6,6 +6,7 @@ Only `train` and `validation` are accepted here; the test period belongs to `mak
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -77,6 +78,48 @@ def summarise(
     )
 
 
+@dataclass
+class Run:
+    """A finished simulation with everything needed to replay controls on the same days."""
+
+    sim: SimResult
+    result: BacktestResult
+    prices: ExecutionPrices
+    cfg: SimConfig
+    tickers: list[str]
+    risk_managed: bool
+
+
+def run_simulation(
+    strategy: str | Strategy,
+    split: str,
+    db_path: Path | None = None,
+    start: date | None = None,
+    end: date | None = None,
+    *,
+    risk_managed: bool | None = None,
+    prices: ExecutionPrices | None = None,
+) -> Run:
+    """Like `run_backtest`, but keeps the raw simulation (trades, exposure) and the prices.
+    `risk_managed=None` follows `backtest.risk_managed`; `prices` reuses an already loaded
+    accessor for the same split/range (the arena runs many strategies on the same days)."""
+    split = resolve_split(split)
+    (period,) = load_periods([split])
+    lo, hi = max(start or period.start, period.start), min(end or period.end, period.end)
+    bt = backtest_config()
+    tickers, benchmark = backtest_tickers(bt["universe"])
+    strat = build(strategy) if isinstance(strategy, str) else strategy
+    risk_yaml = load_yaml("risk.yaml")
+    cfg = SimConfig.from_risk(risk_yaml)
+    if risk_managed is None:
+        risk_managed = strat.name in bt.get("risk_managed", [])
+    rm = RiskManager(RiskConfig.from_risk(risk_yaml)) if risk_managed else None
+    if prices is None:
+        prices = ExecutionPrices.load(tickers, lo, hi, benchmark, db_path)
+    res = simulate(strat, tickers, prices, cfg, default_view_factory(db_path), risk=rm)
+    return Run(res, summarise(res, cfg, split, tickers, bt), prices, cfg, tickers, risk_managed)
+
+
 def run_backtest(
     strategy: str | Strategy,
     split: str,
@@ -86,17 +129,4 @@ def run_backtest(
 ) -> BacktestResult:
     """`start`/`end` narrow the run to a sub-range of the split (e.g. val_b, D-40). Strategies
     listed in `backtest.risk_managed` run with the risk manager (src/sim/risk.py)."""
-    split = resolve_split(split)
-    (period,) = load_periods([split])
-    lo, hi = max(start or period.start, period.start), min(end or period.end, period.end)
-    bt = backtest_config()
-    tickers, benchmark = backtest_tickers(bt["universe"])
-    strat = build(strategy) if isinstance(strategy, str) else strategy
-    risk_yaml = load_yaml("risk.yaml")
-    cfg = SimConfig.from_risk(risk_yaml)
-    rm = None
-    if strat.name in bt.get("risk_managed", []):
-        rm = RiskManager(RiskConfig.from_risk(risk_yaml))
-    prices = ExecutionPrices.load(tickers, lo, hi, benchmark, db_path)
-    res = simulate(strat, tickers, prices, cfg, default_view_factory(db_path), risk=rm)
-    return summarise(res, cfg, split, tickers, bt)
+    return run_simulation(strategy, split, db_path, start, end).result

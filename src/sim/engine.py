@@ -15,6 +15,9 @@ For every session D of the split, in this order:
    close, so every trade is a closed round trip and the final equity is cash.
 4. Equity is marked at the close of D (last known close if a ticker has no bar on D).
 
+Optional (D-42): a strategy may define `horizon_for(ticker, day) -> int | None`, the time exit of
+a position entered on `day` (overrides `horizon_days`; used by the arena's random controls).
+
 Optional (D-40): a strategy's `min_hold_days` (default 0) blocks score exits at the open while
 `session <= entry session + min_hold_days`; a `RiskManager` (src/sim/risk.py) vetoes entries
 (drawdown halt, cooldown after a loss), caps each entry at `max_position_pct`, and sells at the
@@ -122,6 +125,7 @@ def simulate(
 ) -> SimResult:
     view_factory = view_factory or default_view_factory()
     min_hold = int(getattr(strategy, "min_hold_days", 0) or 0)
+    horizon_for = getattr(strategy, "horizon_for", None)  # optional per-entry horizon
     stop_pending: set[str] = set()
     if risk is not None:
         risk.mark(cfg.initial_capital)  # the drawdown peak starts at the initial capital
@@ -186,7 +190,8 @@ def simulate(
                 cash -= budget
                 res.traded_notional += qty * px
                 res.costs_paid += fee
-                exit_index = None if strategy.horizon_days is None else i + strategy.horizon_days
+                h = horizon_for(t, day) if horizon_for else strategy.horizon_days
+                exit_index = None if h is None else i + h
                 pos[t] = Position(qty, day, budget, exit_index, px, i + min_hold)
                 last_px[t] = px
                 res.trades.append(

@@ -63,3 +63,30 @@ def test_bootstrap_degenerate_inputs() -> None:
     assert m.bootstrap_ci([0.01], m.mean_stat, **kw) is None
     assert m.bootstrap_ci([0.01] * 20, m.sharpe_stat(252), **kw) is None
     assert m.bootstrap_ci([0.01] * 20, m.mean_stat, **kw) == pytest.approx((0.01, 0.01))
+
+
+def test_expected_max_sharpe_grows_with_the_number_of_trials() -> None:
+    rng = np.random.default_rng(0)
+    trials = rng.normal(0, 1, 500)
+    assert m.expected_max_sharpe(trials, 1) == 0.0
+    sr = [m.expected_max_sharpe(trials, n) for n in (2, 10, 100, 1000)]
+    assert sr == sorted(sr) and sr[0] > 0
+    # E[max of 1000 standard normals] is about 3.24; the closed form is close to it
+    assert m.expected_max_sharpe(trials, 1000) / trials.std(ddof=1) == pytest.approx(3.25, abs=0.05)
+
+
+def test_probabilistic_sharpe_is_one_half_at_the_benchmark() -> None:
+    assert m.probabilistic_sharpe(0.1, 0.1, 100, 0.0, 3.0) == pytest.approx(0.5)
+    assert m.probabilistic_sharpe(0.2, 0.1, 100, 0.0, 3.0) > 0.5
+    assert m.probabilistic_sharpe(0.2, 0.1, 1, 0.0, 3.0) is None
+
+
+def test_deflated_sharpe_is_lower_with_more_trials() -> None:
+    rng = np.random.default_rng(1)
+    r = rng.normal(0.002, 0.01, 250)
+    trials = rng.normal(0.0, 0.05, 50)
+    few, many = m.deflated_sharpe(r, trials, 2), m.deflated_sharpe(r, trials, 500)
+    assert many["sr0_daily"] > few["sr0_daily"] > 0
+    assert many["dsr"] < few["dsr"] < few["psr_vs_zero"]
+    skew, kurt = m.moments(rng.normal(0, 1, 100_000))
+    assert skew == pytest.approx(0, abs=0.05) and kurt == pytest.approx(3, abs=0.1)

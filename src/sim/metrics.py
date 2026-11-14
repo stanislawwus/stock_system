@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable, Sequence
+from statistics import NormalDist
 
 import numpy as np
 
@@ -91,6 +92,67 @@ def bootstrap_ci(
     alpha = (1.0 - ci) / 2.0
     lo, hi = np.quantile(values, [alpha, 1.0 - alpha])
     return float(lo), float(hi)
+
+
+EULER_GAMMA = 0.5772156649015329  # Euler-Mascheroni constant (expected maximum of N normals)
+
+
+def moments(returns: Sequence[float]) -> tuple[float, float]:
+    """(skewness, kurtosis) of daily returns; kurtosis is the plain (non-excess) one, 3 = normal."""
+    r = np.asarray(returns, dtype=float)
+    sd = r.std(ddof=0)
+    if r.size < 3 or sd <= ZERO_SD:
+        return 0.0, 3.0
+    z = (r - r.mean()) / sd
+    return float(np.mean(z**3)), float(np.mean(z**4))
+
+
+def expected_max_sharpe(trial_sharpes: Sequence[float], n_trials: int) -> float:
+    """SR0 of Bailey & Lopez de Prado (2014): the Sharpe the best of `n_trials` unskilled
+    configurations reaches by luck, given the variance of the observed trial Sharpes (same
+    units as the inputs, here per day)."""
+    s = np.asarray(trial_sharpes, dtype=float)
+    if n_trials < 2 or s.size < 2:
+        return 0.0
+    nd = NormalDist()
+    sd = float(s.std(ddof=1))
+    return sd * (
+        (1 - EULER_GAMMA) * nd.inv_cdf(1 - 1 / n_trials)
+        + EULER_GAMMA * nd.inv_cdf(1 - 1 / (n_trials * math.e))
+    )
+
+
+def probabilistic_sharpe(
+    sr: float, sr0: float, n_obs: int, skew: float, kurt: float
+) -> float | None:
+    """P(true Sharpe > sr0) given an observed per-period Sharpe `sr` over `n_obs` returns
+    (Bailey & Lopez de Prado 2012), corrected for skewness and fat tails."""
+    if n_obs < 2:
+        return None
+    var = 1 - skew * sr + (kurt - 1) / 4 * sr**2
+    if var <= 0:
+        return None
+    return float(NormalDist().cdf((sr - sr0) * math.sqrt(n_obs - 1) / math.sqrt(var)))
+
+
+def deflated_sharpe(
+    returns: Sequence[float], trial_sharpes: Sequence[float], n_trials: int
+) -> dict[str, float | None]:
+    """Deflated Sharpe ratio: the probabilistic Sharpe against SR0 = expected max of
+    `n_trials` (all configurations tried). `trial_sharpes` are per-day Sharpes of the trials."""
+    r = np.asarray(returns, dtype=float)
+    sd = r.std(ddof=1) if r.size > 1 else 0.0
+    sr = float(r.mean() / sd) if sd > ZERO_SD else 0.0
+    skew, kurt = moments(r)
+    sr0 = expected_max_sharpe(trial_sharpes, n_trials)
+    return {
+        "sharpe_daily": sr,
+        "sr0_daily": sr0,
+        "skew": skew,
+        "kurtosis": kurt,
+        "dsr": probabilistic_sharpe(sr, sr0, int(r.size), skew, kurt),
+        "psr_vs_zero": probabilistic_sharpe(sr, 0.0, int(r.size), skew, kurt),
+    }
 
 
 def mean_stat(samples: np.ndarray) -> np.ndarray:
