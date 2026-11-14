@@ -213,3 +213,17 @@ A model is skipped for the rest of the run after 2 batches in which all its retr
 `config/llm.yaml` base URL fixed to `https://openrouter.ai/api/v1` (`api.openrouter.ai` does not
 resolve). Rejected: counting one budget unit per batch (a retry storm could exceed the provider's
 free quota while the counter says otherwise).
+
+**D-33 (2026-11-14) — EDA tooling and its read path** (data-understanding phase).
+- *Dependency*: `matplotlib` in the **dev** dependency group only (figures for `make eda`; the
+  runtime image and the API never import it). Rejected: plotly/altair (heavier, need a browser
+  renderer for static PNGs); hand-written SVG (no value over matplotlib).
+- *Read path*: `src/eda/` is offline analysis, not a decision path. It opens the database with
+  `src.db.connect()` (read-only) and every query is filtered to rows available before the first test
+  cutoff, so the test period stays unread even if `make collect-test` had been run (R3). Forward
+  returns (`gap_ar`, `drift_ar`) come from the pure functions in `src/impact/labels.py`, which take
+  price series as arguments; the EDA, not the impact module, fetches those series.
+- *Test-period lock*: `src/splits.py` raises `TestPeriodLocked` when `MarketView` is built for an
+  `as_of` at or after the first test cutoff, unless the process runs inside `final_run()`, which only
+  the `--final` entry points of `make test-final` open. `tests/test_test_period_lock.py` pins this
+  and scans the repo for any other reference to the test period.
