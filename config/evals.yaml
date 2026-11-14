@@ -15,3 +15,16 @@ twitter_financial:
   sha256: 31ea8274c98b52212daa68f2fb962811bf1913c1efe51b99765c8e2311806de6
   label_map: {0: neg, 1: pos, 2: neu}    # dataset card: 0 Bearish, 1 Bullish, 2 Neutral
   strip_urls: true                        # every tweet ends in a t.co link; not text
+
+# Intake (src/nlp/intake.py, D-45). Gold derived from SEC company_tickers.json titles (cached in
+# data/raw/edgar/), which the resolver does not use. Targets from docs/03_eval_plan.md.
+intake:
+  sec_file: data/raw/edgar/company_tickers.json
+  n_hard_negatives: 25       # non-universe titles that contain an alias word (e.g. "Apple ...")
+  n_random_negatives: 25
+  n_phrases: 40              # "add X, Y and Z ..." with 3 universe companies each
+  companies_per_phrase: 3
+  ticker_share: 0.5          # share of companies typed as their ticker in a phrase (else title)
+  seed: 20261114
+  target_name_accuracy: 0.95
+  target_phrase_exact: 0.90

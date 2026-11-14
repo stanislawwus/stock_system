@@ -1,0 +1,45 @@
+{
+  "component": "intake",
+  "metric": "name_to_ticker_accuracy",
+  "value": 0.974,
+  "target": 0.95,
+  "why_this_metric": "a wrong ticker poisons every downstream step; exact match only",
+  "gold_set": "derived: SEC titles in data/raw/edgar/company_tickers.json (sha256 916aaa699923)",
+  "n": 77,
+  "split": "n/a",
+  "model": "table (tickers + relevance aliases)",
+  "git_sha": "5fec32b",
+  "run_at": "2026-11-14T20:32:42+00:00",
+  "notes": "name->ticker 0.974 (95% CI 0.94-1.00) on 77 SEC titles; 2 misses; false positives 0/25 on look-alike titles, 0/25 on random ones; phrase exact-set 1.000 (target 0.9).",
+  "details": {
+    "name_accuracy_ci95": [
+      0.9351,
+      1.0
+    ],
+    "misses": [
+      [
+        "Walt Disney Co",
+        "DIS",
+        null
+      ],
+      [
+        "INTERNATIONAL BUSINESS MACHINES CORP",
+        "IBM",
+        null
+      ]
+    ],
+    "false_positive_rate_hard": 0.0,
+    "false_positives_hard": [],
+    "false_positive_rate_random": 0.0,
+    "false_positives_random": [],
+    "phrase_exact": 1.0,
+    "phrase_exact_ci95": [
+      1.0,
+      1.0
+    ],
+    "phrase_target": 0.9,
+    "phrase_misses": [],
+    "n_phrases": 40,
+    "sha256": "916aaa699923d224161d39b982432e9666335ade563fac9d586b7d463e465389"
+  }
+}
