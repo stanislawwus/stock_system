@@ -20,8 +20,10 @@ ENGLISH_WORDS = frozenset(
     "the and of to in for on with is are at as by from after before over amid says new".split()
 )
 FOREIGN_WORDS = frozenset(
-    "de la el los las del que por para con una der die das und nicht mit für le les des du et "
-    "pour dans sur il di che della per een het van och på med för ve için bir".split()
+    # function words that are not also common in English names or contractions: "de", "van", "la",
+    # "le", "di", "per", "et" (De Beers, Dirk Van De Put, La-Z-Boy) and "ve" (I've) are left out
+    "el los las del que por para con una der die das und nicht mit für les des du pour dans sur "
+    "il che della een het och på med för için bir".split()
 )
 
 _WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
@@ -89,8 +91,23 @@ def check_headline(headline: str) -> HeadlineCheck:
 
 _TAG_LINE_RE = re.compile(r"^\[[A-Za-z0-9.\-]+\][^\n]*\n?")
 _ITEM_RE = re.compile(r"^\s*item\s+\d{1,2}\.\d{2}\b", re.IGNORECASE)
+# "Item" and its number split over lines (table-layout filings): "Item", newline, "8.01 ..."
+_SPLIT_ITEM_RE = re.compile(r"(?im)^([ \t]*item)[ \t]*\n+[ \t]*(?=\d{1,2}\.\d{2}\b)")
 _SECTION_RE = re.compile(r"^\s*section\s+\d{1,2}\s*[-–—:.]", re.IGNORECASE)
-_INLINE_ITEM_RE = re.compile(r"\bitems?\s+\d{1,2}\.\d{2}(\([a-z0-9]\))*", re.IGNORECASE)
+# "Item 2.02" / "items 5.02(e)" in running text, any case, but only real 8-K item numbers:
+# reconciliation tables have columns such as "special items 0.06" that must stay.
+ITEM_MENTION_RE = re.compile(
+    r"\bitems?\s+(?:1\.0[1-5]|2\.0[1-6]|3\.0[1-3]|4\.0[1-2]|5\.0[1-8]|6\.0[1-6]|7\.01|8\.01|9\.01)\b"
+    r"(\([a-z0-9]\))*",
+    re.IGNORECASE,
+)
+
+
+def _heading_done(line: str) -> bool:
+    """A heading line ends the heading when it carries title text and a full stop; a bare
+    "Item 8.01." has no title yet, so the title on the following lines belongs to it."""
+    title = _ITEM_RE.sub("", line, count=1).strip(" .")
+    return bool(title) and line.rstrip().endswith(".")
 
 
 def strip_8k_item_headers(text: str) -> str:
@@ -104,7 +121,8 @@ def strip_8k_item_headers(text: str) -> str:
     "under the item". The body text is left untouched.
     """
     limit = int(config()["filing_text"]["header_max_lines"])
-    lines = _TAG_LINE_RE.sub("", text, count=1).split("\n")
+    text = _SPLIT_ITEM_RE.sub(r"\1 ", _TAG_LINE_RE.sub("", text, count=1))
+    lines = text.split("\n")
     out: list[str] = []
     i = 0
     while i < len(lines):
@@ -113,13 +131,13 @@ def strip_8k_item_headers(text: str) -> str:
             i += 1
         elif _ITEM_RE.match(line):
             taken = 1
-            while not lines[i].rstrip().endswith(".") and taken < limit:
+            while taken < limit and not _heading_done(lines[i]):
                 nxt = i + 1
                 if nxt >= len(lines) or not lines[nxt].strip():
                     break
                 i, taken = nxt, taken + 1
             i += 1
         else:
-            out.append(_INLINE_ITEM_RE.sub("the item", line))
+            out.append(ITEM_MENTION_RE.sub("the item", line))
             i += 1
     return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()

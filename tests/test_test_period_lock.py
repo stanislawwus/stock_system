@@ -83,6 +83,7 @@ ALLOWED = {
     "src/collectors/quality.py": "checks that a dev collection holds no test rows",
     "src/collectors/report.py": "cuts the coverage report before the test cutoff",
     "src/collectors/run.py": "collector CLI: --periods test is make collect-test",
+    "src/eda/data.py": "offline analysis cut at the first test cutoff (D-33)",
     "src/schemas.py": "request/response Literals",
     "evals/eval_collectors.py": "plants a test-period row to prove the checks catch it",
 }
