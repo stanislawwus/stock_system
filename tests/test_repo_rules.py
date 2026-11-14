@@ -2,6 +2,7 @@
 
 R3  config/splits.yaml is frozen (sha256 pinned here; change it only in a deliberate commit that
     also explains why in docs/decisions.md).
+R4  committed gold sets in evals/labels are frozen (sha256 pinned here; extensions go to *.v2).
 R5  only src/llm.py may talk to the model provider.
 R1  the commit-msg hook strips AI attribution lines.
 R9  .env is never tracked by git.
@@ -33,6 +34,22 @@ def test_splits_file_is_frozen() -> None:
     assert _normalized_sha256(SPLITS) == SPLITS_SHA256, (
         "config/splits.yaml changed. AGENTS.md R3: splits are frozen. If this is deliberate, "
         "record a D-nn in docs/decisions.md and update SPLITS_SHA256 in the same commit."
+    )
+
+
+FROZEN_GOLD = {
+    "evals/labels/news_100.csv": "9e822bc308d0b1d0d5379e36d3fce2968b62c87d470efe6b7281c0ef102f98f8",
+    "evals/labels/news_100.strata.csv": (
+        "b3dfa0319197fe5666e364983d6516ae9345fc499a30a96ec47a8f466e93289c"
+    ),
+}
+
+
+def test_gold_sets_are_frozen() -> None:
+    changed = [f for f, h in FROZEN_GOLD.items() if _normalized_sha256(ROOT / f) != h]
+    assert not changed, (
+        f"AGENTS.md R4: frozen gold sets changed: {changed}. Add rows as <set>.v2.csv through "
+        "the label-helper skill instead."
     )
 
 

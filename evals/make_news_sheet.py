@@ -166,8 +166,17 @@ def build(con: duckdb.DuckDBPyConnection) -> tuple[pd.DataFrame, pd.DataFrame]:
     return drawn[COLUMNS], drawn[["id", "ticker", "stratum", "accession"]]
 
 
+class FrozenGoldSetError(RuntimeError):
+    """The labelled sheet was frozen (label-helper step 7); its strata must not be redrawn."""
+
+
 def write(sheet: pd.DataFrame, strata: pd.DataFrame, out_dir: Path = OUT) -> None:
     name = clean.config()["label_sheet"]["name"]
+    if (out_dir / f"{name}.csv").exists():
+        raise FrozenGoldSetError(
+            f"{name}.csv is a frozen gold set (AGENTS.md R4); a new sample goes to "
+            f"{name}.v2 through the label-helper skill"
+        )
     with open(out_dir / f"{name}.draft.csv", "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(HEADER) + "\n")
         sheet.to_csv(f, index=False, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")

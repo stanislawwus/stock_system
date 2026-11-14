@@ -109,3 +109,10 @@ def test_files_have_the_provenance_header_and_blank_columns(con, tmp_path: Path)
     back = pd.read_csv(tmp_path / "news_100.draft.csv", comment="#", keep_default_na=False)
     assert list(back.columns) == sheet_mod.COLUMNS and (back["sentiment"] == "").all()
     assert (tmp_path / "news_100.strata.csv").exists()
+
+
+def test_sheet_refuses_to_overwrite_a_frozen_gold_set(tmp_path) -> None:
+    (tmp_path / "news_100.csv").write_text("# gold_set: news_100", encoding="utf-8")
+    with pytest.raises(sheet_mod.FrozenGoldSetError):
+        sheet_mod.write(pd.DataFrame(), pd.DataFrame(), tmp_path)
+    assert not (tmp_path / "news_100.strata.csv").exists()
