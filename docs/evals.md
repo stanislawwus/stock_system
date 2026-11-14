@@ -9,6 +9,7 @@ No result below uses the test period (AGENTS.md R3).
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
 | aggregator | sharpe_val_b | -3.1453 | 2.0519 | **no** | derived: buy_and_hold on val_b, same tickers | 32 | equal weights (sentiment, event, impact) | c77a97f |
+| api | contract_test_pass_rate | 1.0 | 1.0 | yes | tests/api/ (contract tests); evals/results/llm_bakeoff.calls.jsonl; data/demo | 32 | template (rules) + FinBERT; no LLM call | d5bdd83 |
 | arena | deflated_sharpe_aggregate_equal | 0.0015 | 0.95 | **no** | derived: 91 trials in evals/trials.csv; matched random controls | 64 | rules + impact model (data/models) | 5fec32b |
 | backtest_aggregate_equal_train | sharpe | -0.9527 | 1.7603 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_aggregate_equal_validation | sharpe | -1.5849 | 1.3374 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
@@ -232,6 +233,30 @@ human would pick as context for the move: the ranking (relevance, |sentiment|, r
 gold set. The cached LLM rephrase is guarded by the same checks but is not measured (no cached
 responses exist; the eval makes 0 calls). The number check compares magnitudes; a flipped
 "up"/"down" word with the right magnitude would pass it.
+
+### api (D-48, `make eval-api`)
+
+**Metric**: contract-test pass rate of `tests/api` (run in a subprocess), target 1.00; the 5
+endpoints that the demo uses are also timed. **Why**: the grader's experience is the API, and
+the contract tests pin paths, status codes, schemas and the disclaimer offline. Result:
+32/32 pass.
+
+**LLM response validity** (committed bake-off trace, 10 HTTP attempts = 6
+batches of free-model calls for events and facts): valid against the pydantic schema on the first
+attempt 0.50, after retries 0.83. The failures are
+`empty_content` and `invalid_json` ({'empty_content': 3, 'invalid_json': 2, 'ok': 5}). n = 6 is
+too small for a rate; it says the retry-then-fallback design (R5) is needed, not how often a model
+is valid. Batches that never validated land on the deterministic fallback.
+
+**Latency** (ms; TestClient on a database rebuilt from the demo slice, 20 warm repeats,
+first call of the process shown separately): health first 49 / warm p50 7 / p95 26; signals first 407 / warm p50 551 / p95 809; brief first 1126 / warm p50 1151 / p95 1484; chat_why_move first 258 / warm p50 83 / p95 97; analyze_finbert first 8293 / warm p50 84 / p95 89. The first `/analyze` is dominated by loading FinBERT (cold start), which is why the UI
+allows 180 s for it. LLM cache replay: p50 0.07 ms, p95
+0.11 ms (7 cached responses).
+**Cold LLM calls: n/a**: nothing here calls a provider; for context the bake-off recorded p50
+32.29 s, p95 142.08 s per call
+(n = 10), which is why no interactive endpoint waits for an LLM
+(D-46). `/signals` (about 0.6 s) and `/brief` (about 1.1 s) are the slowest endpoints: every
+strategy is rebuilt per call. The p95 target of 10 s (docs/01) holds for all of them.
 
 ### facts
 

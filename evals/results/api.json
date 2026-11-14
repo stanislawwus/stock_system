@@ -1,0 +1,85 @@
+{
+  "component": "api",
+  "metric": "contract_test_pass_rate",
+  "value": 1.0,
+  "target": 1.0,
+  "why_this_metric": "the grader's experience is the API: every documented endpoint must answer with its documented status and schema, offline",
+  "gold_set": "tests/api/ (contract tests); evals/results/llm_bakeoff.calls.jsonl; data/demo",
+  "n": 32,
+  "split": "n/a",
+  "model": "template (rules) + FinBERT; no LLM call",
+  "git_sha": "d5bdd83",
+  "run_at": "2026-11-14T22:06:55+00:00",
+  "notes": "contract tests 32/32 pass (0 design-phase xfail not counted); LLM responses schema-valid 0.5 on the first attempt, 0.8333 after retries (n = 6 batches, free models, bake-off trace); cache replay p50 0.07 ms, p95 0.11 ms; cold LLM latency n/a (no live call; recorded bake-off p50 32.29 s). `method` shows which endpoint answered with FinBERT or the template composer; no endpoint waits for an LLM.",
+  "details": {
+    "contract": {
+      "passed": 32,
+      "failed": 0,
+      "xfailed": 0,
+      "summary": "32 passed in 8.02s"
+    },
+    "llm_schema_validity": {
+      "n_attempts": 10,
+      "n_batches": 6,
+      "valid_first_attempt": 0.5,
+      "valid_after_retries": 0.8333,
+      "attempt_statuses": {
+        "empty_content": 3,
+        "invalid_json": 2,
+        "ok": 5
+      },
+      "recorded_cold_latency_s": {
+        "p50": 32.29,
+        "p95": 142.08,
+        "n": 10
+      }
+    },
+    "latency": {
+      "llm_cache_replay": {
+        "p50_ms": 0.07,
+        "p95_ms": 0.11,
+        "n": 140,
+        "entries": 7
+      },
+      "llm_cold": "n/a",
+      "endpoints_testclient_demo_db": {
+        "health": {
+          "first_ms": 48.7,
+          "warm_p50_ms": 6.83,
+          "warm_p95_ms": 26.34,
+          "n_warm": 20,
+          "method": null
+        },
+        "signals": {
+          "first_ms": 407.1,
+          "warm_p50_ms": 551.05,
+          "warm_p95_ms": 808.99,
+          "n_warm": 20,
+          "method": null
+        },
+        "brief": {
+          "first_ms": 1125.6,
+          "warm_p50_ms": 1150.84,
+          "warm_p95_ms": 1484.03,
+          "n_warm": 20,
+          "method": null
+        },
+        "chat_why_move": {
+          "first_ms": 257.6,
+          "warm_p50_ms": 83.44,
+          "warm_p95_ms": 97.24,
+          "n_warm": 20,
+          "method": "rules"
+        },
+        "analyze_finbert": {
+          "first_ms": 8293.2,
+          "warm_p50_ms": 84.05,
+          "warm_p95_ms": 88.89,
+          "n_warm": 20,
+          "method": "finbert"
+        }
+      },
+      "n_reps": 20
+    }
+  }
+}
