@@ -64,6 +64,32 @@ def pending(
     ).df()
 
 
+SENTIMENT_COLUMNS = ["source_ref", "ticker", "label", "score", "method", "available_at"]
+
+
+def score_frame(part: pd.DataFrame, backend: Backend) -> pd.DataFrame:
+    """News rows (id, ticker, headline, summary, available_at) -> `sentiment` rows.
+
+    One inference per distinct id; each row keeps its news item's available_at (D-16). Shared by
+    `make features` and `make features-test` (D-38), so both score with the same code path.
+    """
+    first = part.drop_duplicates("id")
+    pairs = zip(first["headline"], first["summary"], strict=True)
+    texts = [news_text(h, s or "") for h, s in pairs]
+    scored = dict(zip(first["id"], score_texts(texts, backend), strict=True))
+    return pd.DataFrame(
+        {
+            "source_ref": part["id"].to_numpy(),
+            "ticker": part["ticker"].to_numpy(),
+            "label": [scored[i].label for i in part["id"]],
+            "score": [max(-1.0, min(1.0, scored[i].score)) for i in part["id"]],
+            "method": backend.method,
+            "available_at": part["available_at"].to_numpy(),
+        },
+        columns=SENTIMENT_COLUMNS,
+    )
+
+
 def write_sentiment(
     con: duckdb.DuckDBPyConnection, rows: pd.DataFrame, backend: Backend, chunk: int = CHUNK
 ) -> int:
@@ -72,21 +98,7 @@ def write_sentiment(
     ids = rows["id"].drop_duplicates().tolist()
     for start in range(0, len(ids), chunk):
         part_ids = set(ids[start : start + chunk])
-        part = rows[rows["id"].isin(part_ids)]
-        first = part.drop_duplicates("id")
-        pairs = zip(first["headline"], first["summary"], strict=True)
-        texts = [news_text(h, s or "") for h, s in pairs]
-        scored = dict(zip(first["id"], score_texts(texts, backend), strict=True))
-        out = pd.DataFrame(
-            {
-                "source_ref": part["id"],
-                "ticker": part["ticker"],
-                "label": [scored[i].label for i in part["id"]],
-                "score": [max(-1.0, min(1.0, scored[i].score)) for i in part["id"]],
-                "method": backend.method,
-                "available_at": part["available_at"],
-            }
-        )
+        out = score_frame(rows[rows["id"].isin(part_ids)], backend)
         con.register("sent_df", out)
         con.execute("INSERT OR IGNORE INTO sentiment SELECT * FROM sent_df")
         con.unregister("sent_df")
