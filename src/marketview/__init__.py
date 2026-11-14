@@ -119,13 +119,19 @@ class MarketView:
             out.append(Fact(**r, grounding=Span(**json.loads(g)) if g else None))
         return out
 
-    def sentiment(self, ticker: str, lookback_days: int = 30) -> list[Sentiment]:
-        rows = self._rows(
+    def sentiment(
+        self, ticker: str, lookback_days: int = 30, method: str | None = None
+    ) -> list[Sentiment]:
+        """Sentiment rows of `ticker`; `method` (finbert | lexicon | ...) filters one backend."""
+        sql = (
             "SELECT source_ref, ticker, label, score, method, available_at FROM sentiment "
-            "WHERE ticker = ? AND available_at <= ? AND available_at > ? "
-            "ORDER BY available_at, source_ref",
-            [ticker, self.as_of, self._since(lookback_days)],
+            "WHERE ticker = ? AND available_at <= ? AND available_at > ?"
         )
+        params: list[Any] = [ticker, self.as_of, self._since(lookback_days)]
+        if method is not None:
+            sql += " AND method = ?"
+            params.append(method)
+        rows = self._rows(sql + " ORDER BY available_at, source_ref", params)
         return [Sentiment(**r) for r in rows]
 
     def events(self, ticker: str, lookback_days: int = 30) -> list[Event]:

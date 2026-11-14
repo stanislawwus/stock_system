@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS sentiment (
   score        DOUBLE NOT NULL,
   method       VARCHAR NOT NULL,
   available_at TIMESTAMPTZ NOT NULL,          -- = source's available_at (D-16)
-  PRIMARY KEY (source_ref, method)
+  PRIMARY KEY (source_ref, ticker, method)    -- one article can be tagged with several tickers (D-36)
 );
 
 CREATE TABLE IF NOT EXISTS events (
