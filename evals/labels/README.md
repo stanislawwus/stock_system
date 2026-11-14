@@ -10,7 +10,7 @@ Planned sets (file names are the contract used by eval scripts):
 | `financial_phrasebank_sample.csv` | sentiment | Financial PhraseBank (agree ≥ 75%) sample | 500 |
 | `relevance_pairs.csv` | relevance + dedup | auto pairs from same 8-K event + ~30 hand labels | ~150 |
 | `event_items_8k.csv` | event classifier | 8-K item numbers from EDGAR index (automatic) | all filings in dev splits |
-| `news_event_labels.csv` | event classifier (news) | hand labels + LLM suggestion column, kappa recorded | 60 |
+| `news_100.csv` (draft: `news_100.draft.csv`) | sentiment + event classifier (news) | 150 headlines sampled by `evals/make_news_sheet.py`, stratified by coincident 8-K item group, year, ticker; human labels, no LLM pre-fill | 150 |
 | `xbrl_facts.csv` | fact extraction | EDGAR companyfacts (automatic) | all 8-K 2.02 in dev splits |
 | `intake_dialogues.jsonl` | intake agent | synthetic dialogues, name → ticker pairs | 25 |
 | `chat_questions.jsonl` | chat agent | ~30 questions with expected numbers/citations from DuckDB | 30 |
