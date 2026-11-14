@@ -10,11 +10,15 @@ No result below uses the test period (AGENTS.md R3).
 |---|---|---|---|---|---|---|---|---|
 | backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
 | backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
+| backtest_finbert_v0_train | sharpe | -0.217 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 5134cee |
+| backtest_finbert_v0_validation | sharpe | -0.5917 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 5134cee |
 | backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
 | backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
 | backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
 | backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 6fd4458 |
+| relevance | dedup_f1 | 0.9746 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 222f493 |
+| sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 84f0a6a |
 | simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 02ef822 |
 <!-- results:end -->
 
@@ -68,3 +72,63 @@ No result below uses the test period (AGENTS.md R3).
   strategy is distinguishable from buy-and-hold. The validation Sharpes above 2 triggered the
   time-leak-check: static scans, the shift test (`tests/sim/test_no_lookahead.py`) and the
   train/validation reversal of mean reversion point to sampling noise, not look-ahead.
+
+### relevance
+
+- **Metric**: `dedup_f1`, F1 of "dropped as a near-duplicate"; precision and recall in
+  `details` (eval plan targets P >= 0.90, R >= 0.80, so the F1 target is 0.85).
+- **Gold set**: derived (`evals/eval_relevance.py`). 30 train ticker-days of the watchlist with
+  at least 10 relevant headlines; 10 per day at their real times are the originals and each
+  gets one planted copy 5-600 minutes later (wire prefix, source suffix, upper case,
+  punctuation, one dropped word, one swapped word, two dropped words + suffix, clauses
+  reordered). The other same-day headlines about the same company are the negatives.
+- **Why**: a dropped original removes a real story from the daily mean (precision); a missed
+  copy counts one syndicated story several times (recall).
+- **Result**: F1 0.97 (P 0.99, R 0.96). Misses are mostly "two dropped words + suffix" on short
+  headlines (recall 0.73 for that edit). The 4 false positives are informative: three
+  "X to Present at the 44th Annual J.P. Morgan Healthcare Conference" items (templated text
+  that MinHash cannot tell apart, and also a relevance false positive: the JPM alias
+  "J.P. Morgan" fires on the conference name) and one pair of templated analyst notes
+  ("Citigroup / Jefferies Maintains Exxon Mobil ... Recommendation") with different ratings.
+  A first version that drew originals from six months at random scored 1.0 because unrelated
+  headlines never look alike; same-day originals are the harder, honest test.
+- **Relevance itself** has no human gold yet; `details.relevant_share_train_by_ticker` shows
+  the share of tagged news that mentions the company (0.33 NVDA to 0.54 MCD, 0.40 overall).
+
+### sentiment
+
+- **Metric**: macro-F1 over pos / neu / neg, headline only.
+- **Gold set**: `evals/labels/news_100.csv`, 150 human-labelled Finnhub headlines from train +
+  validation (D-34; 110 neu, 33 pos, 7 neg), label = view of a holder of the tagged ticker.
+  Not yet frozen in git (see D-36).
+- **Target**: 0.80. **Why**: the classes are imbalanced; macro-F1 weights negative and positive
+  as much as neutral, so "always neutral" scores badly.
+- **Below target: FinBERT 0.52** (pos 0.48, neu 0.68, neg 0.39); the lexicon baseline scores
+  0.55. FinBERT calls 47 of the 110 neutral headlines positive or negative, and reading them
+  shows why: about 16 are about another company than the tagged one ("Intel (INTC) Falls 7% from
+  Record High" tagged AAPL, "JPMorgan Faces $328M Lawsuit" tagged BAC), 8 are market wraps
+  ("Dow, S&P 500 Fall For Third Straight Day"), and most of the rest are immaterial PR or
+  partnerships ("COMCAST TO PROVIDE $60,000 TO ASSIST WITH FOOD INSECURITY") or mixed pieces
+  ("Intuit Stock Is Down 24% Already In 2026. Time to Buy?"). FinBERT reads the tone of the
+  sentence; the annotator judged what the news means for a holder of the tagged ticker. On the
+  93 headlines that name the tagged company (what finbert_v0 averages after its relevance
+  filter) FinBERT reaches 0.59 (neg 0.60). Negative has only 7 gold rows, so its F1 moves by
+  about 0.1 per headline and the macro-F1 is noisy. Nothing is tuned on this set: it is the
+  only human gold set and would stop being a test.
+
+### finbert_v0 (`backtest_finbert_v0_<split>`)
+
+- Same metric, target and rules as the other backtests; strategy defined in D-36 (mean FinBERT
+  score of relevant, deduplicated news in (previous weekday 09:00 ET, D 09:00 ET], long when
+  > 0, hold to the close of D+1). Nothing fitted.
+- **Below target on both splits**: train Sharpe -0.22 (total -1.5 %) vs buy-and-hold 1.76,
+  validation -0.59 (-2.4 %) vs 1.34. The 95 % CIs ([-3.58, 2.46] and [-4.45, 3.14]) contain the
+  target, so the strategy is not distinguishable from buy-and-hold either way.
+- **Costs dominate**: a one-day hold re-trades most names every day (1,004 trades on train,
+  one-way turnover 67x, 502 trades / 35x on validation). Costs paid were 6.9 % of initial
+  capital on train and 3.4 % on validation, so before costs the strategy made about +5.4 % and
+  +1.0 %, still below buy-and-hold on train (+9.7 %). Hit rate per round trip after costs is
+  0.49 on both splits. Obvious next steps (longer horizon, an entry threshold above 0, a
+  per-ticker baseline instead of the raw mean) are parameters to tune on train only (R3).
+- The input itself is weak: FinBERT's macro-F1 on the human gold set is 0.52 (0.59 on relevant
+  headlines), see `sentiment`.
