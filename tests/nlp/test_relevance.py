@@ -50,6 +50,11 @@ def item(i: str, headline: str, hours: float = 0.0, ticker: str = "AAPL", summar
         ("LOW", "LOW RATES BOOST HOMEBUILDERS", False),  # all-caps headline, ambiguous symbol
         ("LOW", "Lowe's cuts guidance", True),
         ("GS", "Goldman, CrowdStrike jump", True),
+        # regression: the conference name is not a JPM mention (docs/evals.md relevance)
+        ("JPM", "Gilead to Present at the 44th Annual J.P. Morgan Healthcare Conference", False),
+        ("JPM", "Amgen at JPMorgan Healthcare Conference: pipeline update", False),
+        ("JPM", "Jamie Dimon speaks at the J.P. Morgan Healthcare Conference", True),
+        ("JPM", "J.P. Morgan raises S&P 500 target", True),
     ],
 )
 def test_mentions(ticker: str, text: str, expected: bool) -> None:

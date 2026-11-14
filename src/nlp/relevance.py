@@ -60,9 +60,22 @@ def _patterns(ticker: str) -> tuple[re.Pattern[str], ...]:
     return tuple(pats)
 
 
+@lru_cache(maxsize=512)
+def _exclusions(ticker: str) -> re.Pattern[str] | None:
+    phrases = config()["relevance"].get("exclude_phrases", {}).get(ticker, [])
+    if not phrases:
+        return None
+    alts = "|".join(re.escape(p.translate(_APOSTROPHES)) for p in phrases)
+    return re.compile(rf"(?<![A-Za-z0-9])(?:{alts})(?![A-Za-z0-9])", re.IGNORECASE)
+
+
 def mentions(ticker: str, text: str) -> bool:
-    """True when `text` names `ticker` by symbol or alias (see module docstring)."""
+    """True when `text` names `ticker` by symbol or alias (see module docstring). Phrases in
+    `relevance.exclude_phrases` (e.g. "J.P. Morgan Healthcare Conference") are blanked first."""
     clean = _clean(text)
+    excl = _exclusions(ticker)
+    if excl is not None:
+        clean = excl.sub(" ", clean)
     return any(p.search(clean) for p in _patterns(ticker))
 
 

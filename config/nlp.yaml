@@ -86,6 +86,12 @@ relevance:
     SO: [Southern Company, Southern Co]
     LIN: [Linde]
     AMT: [American Tower]
+  # Phrases that contain an alias but do not name the company; removed (case-insensitive) before
+  # matching, so another mention in the same text still counts. The JPM-hosted healthcare
+  # conference is named in every presenting company's PR (docs/evals.md relevance).
+  exclude_phrases:
+    JPM: [J.P. Morgan Healthcare Conference, J.P. Morgan Health Care Conference,
+          JPMorgan Healthcare Conference, JP Morgan Healthcare Conference]
 
 dedup:
   # Near-duplicate = MinHash estimate of the Jaccard similarity of character shingles of the
