@@ -18,3 +18,21 @@ dedup:
 
 filing_text:
   header_max_lines: 4      # an "Item x.xx" heading wraps over at most this many lines
+
+# Labelling sheet for the news sentiment/event gold set (evals/make_news_sheet.py, label-helper skill).
+label_sheet:
+  name: news_100
+  seed: 20261114
+  coincident_window_hours: 24   # an 8-K of the same ticker accepted within +/- this long of the headline
+  quotas:                       # headlines per 8-K stratum; shortfalls move to "none". Total = 150
+    "2.02": 25
+    "5.02": 20
+    "1.01": 15
+    "7.01_8.01": 20
+    other: 10
+    none: 60
+  groups:                       # first match wins; items not listed (3.02, 5.07, 9.01 only, ...) = other
+    "2.02": ["2.02"]
+    "5.02": ["5.02"]
+    "1.01": ["1.01"]
+    "7.01_8.01": ["7.01", "8.01"]
