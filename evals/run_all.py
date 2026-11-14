@@ -8,7 +8,13 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
-from evals import eval_collectors, eval_relevance, eval_sentiment, eval_simulator
+from evals import (
+    eval_collectors,
+    eval_events,
+    eval_relevance,
+    eval_sentiment,
+    eval_simulator,
+)
 from src.collectors.common import ROOT
 from src.sim import run as backtest
 from src.strategies.registry import BUILDERS
@@ -18,6 +24,7 @@ EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "simulator": eval_simulator.evaluate,
     "relevance": eval_relevance.evaluate,
     "sentiment": eval_sentiment.evaluate,
+    "events": eval_events.evaluate,
     **{
         f"backtest_{name}_{split}": partial(backtest.evaluate, name, split)
         for split in ("train", "validation")

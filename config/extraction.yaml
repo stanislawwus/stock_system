@@ -1,0 +1,26 @@
+# Event classification and fact extraction (src/nlp/events.py, src/nlp/facts.py). Decisions: D-39.
+
+events:
+  # Multi-label over the D-10 taxonomy; 'none' is predicted when no label fires. 8-K item 9.01
+  # (financial statements and exhibits) is attached to almost every 8-K and says nothing about
+  # the event, so it is dropped everywhere; other items outside the taxonomy map to other_item.
+  labels: ["1.01", "2.01", "2.02", "2.05", "3.02", "5.02", "5.07", "7.01", "8.01", other_item]
+  drop_items: ["9.01"]
+  # (a) rules: union of the item codes of the tagged ticker's 8-Ks accepted within this window
+  # of the headline (the same +/- 24 h used to stratify news_100, config/data_quality.yaml).
+  # The derived label is available at max(headline, filing acceptance) (D-16, D-24).
+  window_hours_before: 24
+  window_hours_after: 24
+  # (b) TF-IDF + one-vs-rest logistic regression on headlines, trained on the train split only
+  # with the rule labels as weak targets (R3). Fixed a priori, not tuned on the gold set.
+  train_relevant_only: true        # headline must name the tagged company (src/nlp/relevance.py)
+  tfidf:
+    ngram_max: 2
+    min_df: 3
+    max_features: 50000
+    sublinear_tf: true
+  logreg:
+    C: 1.0
+    class_weight: balanced         # weak positives are rare (most headlines are 'none')
+    max_iter: 2000
+  threshold: 0.5                   # P(label) above which a label is predicted
