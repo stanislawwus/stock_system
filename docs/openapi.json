@@ -922,7 +922,20 @@
               "$ref": "#/components/schemas/Event"
             },
             "type": "array",
-            "title": "Events"
+            "title": "Events",
+            "description": "classified events (events table, written by `make features`) in the window"
+          },
+          "filings_7d": {
+            "type": "integer",
+            "title": "Filings 7D",
+            "description": "8-K filings accepted in the window, counted from the filings table",
+            "default": 0
+          },
+          "news_7d": {
+            "type": "integer",
+            "title": "News 7D",
+            "description": "news items published in the window",
+            "default": 0
           },
           "signal": {
             "anyOf": [

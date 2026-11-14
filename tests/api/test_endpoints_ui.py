@@ -68,6 +68,17 @@ def api_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
             "NULL, ?)",
             [at, at.date(), at],
         )
+        con.execute(  # JPM: an 8-K that was never classified, and one older than the 7-day window
+            "INSERT INTO filings VALUES ('0002-26-1', 'JPM', '2', '8-K', ['2.02'], ?, ?, 'u', "
+            "NULL, ?)",
+            [at, at.date(), at],
+        )
+        old = c - timedelta(days=9)
+        con.execute(
+            "INSERT INTO filings VALUES ('0002-26-0', 'JPM', '2', '8-K', ['7.01'], ?, ?, 'u', "
+            "NULL, ?)",
+            [old, old.date(), old],
+        )
         con.execute(
             "INSERT INTO events VALUES ('0001-26-1', 'AAPL', ['2.02'], 0.9, 'rules', ?)", [at]
         )
@@ -110,6 +121,9 @@ def test_brief_for_a_day(api_db: Path) -> None:
     assert aapl.sentiment_index == pytest.approx(0.8)  # n3 is after the cutoff
     assert aapl.signal is not None and aapl.signal.strategy == "finbert_v0"
     assert [e.source_ref for e in aapl.events] == ["0001-26-1", "n1"]
+    assert aapl.filings_7d == 1 and aapl.news_7d == 1  # n3 is after the cutoff
+    # regression: an 8-K with no row in the events table must still be counted (all-zero column)
+    assert by["JPM"].events == [] and by["JPM"].filings_7d == 1 and by["JPM"].news_7d == 0
     assert (
         by["XOM"].last_close is None and by["XOM"].sentiment_index is None
     )  # no data: empty, not 500

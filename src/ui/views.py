@@ -65,7 +65,9 @@ def brief_table(brief: Brief) -> pd.DataFrame:
             "signal": None if i.signal is None else i.signal.strategy,
             "score": None if i.signal is None else round(i.signal.score, 3),
             "position": None if i.signal is None else ("long" if i.signal.score > 0 else "cash"),
-            "events (7d)": len(i.events),
+            "8-K filings (7d)": i.filings_7d,
+            "news (7d)": i.news_7d,
+            "classified events (7d)": len(i.events),
         }
         for i in brief.items
     ]

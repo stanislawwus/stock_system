@@ -248,7 +248,14 @@ class BriefItem(BaseModel):
     last_close: float | None
     change_pct: float | None
     sentiment_index: float | None
-    events: list[Event] = Field(default_factory=list)
+    events: list[Event] = Field(
+        default_factory=list,
+        description="classified events (events table, written by `make features`) in the window",
+    )
+    filings_7d: int = Field(
+        default=0, description="8-K filings accepted in the window, counted from the filings table"
+    )
+    news_7d: int = Field(default=0, description="news items published in the window")
     signal: Signal | None = None
 
 

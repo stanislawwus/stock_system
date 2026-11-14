@@ -77,3 +77,14 @@ author as the code they grade, so they measure robustness to the failure modes t
 imagined. The `events` gold was sampled with the rule method's own ±24 h window (noted in
 `docs/evals.md`). *Fix*: a second annotator for 30 dedup pairs; a held-out set of real syndicated
 copies found by `clean.dedup_key` rather than planted.
+
+**L-15 — The `events` table is empty in the dev database, so "classified events" is 0 everywhere.**
+`MarketView.events` reads the classifier output written by `make features`; the dev database holds
+filings and news but no event rows (verified 2026-11-14: 0 rows, while NVDA has an 8-K accepted
+2026-08-26 with items 2.02 / 9.01 and 388 news items in the 7 days before the 2026-08-31 cutoff).
+The Daily brief's old column "events (7d)" counted only those rows, so it read 0 for every name
+although filings existed. The window and filter were correct. *Fix applied*: the brief now also
+returns `filings_7d` (8-Ks from the filings table) and `news_7d`; the page shows "8-K filings
+(7d)", "news (7d)" and "classified events (7d)" (labelled as classifier output). *Still open*:
+the classified-events count stays 0 until the event classifier is run over the filings and the rows
+are stored.

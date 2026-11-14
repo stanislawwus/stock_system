@@ -115,7 +115,10 @@ def brief_for(day: date | datetime | None = None, db_path: Path | None = None) -
             last = bars[-1].close if bars else None
             change = (last / bars[-2].close - 1) * 100 if len(bars) >= 2 else None
             scores = [s for _, s in window_scores(w.ticker, view, cfg["sentiment_method"])]
-            events = view.events(w.ticker, lookback_days=int(cfg["events_lookback_days"]))
+            days = int(cfg["events_lookback_days"])  # one window for events, 8-Ks and news
+            events = view.events(w.ticker, lookback_days=days)
+            n_filings = len(view.filings(w.ticker, lookback_days=days, forms=("8-K",)))
+            n_news = len(view.news(w.ticker, lookback_days=days))
             items.append(
                 BriefItem(
                     ticker=w.ticker,
@@ -123,6 +126,8 @@ def brief_for(day: date | datetime | None = None, db_path: Path | None = None) -
                     change_pct=change,
                     sentiment_index=sum(scores) / len(scores) if scores else None,
                     events=events,
+                    filings_7d=n_filings,
+                    news_7d=n_news,
                     signal=strat.signal(w.ticker, view),
                 )
             )
