@@ -105,6 +105,21 @@ def test_signals_without_a_database_is_503(tmp_path: Path, monkeypatch: pytest.M
     assert client.get(f"{API_PREFIX}/signals", params={"ticker": "AAPL"}).status_code == 503
 
 
+def test_signals_while_a_writer_holds_the_database_is_503(
+    api_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import duckdb
+
+    from src.strategies import service
+
+    def busy(*a, **k):
+        raise duckdb.IOException("Could not set lock on file")
+
+    monkeypatch.setattr(service, "MarketView", busy)
+    r = client.get(f"{API_PREFIX}/signals", params={"ticker": "AAPL"})
+    assert r.status_code == 503 and "busy" in r.json()["detail"]
+
+
 @pytest.fixture()
 def lexicon():
     sentiment.set_backend(LexiconBackend.from_config())

@@ -12,6 +12,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from pathlib import Path
 
+import duckdb
+
 from src.collectors.common import load_periods, load_universe
 from src.db import guarded
 from src.marketview import MarketView
@@ -20,11 +22,15 @@ from src.schemas import Signal, SignalsResponse
 from src.splits import TestPeriodLockedError
 from src.strategies.registry import BUILDERS, build
 
-__all__ = ["TestPeriodLockedError", "UnknownTickerError", "signals_for"]
+__all__ = ["DataUnavailableError", "TestPeriodLockedError", "UnknownTickerError", "signals_for"]
 
 
 class UnknownTickerError(ValueError):
     """The ticker is not in config/universe.yaml."""
+
+
+class DataUnavailableError(RuntimeError):
+    """No database yet, or the single writer (make features / collect) holds it (R7)."""
 
 
 def known_tickers() -> set[str]:
@@ -54,14 +60,19 @@ def signals_for(
     strategies: list[str] | None = None,
 ) -> SignalsResponse:
     """All strategy signals for `ticker` at `as_of`. Raises UnknownTickerError, ValueError,
-    TestPeriodLockedError (test period), FileNotFoundError (no database)."""
+    TestPeriodLockedError (test period), DataUnavailableError (no database / writer busy)."""
     t = ticker.strip().upper()
     if t not in known_tickers():
         raise UnknownTickerError(f"{t} is not in config/universe.yaml")
     cutoff = resolve_as_of(as_of)
     names = strategies or sorted(BUILDERS)
     out: list[Signal] = []
-    with MarketView(cutoff, db_path) as view, guarded():
-        for name in names:
-            out.append(build(name).signal(t, view))
+    try:
+        with MarketView(cutoff, db_path) as view, guarded():
+            for name in names:
+                out.append(build(name).signal(t, view))
+    except FileNotFoundError as exc:
+        raise DataUnavailableError(str(exc)) from exc
+    except duckdb.IOException as exc:  # writer lock held by another process
+        raise DataUnavailableError(f"database busy (a writer holds it): {exc}") from exc
     return SignalsResponse(ticker=t, as_of=cutoff, signals=out, aggregated=None)

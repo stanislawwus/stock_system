@@ -5,7 +5,12 @@ from datetime import date, datetime
 from fastapi import APIRouter, HTTPException, Query
 
 from src.schemas import SignalsResponse
-from src.strategies.service import TestPeriodLockedError, UnknownTickerError, signals_for
+from src.strategies.service import (
+    DataUnavailableError,
+    TestPeriodLockedError,
+    UnknownTickerError,
+    signals_for,
+)
 
 router = APIRouter(tags=["signals"])
 
@@ -17,7 +22,7 @@ router = APIRouter(tags=["signals"])
     responses={
         403: {"description": "as_of is in the test period (AGENTS.md R3)"},
         404: {"description": "ticker not in the universe"},
-        503: {"description": "database missing: run make collect-dev and make features"},
+        503: {"description": "database missing, or busy while make features/collect writes"},
     },
 )
 def get_signals(
@@ -36,5 +41,5 @@ def get_signals(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except FileNotFoundError as exc:
+    except DataUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

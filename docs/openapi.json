@@ -140,7 +140,7 @@
             "description": "ticker not in the universe"
           },
           "503": {
-            "description": "database missing: run make collect-dev and make features"
+            "description": "database missing, or busy while make features/collect writes"
           },
           "422": {
             "description": "Validation Error",
