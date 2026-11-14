@@ -1,0 +1,129 @@
+# NLP layer settings (src/nlp). No magic numbers in code (AGENTS.md R14). Decisions: D-36.
+
+relevance:
+  # A news item is relevant to its tagged ticker when the ticker symbol or a company alias appears
+  # in the headline or summary. Aliases match case-insensitively on word boundaries.
+  # Bare symbols match case-sensitively; symbols that are also English words or very short need a
+  # marker: "$T", "(T)", "NYSE: T", "NASDAQ: T".
+  min_bare_symbol_len: 3
+  ambiguous_symbols: [LOW, CAT, COST, HD, NOW, ALL, KO, PM, MO, SO, DE, GE, MA, MS, T, C, V, BA,
+                      DIS, LIN, AMT, UNP, MMM, ABT, CVS, PEP, LLY, BLK, TMO]
+  aliases:
+    AAPL: [Apple, iPhone]
+    MSFT: [Microsoft, Azure]
+    NVDA: [Nvidia]
+    AVGO: [Broadcom]
+    ORCL: [Oracle]
+    ADBE: [Adobe]
+    CRM: [Salesforce]
+    CSCO: [Cisco]
+    INTC: [Intel]
+    AMD: [Advanced Micro Devices, AMD]
+    QCOM: [Qualcomm]
+    TXN: [Texas Instruments]
+    IBM: [IBM]
+    ACN: [Accenture]
+    INTU: [Intuit, TurboTax]
+    GOOGL: [Alphabet, Google, YouTube]
+    META: [Meta Platforms, Facebook, Instagram, WhatsApp]
+    NFLX: [Netflix]
+    DIS: [Disney]
+    CMCSA: [Comcast, NBCUniversal]
+    VZ: [Verizon]
+    T: [AT&T]
+    TMUS: [T-Mobile]
+    AMZN: [Amazon]
+    TSLA: [Tesla]
+    HD: [Home Depot]
+    MCD: [McDonald's, McDonalds]
+    NKE: [Nike]
+    LOW: [Lowe's, Lowes]
+    BKNG: [Booking Holdings, Booking.com]
+    WMT: [Walmart, Wal-Mart]
+    COST: [Costco]
+    PG: [Procter & Gamble, Procter and Gamble, P&G]
+    KO: [Coca-Cola, Coca Cola]
+    PEP: [PepsiCo, Pepsi]
+    PM: [Philip Morris International]
+    MO: [Altria]
+    MDLZ: [Mondelez]
+    JPM: [JPMorgan, JP Morgan, J.P. Morgan, Jamie Dimon]
+    BAC: [Bank of America, BofA]
+    WFC: [Wells Fargo]
+    GS: [Goldman Sachs, Goldman]
+    MS: [Morgan Stanley]
+    C: [Citigroup, Citi, Citibank]
+    BLK: [BlackRock]
+    SCHW: [Charles Schwab, Schwab]
+    AXP: [American Express, Amex]
+    V: [Visa]
+    MA: [Mastercard]
+    JNJ: [Johnson & Johnson, Johnson and Johnson, J&J]
+    UNH: [UnitedHealth]
+    LLY: [Eli Lilly, Lilly]
+    PFE: [Pfizer]
+    MRK: [Merck]
+    ABBV: [AbbVie]
+    TMO: [Thermo Fisher]
+    ABT: [Abbott]
+    AMGN: [Amgen]
+    GILD: [Gilead]
+    CVS: [CVS Health, CVS]
+    XOM: [Exxon, ExxonMobil, Exxon Mobil]
+    CVX: [Chevron]
+    COP: [ConocoPhillips]
+    BA: [Boeing]
+    CAT: [Caterpillar]
+    GE: [GE Aerospace, General Electric]
+    HON: [Honeywell]
+    UNP: [Union Pacific]
+    UPS: [United Parcel Service, UPS]
+    RTX: [RTX, Raytheon, Pratt & Whitney]
+    LMT: [Lockheed Martin, Lockheed]
+    DE: [Deere, John Deere]
+    MMM: [3M]
+    NEE: [NextEra]
+    SO: [Southern Company, Southern Co]
+    LIN: [Linde]
+    AMT: [American Tower]
+
+dedup:
+  # Near-duplicate = MinHash estimate of the Jaccard similarity of character shingles of the
+  # normalised headline >= threshold, within window_hours of an earlier kept item of the same
+  # ticker. The earliest copy is kept, so the decision only depends on earlier items (causal).
+  shingle_chars: 4
+  num_perm: 128
+  threshold: 0.6
+  window_hours: 24
+  seed: 20261114
+
+sentiment:
+  finbert_model: ProsusAI/finbert
+  finbert_revision: main
+  batch_size: 64
+  max_tokens: 64             # headlines; longer text is truncated by the tokenizer
+  max_chars: 2000            # untrusted text is truncated before it reaches a model (R6)
+  news_text: headline        # headline | headline_summary
+  backend: auto              # auto (finbert if installed, else lexicon) | finbert | lexicon
+
+features:
+  # make features: which tickers get sentiment rows (watchlist keeps a CPU run under ~15 min)
+  universe: watchlist        # watchlist | universe
+  lookback_days_before_split: 7   # news before the first split day still feeds its first signal
+
+# Fallback lexicon (D-09, D-36): a compact list of finance cue words in the spirit of
+# Loughran-McDonald, not the full LM dictionary. Exact match on lower-cased words.
+lexicon:
+  positive: [beat, beats, upgrade, upgrades, upgraded, outperform, surge, surges, soar, soars,
+             jump, jumps, rally, rallies, gain, gains, record, raise, raises, raised, boost,
+             boosts, strong, stronger, growth, profit, profitable, buyback, approval, approved,
+             wins, bullish, tops, exceed, exceeds, exceeded, rebound, rebounds, upbeat,
+             higher, climbs, climb, rises, rise, accelerate, accelerates, breakthrough, expand,
+             expands, dividend, overweight, buy]
+  negative: [miss, misses, missed, downgrade, downgrades, downgraded, underperform, plunge,
+             plunges, slump, slumps, fall, falls, drop, drops, sink, sinks, tumble, tumbles,
+             loss, losses, cut, cuts, weak, weaker, lawsuit, sue, sues, probe, investigation,
+             recall, recalls, layoff, layoffs, bearish, warn, warns, warning, decline, declines,
+             lower, lowers, slash, slashes, crash, fraud, fined, penalty, delay, delays,
+             halt, halts, bankruptcy, default, risk, risks, concern, concerns, sell, underweight,
+             verdict, strike, slowdown, shortfall]
