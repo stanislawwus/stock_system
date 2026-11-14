@@ -84,7 +84,7 @@
         "tags": [
           "signals"
         ],
-        "summary": "All strategy signals and the aggregated signal for a ticker as of the cutoff of day D",
+        "summary": "Every strategy's signal for a ticker as of the 09:00 ET cutoff of day D",
         "operationId": "get_signals_api_v1_signals_get",
         "parameters": [
           {
@@ -94,11 +94,12 @@
             "schema": {
               "type": "string",
               "minLength": 1,
+              "maxLength": 10,
               "title": "Ticker"
             }
           },
           {
-            "name": "day",
+            "name": "as_of",
             "in": "query",
             "required": false,
             "schema": {
@@ -108,13 +109,17 @@
                   "format": "date"
                 },
                 {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
                   "type": "null"
                 }
               ],
-              "description": "trading day D; default: today",
-              "title": "Day"
+              "description": "trading day D (cutoff 09:00 ET of D) or a tz-aware instant; default: the last validation day",
+              "title": "As Of"
             },
-            "description": "trading day D; default: today"
+            "description": "trading day D (cutoff 09:00 ET of D) or a tz-aware instant; default: the last validation day"
           }
         ],
         "responses": {
@@ -127,6 +132,15 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "as_of is in the test period (AGENTS.md R3)"
+          },
+          "404": {
+            "description": "ticker not in the universe"
+          },
+          "503": {
+            "description": "database missing: run make collect-dev and make features"
           },
           "422": {
             "description": "Validation Error",
@@ -202,17 +216,47 @@
         ],
         "summary": "Latest eval result per component",
         "operationId": "get_evals_api_v1_evals_get",
+        "parameters": [
+          {
+            "name": "component",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "e.g. backtest_finbert_v0_validation",
+              "title": "Component"
+            },
+            "description": "e.g. backtest_finbert_v0_validation"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/EvalResult"
                   },
-                  "type": "array",
                   "title": "Response Get Evals Api V1 Evals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -250,7 +294,7 @@
         "tags": [
           "nlp"
         ],
-        "summary": "Arbitrary text -> sentiment, events, facts",
+        "summary": "Arbitrary text -> sentiment (events later)",
         "operationId": "post_analyze_api_v1_analyze_post",
         "requestBody": {
           "content": {
@@ -451,6 +495,31 @@
         }
       }
     },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Liveness, also under the API prefix",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -511,7 +580,15 @@
             "$ref": "#/components/schemas/Sentiment"
           },
           "events": {
-            "$ref": "#/components/schemas/Event"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Event"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None until the event classifier exists"
           },
           "facts": {
             "items": {
@@ -526,6 +603,7 @@
               "llm",
               "rules",
               "lexicon",
+              "finbert",
               "index",
               "xbrl",
               "regex",
@@ -542,7 +620,6 @@
         "type": "object",
         "required": [
           "sentiment",
-          "events",
           "facts",
           "method"
         ],
@@ -704,6 +781,7 @@
               "llm",
               "rules",
               "lexicon",
+              "finbert",
               "index",
               "xbrl",
               "regex",
@@ -833,6 +911,19 @@
             "type": "string",
             "title": "Notes",
             "default": ""
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "component-specific extras"
           }
         },
         "type": "object",
@@ -902,6 +993,7 @@
               "llm",
               "rules",
               "lexicon",
+              "finbert",
               "index",
               "xbrl",
               "regex",
@@ -1009,6 +1101,7 @@
               "llm",
               "rules",
               "lexicon",
+              "finbert",
               "index",
               "xbrl",
               "regex",
@@ -1279,6 +1372,7 @@
               "llm",
               "rules",
               "lexicon",
+              "finbert",
               "index",
               "xbrl",
               "regex",

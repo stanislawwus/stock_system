@@ -20,5 +20,6 @@ for router in ROUTERS:
 
 
 @app.get("/health", tags=["ops"])
+@app.get(f"{API_PREFIX}/health", tags=["ops"], summary="Liveness, also under the API prefix")
 def health() -> dict[str, str]:
     return {"status": "ok"}

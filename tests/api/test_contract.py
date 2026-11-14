@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from src.api.export_openapi import OUT as OPENAPI_STUB
+from src.api.export_openapi import render
 from src.api.main import API_PREFIX, app
 from src.schemas import DISCLAIMER
 
@@ -23,11 +25,13 @@ CONTRACT = {
     ("post", "/arena"): 202,
     ("post", "/chat"): 200,
     ("get", "/jobs/{job_id}"): 200,
+    ("get", "/health"): 200,
 }
 
 
 def test_health() -> None:
     assert client.get("/health").json() == {"status": "ok"}
+    assert client.get(f"{API_PREFIX}/health").json() == {"status": "ok"}
 
 
 def test_openapi_declares_every_endpoint_with_its_success_code() -> None:
@@ -37,6 +41,12 @@ def test_openapi_declares_every_endpoint_with_its_success_code() -> None:
         assert full in paths, f"missing {full}"
         assert method in paths[full], f"missing {method.upper()} {full}"
         assert str(code) in paths[full][method]["responses"], f"{method} {full} must declare {code}"
+
+
+def test_committed_openapi_stub_matches_the_app() -> None:
+    """docs/openapi.json is the published contract: regenerate it with
+    `uv run python -m src.api.export_openapi` whenever an endpoint or schema changes."""
+    assert OPENAPI_STUB.read_text(encoding="utf-8") == render()
 
 
 def test_signal_bearing_schemas_carry_the_disclaimer() -> None:

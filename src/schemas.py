@@ -281,7 +281,7 @@ class AnalyzeRequest(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     sentiment: Sentiment
-    events: Event
+    events: Event | None = Field(default=None, description="None until the event classifier exists")
     facts: list[Fact]
     method: Method
     disclaimer: str = DISCLAIMER
@@ -329,6 +329,7 @@ class EvalResult(BaseModel):
     git_sha: str
     run_at: datetime
     notes: str = ""
+    details: dict | None = Field(default=None, description="component-specific extras")
 
 
 class ModelInfo(BaseModel):
