@@ -3,6 +3,7 @@ initial_capital_usd: 100000
 max_position_pct: 0.20          # of current equity, per ticker
 stop_loss_pct: 0.08             # close at next open once the position is down this much
 max_drawdown_halt_pct: 0.15     # no new positions while equity is this far below its peak
+cooldown_days: 5                # no re-entry in a ticker for this many sessions after a losing exit
 commission_pct_per_side: 0.0005 # 5 bps all-in cost per side, commission + spread (D-35 supersedes D-19)
 slippage_pct: 0.0               # folded into the 5 bps above; kept so a stress run can add it
 # Trade only when |aggregated signal| exceeds this. Chosen on validation (threshold -> return curve).

@@ -1,0 +1,33 @@
+{
+  "component": "risk",
+  "metric": "planted_caught_share",
+  "value": 1.0,
+  "target": 1.0,
+  "why_this_metric": "the risk layer is a safety property; one missed rule is a bug",
+  "gold_set": "derived: evals/eval_risk.py scenarios() (4 planted violations)",
+  "n": 4,
+  "split": "n/a",
+  "model": "rules",
+  "git_sha": "72ad79e",
+  "run_at": "2026-11-14T19:07:57+00:00",
+  "notes": "",
+  "details": {
+    "stop_loss": {
+      "violation_without_risk": true,
+      "rule_holds_with_risk": true
+    },
+    "drawdown_halt": {
+      "violation_without_risk": true,
+      "rule_holds_with_risk": true
+    },
+    "cooldown": {
+      "violation_without_risk": true,
+      "rule_holds_with_risk": true
+    },
+    "position_cap": {
+      "violation_without_risk": true,
+      "rule_holds_with_risk": true
+    },
+    "violations_after_veto": 0
+  }
+}

@@ -14,6 +14,7 @@ from evals import (
     eval_events,
     eval_facts,
     eval_relevance,
+    eval_risk,
     eval_sentiment,
     eval_simulator,
 )
@@ -24,6 +25,7 @@ from src.strategies.registry import BUILDERS
 EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "collectors": eval_collectors.evaluate,
     "simulator": eval_simulator.evaluate,
+    "risk": eval_risk.evaluate,
     "relevance": eval_relevance.evaluate,
     "sentiment": eval_sentiment.evaluate,
     "events": eval_events.evaluate,

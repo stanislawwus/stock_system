@@ -15,6 +15,11 @@ For every session D of the split, in this order:
    close, so every trade is a closed round trip and the final equity is cash.
 4. Equity is marked at the close of D (last known close if a ticker has no bar on D).
 
+Optional (D-40): a strategy's `min_hold_days` (default 0) blocks score exits at the open while
+`session <= entry session + min_hold_days`; a `RiskManager` (src/sim/risk.py) vetoes entries
+(drawdown halt, cooldown after a loss), caps each entry at `max_position_pct`, and sells at the
+next open any position whose close hit the stop-loss. Without one the engine behaves as before.
+
 Fills: buy qty = budget / (open * (1 + c)), so cash out = budget exactly; sell proceeds =
 qty * price * (1 - c). A ticker without a bar on D cannot be traded on D.
 """
@@ -31,6 +36,7 @@ from src.marketview import MarketView
 from src.marketview.clock import MARKET_TZ, OPEN_LOCAL, bar_close_for, cutoff_for
 from src.schemas import Signal, Trade
 from src.sim.execution import ExecutionPrices
+from src.sim.risk import RiskManager
 from src.strategies.base import Strategy
 
 MIN_TRADE_USD = 1e-6  # below this a buy is a rounding artefact, not a trade
@@ -63,6 +69,8 @@ class Position:
     entry_day: date
     entry_cost: float  # cash paid, costs included
     exit_index: int | None  # session index whose close ends the holding period
+    entry_price: float = 0.0
+    hold_until: int = -1  # score exits are blocked at opens of sessions <= this index
 
 
 @dataclass
@@ -110,16 +118,22 @@ def simulate(
     prices: ExecutionPrices,
     cfg: SimConfig,
     view_factory: ViewFactory | None = None,
+    risk: RiskManager | None = None,
 ) -> SimResult:
     view_factory = view_factory or default_view_factory()
+    min_hold = int(getattr(strategy, "min_hold_days", 0) or 0)
+    stop_pending: set[str] = set()
+    if risk is not None:
+        risk.mark(cfg.initial_capital)  # the drawdown peak starts at the initial capital
     c = cfg.cost_per_side
     cash = cfg.initial_capital
     pos: dict[str, Position] = {}
     last_px: dict[str, float] = {}
     res = SimResult(strategy.name, [], [], [], [], 0.0, 0.0)
 
-    def sell(t: str, day: date, px: float, at_open: bool, reason: str) -> None:
+    def sell(t: str, i: int, px: float, at_open: bool, reason: str) -> None:
         nonlocal cash
+        day = sessions[i]
         p = pos.pop(t)
         gross = p.qty * px
         fee = gross * c
@@ -127,6 +141,8 @@ def simulate(
         res.traded_notional += gross
         res.costs_paid += fee
         res.round_trip_pnls.append(gross - fee - p.entry_cost)
+        if risk is not None:
+            risk.record_exit(t, i, gross - fee - p.entry_cost)
         res.trades.append(
             Trade(available_at=_fill_time(day, at_open), ticker=t, day=day, side="sell",
                   qty=p.qty, price=px, commission=fee, strategy=strategy.name, reason=reason)
@@ -139,12 +155,18 @@ def simulate(
         # --- open of D: exits on score <= 0, then equal-weight entries -----------------------
         for t in sorted(pos):
             px = prices.open_price(t, day)
-            if signals[t].score <= 0 and px is not None:
-                sell(t, day, px, at_open=True, reason="score<=0")
+            if px is None:
+                continue
+            if t in stop_pending:
+                sell(t, i, px, at_open=True, reason="stop_loss")
+            elif signals[t].score <= 0 and i > pos[t].hold_until:
+                sell(t, i, px, at_open=True, reason="score<=0")
+        stop_pending &= set(pos)  # a stop without an open today fills at the next one
         entries = [
             t for t in tickers
             if t not in pos and signals[t].score > cfg.entry_threshold
             and prices.open_price(t, day) is not None
+            and (risk is None or risk.veto_entry(t, i) is None)
         ]  # fmt: skip
         n_target = len(pos) + len(entries)
         if entries:
@@ -153,6 +175,8 @@ def simulate(
             weight = min(1.0 / n_target, cfg.max_position_pct)
             for t in entries:
                 budget = min(weight * equity_open, cash)
+                if risk is not None:
+                    budget = risk.cap_entry(budget, equity_open)
                 if budget <= MIN_TRADE_USD:
                     continue
                 px = prices.open_price(t, day)
@@ -163,7 +187,7 @@ def simulate(
                 res.traded_notional += qty * px
                 res.costs_paid += fee
                 exit_index = None if strategy.horizon_days is None else i + strategy.horizon_days
-                pos[t] = Position(qty, day, budget, exit_index)
+                pos[t] = Position(qty, day, budget, exit_index, px, i + min_hold)
                 last_px[t] = px
                 res.trades.append(
                     Trade(available_at=_fill_time(day, True), ticker=t, day=day, side="buy",
@@ -180,12 +204,16 @@ def simulate(
             px = last_px[t] = px if px is not None else last_px[t]
             p = pos[t]
             if last:
-                sell(t, day, px, at_open=False, reason="end_of_split")
+                sell(t, i, px, at_open=False, reason="end_of_split")
             elif p.exit_index is not None and p.exit_index <= i:
-                sell(t, day, px, at_open=False, reason=f"horizon_{strategy.horizon_days}d")
+                sell(t, i, px, at_open=False, reason=f"horizon_{strategy.horizon_days}d")
+            elif risk is not None and risk.stop_hit(p.entry_price, px):
+                stop_pending.add(t)
         invested = sum(p.qty * last_px[t] for t, p in pos.items())
         equity = cash + invested
         res.days.append(day)
         res.equity.append(equity)
         res.exposure.append(invested / equity if equity > 0 else 0.0)
+        if risk is not None:
+            risk.mark(equity)
     return res
