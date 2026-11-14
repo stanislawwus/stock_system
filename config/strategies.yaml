@@ -62,6 +62,17 @@ aggregator:
   lookback_days: 20
   confidence_threshold: null         # filled from the validation run, see config/risk.yaml
 
+arena:                               # make arena (D-42): validation only, never the test period
+  strategies: [buy_and_hold, momentum, mean_reversion, finbert_v0, event, impact, aggregate_equal]
+  headline: aggregate_equal          # the strategy whose deflated Sharpe is the arena metric
+  ablation_of: aggregate_equal       # drop-one ablation over its `components`
+  random_controls:
+    n: 1000                          # matched random strategies per non-benchmark strategy
+    seed: 20261114
+    modes: [names, timing_and_names]   # names = same entry days, random tickers (strict match)
+  dsr_target: 0.95                   # deflated Sharpe = P(true Sharpe > best-of-N luck)
+  trials_log: evals/trials.csv       # every configuration ever tried; N of the deflated Sharpe
+
 backtest:                            # src/sim (D-35); costs and the position cap are in config/risk.yaml
   universe: watchlist                # watchlist | universe
   bootstrap:

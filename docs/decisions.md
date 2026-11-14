@@ -477,3 +477,37 @@ fresh checkout `evals/run_all.py` caught the missing-model `FileNotFoundError` a
 on disk" and skipped the aggregator and six backtest records without failing (found in the Gate 2
 review, `docs/gate2_review.md`). Rejected: committing the artifacts (see above), guarding inside
 Python only (the Makefile is where a grader starts; the Python-side fix is `L-12`).
+
+**D-42 (2026-11-14) — Strategy arena: controls, deflated Sharpe, trials log** (evaluation phase,
+validation only). `make arena` runs `arena.strategies` (config/strategies.yaml) on validation
+through the simulator and writes `evals/results/arena.json` and `docs/05_arena.md`.
+- *Where*: the service is `src/sim/arena.py` (+ `src/sim/controls.py`), because the controls
+  replay execution prices and only `src/sim` may read open(D) (R2, pinned by
+  `test_impact_and_strategies_never_import_execution_or_labels`). `src/strategies/arena.py` is
+  only the entry point the Makefile (and later `make test-final`) names.
+- *Leaderboard*: Sharpe after costs with the existing moving-block bootstrap CI, plus the Sharpe
+  on val_b alone: `impact` and `aggregate_equal` chose calibrator and hold/threshold on val_a
+  (D-40), so their full-validation figure is partly in-sample.
+- *Ablation*: `AggregateEqual.parts_log` records the component scores during the full run; the
+  drop-one variants replay them (same hold, threshold, risk manager) instead of recomputing the
+  features three times (~45 s each).
+- *Random controls*: each control keeps the strategy's round trips (count, length in sessions,
+  open or close exit) and places them at random; two modes: `names` (same entry sessions, random
+  tickers: same number of positions every day, so exposure and trade count match almost exactly)
+  and `timing_and_names` (entry sessions random too; a dense strategy may not fit and the
+  achieved count is reported). Close exits use a new optional engine hook
+  `horizon_for(ticker, day)`, without which a control exiting at the open frees cash the
+  strategy did not have and is sized differently (finbert_v0: 53 % vs 71 % exposure before the
+  fix). Placement is uniform over free (ticker, start) slots from an occupancy grid, not
+  rejection sampling (which left trips unplaced). No risk manager on controls (its vetoes
+  would break the trade-count match). Percentile = share of controls with a lower Sharpe.
+- *Deflated Sharpe* (Bailey & Lopez de Prado 2014): N = every row of `evals/trials.csv`
+  (selection grids of `make train`, impact model and calibrator alternatives, arena strategies,
+  ablation variants); the variance of trial Sharpes uses the rows that have one (annualised in
+  the log, converted to per day). The log is upserted by trial id, never truncated, so a future
+  Hedge or LLM-researcher iteration adds to N (D-17). Random controls are not trials (not
+  candidates). Target 0.95. Normal CDF from `statistics.NormalDist` (no new dependency).
+Rejected: N = arena strategies only (ignores the 60-point selection grids, the real search);
+permutation of daily returns as the control (destroys the trade structure and exposure);
+rejection-sampled placement (biased against long trips, under-filled dense strategies). Not
+done: the masking experiment (out of scope by request), `--final` entry points (L-01).

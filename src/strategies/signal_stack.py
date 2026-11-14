@@ -138,6 +138,8 @@ class AggregateEqual(_Stacked):
         self.table = table if table is not None else load_item_table()
         self.impact = ImpactStrategy(hold_days, entry_threshold, model)
         self.components = list(strategy_params(self.name)["components"])
+        # (ticker, decision day) -> component scores; set to a dict to record (arena ablation)
+        self.parts_log: dict[tuple[str, Any], dict[str, float]] | None = None
 
     def parts(self, f: dict[str, float]) -> dict[str, tuple[float, float | None]]:
         p = self.impact.probability(f)
@@ -149,6 +151,8 @@ class AggregateEqual(_Stacked):
 
     def signal(self, ticker: str, view: MarketView) -> Signal:
         parts = self.parts(self._features(ticker, view))
+        if self.parts_log is not None:
+            self.parts_log[(ticker, view.as_of.date())] = {k: v[0] for k, v in parts.items()}
         score = float(np.mean([parts[c][0] for c in self.components]))
         reasons = [f"{c}={parts[c][0]:.3f}" for c in self.components]
         return self._signal(ticker, view, score, parts["impact"][1], *reasons)
