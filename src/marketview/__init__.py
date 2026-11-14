@@ -18,6 +18,7 @@ import duckdb
 from src.db import _connect_for_marketview
 from src.marketview.clock import cutoff_for
 from src.schemas import Event, Fact, Filing, NewsItem, PriceBar, Sentiment, Span
+from src.splits import assert_readable
 
 __all__ = ["MarketView", "cutoff_for"]
 
@@ -34,6 +35,7 @@ class MarketView:
     def __init__(self, as_of: datetime, db_path: Path | None = None) -> None:
         if as_of.tzinfo is None:
             raise ValueError("as_of must be timezone-aware (UTC)")
+        assert_readable(as_of)
         self.as_of = as_of
         self._db_path = db_path
         self._con: duckdb.DuckDBPyConnection | None = None

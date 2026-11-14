@@ -21,7 +21,7 @@ from src.marketview import MarketView
 from src.marketview.clock import bar_close_for, cutoff_for
 
 SCHEMA = Path(__file__).resolve().parents[1] / "src" / "marketview" / "schema.sql"
-AS_OF = cutoff_for(date(2026, 9, 15))  # 09:00 ET on D
+AS_OF = cutoff_for(date(2026, 7, 15))  # 09:00 ET on D
 CANARY = "CANARY-FUTURE"
 
 
@@ -36,8 +36,8 @@ def test_cutoff_is_0900_new_york_in_utc() -> None:
 
 def test_marketview_requires_aware_as_of() -> None:
     with pytest.raises(ValueError):
-        MarketView(datetime(2026, 9, 15, 13, 0))
-    assert MarketView.for_trading_day(date(2026, 9, 15)).as_of == AS_OF
+        MarketView(datetime(2026, 7, 15, 13, 0))
+    assert MarketView.for_trading_day(date(2026, 7, 15)).as_of == AS_OF
 
 
 # ----------------------------------------------------------------------------- fixture
@@ -47,7 +47,7 @@ def _seed(db_path: Path, rng: random.Random) -> None:
     """Rows around AS_OF for AAPL, including planted future rows (CANARY)."""
     con = duckdb.connect(str(db_path))
     con.execute(SCHEMA.read_text(encoding="utf-8"))
-    day0 = date(2026, 8, 1)
+    day0 = date(2026, 5, 15)
     for i in range(70):
         d = day0 + timedelta(days=i)
         if d.weekday() >= 5:
@@ -121,7 +121,7 @@ def test_a_canary_future_record_is_never_returned(seeded_db: Path) -> None:
 
 def test_b_random_as_of_never_returns_the_future(seeded_db: Path) -> None:
     rng = random.Random(1)
-    start = datetime(2026, 8, 1, tzinfo=UTC)
+    start = datetime(2026, 5, 15, tzinfo=UTC)
     for _ in range(25):
         as_of = start + timedelta(minutes=rng.randint(0, 70 * 24 * 60))
         for r in _all_records(MarketView(as_of, seeded_db)):
