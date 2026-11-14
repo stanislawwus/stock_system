@@ -426,3 +426,43 @@ redrawn the committed strata). New rows go to `news_100.v2.csv`.
   `reasoning_effort: low` come from `config/llm.yaml`; an empty reply is status `empty_content`
   with finish_reason, completion tokens and reasoning size; the final error names the last cause.
   The 0.0 result in `evals/results/llm_bakeoff.json` is an artefact of this bug, not a model score.
+
+**D-40 (2026-11-14) — Signal stack: impact model, calibration, event strategy, equal-weight
+aggregator, risk manager** (modeling phase, dev splits only).
+- *Features* (`src/impact/features.py`): per (ticker, D) from `MarketView(cutoff(D))` only:
+  FinBERT mean/min/max/count of D's news window (`src/nlp/daily.py`, shared with finbert_v0),
+  8-K item one-hots in the window, `growth_momentum` = YoY growth of the latest XBRL revenue /
+  diluted EPS vs the same fiscal period a year earlier (available at the 10-Q/10-K acceptance,
+  D-30; not "surprise": no consensus data), prior-day abnormal return, 20-day volatility. The
+  same function serves training and the live strategies. Panels cached as parquet in
+  `data/features/` keyed by a hash of the feature config (`make train`).
+- *Labels*: `drift_ar` per (ticker, session) is built in `src/sim/labels.py`, because only
+  `src/sim` may read the open of D (R2); `src/sim/impact_train.py` consumes the label frame as a
+  training target and never as a feature. No label crosses a split boundary.
+- *Models*: logistic regression (standardised) and HistGradientBoosting (no early stopping:
+  it draws a shuffled holdout), both fit on train in time order.
+- *Validation cut*: validation is split in time order into val_a (first half of sessions) and
+  val_b. Everything "tuned on validation" (model choice by AUC, Platt calibrator, the hold /
+  threshold of `impact` and `aggregate_equal`) uses val_a only; val_b is reported and never used
+  for a choice. Why: fitting the calibrator and the threshold on all of validation and reporting
+  on it would be in-sample. Platt fixed a priori over isotonic (about 300 rows in val_a);
+  isotonic is still reported.
+- *Event strategy*: per-item mean `drift_ar` over all 77 universe names' 8-Ks decided in train
+  (`event_items.json`); score = mean of the weights of the window's items with >= 10 train
+  events / 1 %. Hold period and entry threshold of `event` are chosen on train (strategy
+  parameters, R3).
+- *Holding period / threshold*: each stacked strategy holds exactly `hold_days` sessions
+  (engine `min_hold_days` blocks score exits) and enters only above `entry_threshold`; grid
+  `selection` in `config/strategies.yaml`, best Sharpe after costs with the risk manager, at
+  least 10 round trips (`src/sim/select.py`, `selected.json`). The task asked for the threshold
+  on train only; for `impact` and `aggregate_equal` that would pick it where the impact model is
+  in-sample (train AUC 0.81), so they use val_a, which R3 also prescribes for the confidence
+  threshold.
+- *Aggregator*: fixed equal weights of the sentiment, event and impact scores. Hedge (D-17) not
+  built in this session.
+- *Risk manager* (`src/sim/risk.py`): position cap, stop-loss observed at a close and filled at
+  the next open, drawdown halt from the running peak (seeded with the initial capital), cooldown
+  of `cooldown_days` sessions after a losing exit. Applied to `backtest.risk_managed` strategies
+  only, so earlier baselines (and the buy-and-hold target) keep their numbers.
+Rejected: shuffled CV (time leakage), calibrating on train predictions (in-sample), LightGBM
+(one more dependency for 1,220 rows), labelling events by news text (TF-IDF events F1 0.28).
