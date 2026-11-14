@@ -44,6 +44,19 @@ DOC = ROOT / "docs" / "evals.md"
 BEGIN, END = "<!-- results:begin -->", "<!-- results:end -->"
 
 
+def _in_sample(r: dict[str, Any]) -> str | None:
+    """From the record, or, for backtest records written before the flag existed, from the
+    same rule (src/sim/run.FITTED_ON)."""
+    d = r.get("details") or {}
+    if "in_sample" in d:
+        return d["in_sample"]
+    comp = r["component"]
+    if comp.startswith("backtest_"):
+        name, _, split = comp.removeprefix("backtest_").rpartition("_")
+        return backtest.in_sample_note(name, split)
+    return None
+
+
 def table(results: list[dict[str, Any]]) -> str:
     rows = [
         "| Component | Metric | Value | Target | Pass | Gold set | n | Model | git |",
@@ -51,6 +64,8 @@ def table(results: list[dict[str, Any]]) -> str:
     ]
     for r in results:
         ok = "yes" if r["value"] >= r["target"] else "**no**"
+        if _in_sample(r):
+            ok = "in-sample"  # never a pass: the split was used to fit or choose (L-11)
         rows.append(
             f"| {r['component']} | {r['metric']} | {r['value']} | {r['target']} | {ok} | "
             f"{r['gold_set']} | {r['n']} | {r['model']} | {r['git_sha']} |"

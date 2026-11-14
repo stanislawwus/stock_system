@@ -44,6 +44,27 @@ def _r(x: float | None, nd: int = 4) -> float | None:
     return None if x is None else round(x, nd)
 
 
+# What each stacked strategy fitted on which split (D-40, D-44): a backtest there is in-sample.
+FITTED_ON = {
+    "train": {
+        "event": "8-K item table and hold/threshold fitted on train",
+        "impact": "impact model fitted on train",
+        "aggregate_equal": "impact model and item table fitted on train",
+        "aggregate_hedge": "impact model and item table fitted on train",
+    },
+    "validation": {
+        "impact": "calibrator and hold/threshold chosen on val_a (first half of validation)",
+        "aggregate_equal": "calibrator and hold/threshold chosen on val_a",
+        "aggregate_hedge": "calibrator, hold/threshold, eta and p_min chosen on val_a",
+    },
+}
+
+
+def in_sample_note(strategy: str, split: str) -> str | None:
+    """Why a backtest of `strategy` on `split` is (partly) in-sample, or None (L-11)."""
+    return FITTED_ON.get(split, {}).get(strategy)
+
+
 def record(res: BacktestResult, target: float) -> dict[str, Any]:
     value = res.sharpe if res.sharpe is not None else 0.0
     ci = res.sharpe_ci95
@@ -57,6 +78,8 @@ def record(res: BacktestResult, target: float) -> dict[str, Any]:
     else:
         side = "above" if ci[0] > target else "below"
         notes = f"95% CI [{ci[0]:.2f}, {ci[1]:.2f}] lies entirely {side} the target {target:.2f}."
+    if why := in_sample_note(res.strategy, res.split):
+        notes = f"IN-SAMPLE ({why}): not evidence of skill. " + notes
     details = res.model_dump(mode="json", exclude={"equity_curve"})
     details["equity_curve"] = [[d.isoformat(), round(e, 2)] for d, e in res.equity_curve]
     details["disclaimer"] = DISCLAIMER
@@ -74,7 +97,8 @@ def record(res: BacktestResult, target: float) -> dict[str, Any]:
         "run_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "notes": notes,
         "details": {
-            k: _r(v) if isinstance(v, float) else v for k, v in details.items()
+            **{k: _r(v) if isinstance(v, float) else v for k, v in details.items()},
+            "in_sample": in_sample_note(res.strategy, res.split),
         },  # fmt: skip
     }
 
