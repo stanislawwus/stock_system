@@ -4,6 +4,7 @@ between the markers in docs/evals.md (skill run-evals). Components are added her
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Callable
 from functools import partial
 from typing import Any
@@ -11,6 +12,7 @@ from typing import Any
 from evals import (
     eval_collectors,
     eval_events,
+    eval_facts,
     eval_relevance,
     eval_sentiment,
     eval_simulator,
@@ -25,6 +27,7 @@ EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "relevance": eval_relevance.evaluate,
     "sentiment": eval_sentiment.evaluate,
     "events": eval_events.evaluate,
+    "facts": eval_facts.evaluate,
     **{
         f"backtest_{name}_{split}": partial(backtest.evaluate, name, split)
         for split in ("train", "validation")
@@ -61,6 +64,11 @@ def refresh_doc() -> None:
 
 
 def main() -> int:
+    # `make eval` never spends LLM budget: cached responses are served (cache hits cost nothing),
+    # misses fall back deterministically. Live LLM evals run on purpose, e.g.
+    # `EVAL_LLM_LIVE=1 LLM_DAILY_BUDGET=<used + 15> uv run python -m evals.eval_llm_bakeoff` (D-39).
+    if not os.environ.get("EVAL_LLM_LIVE"):
+        os.environ["LLM_DAILY_BUDGET"] = "0"
     for name, fn in EVALS.items():
         try:
             result = fn()
