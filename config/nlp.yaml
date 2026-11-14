@@ -99,7 +99,7 @@ dedup:
 
 sentiment:
   finbert_model: ProsusAI/finbert
-  finbert_revision: main
+  finbert_revision: 0bc2ac10dda6929bcb1f77ccc43c7ec5c424f031   # pinned HF commit
   batch_size: 64
   max_tokens: 64             # headlines; longer text is truncated by the tokenizer
   max_chars: 2000            # untrusted text is truncated before it reaches a model (R6)

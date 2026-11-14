@@ -14,7 +14,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validato
 DISCLAIMER = "This is a simulation, not investment advice."
 
 Source = Literal["yfinance", "stooq", "binance", "finnhub", "edgar", "demo", "test"]
-Method = Literal["llm", "rules", "lexicon", "index", "xbrl", "regex", "model"]
+Method = Literal["llm", "rules", "lexicon", "finbert", "index", "xbrl", "regex", "model"]
 
 # 8-K item numbers used as the event taxonomy (D-10). `none` = no event in the text.
 EventLabel = Literal[
