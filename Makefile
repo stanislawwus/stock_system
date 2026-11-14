@@ -9,7 +9,9 @@ API_PORT ?= 8000
 UI_PORT ?= 8501
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
-.PHONY: eda help setup up api ui test lint fmt eval features train features-test collect-dev collect-test backtest arena test-final
+.PHONY: eda help setup up api ui test lint fmt eval features train need-train features-test collect-dev collect-test backtest arena test-final
+TRAIN_ARTIFACTS := data/models/impact.joblib data/models/event_items.json data/models/selected.json
+STACKED := event impact aggregate_equal
 
 help: ## list targets
 > @grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /  -  /'
@@ -60,18 +62,23 @@ train: ## impact features (cached parquet), models on train, calibrator on val_a
 > $(RUN) python -m src.sim.impact_train
 > $(RUN) python -m src.sim.select
 
+need-train: ## fail early when the `make train` artifacts (git-ignored, D-41) are missing
+> @for f in $(TRAIN_ARTIFACTS); do test -f "$$f" || { \
+>   echo "ERROR: $$f is missing - run 'make train' first (data/models is not committed, D-41)"; exit 1; }; done
+
 features-test: ## FinBERT inference on test news -> data/test_scores.parquet, resumable (D-38)
 > $(RUN) python -m src.nlp.features_test
 
-eval: ## run every component eval, write evals/results/*.json and the table in docs/evals.md
+eval: need-train ## run every component eval, write evals/results/*.json and the table in docs/evals.md
 > $(RUN) python -m evals.run_all
 
-arena: ## run all strategies on the validation split and write the leaderboard
+arena: need-train ## run all strategies on the validation split and write the leaderboard
 > $(RUN) python -m src.strategies.arena --split validation
 
 STRATEGY ?= all
 SPLIT ?= validation
-backtest: ## simulate STRATEGY=<all|buy_and_hold|momentum|mean_reversion> on SPLIT=<train|val>
+backtest: ## simulate STRATEGY=<all|buy_and_hold|momentum|mean_reversion|finbert_v0|event|impact|aggregate_equal> on SPLIT=<train|val>
+> @case " all $(STACKED) " in *" $(STRATEGY) "*) $(MAKE) --no-print-directory need-train ;; esac
 > $(RUN) python -m src.sim.run --strategy $(STRATEGY) --split $(SPLIT)
 
 test-final: ## the ONE run on the test period; refuses to run twice (AGENTS.md R3)

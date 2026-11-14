@@ -38,6 +38,7 @@ Finnhub's 60 calls/min. `make collect-test` runs only right before `make test-fi
 ```sh
 uv sync --extra finbert   # optional: FinBERT (torch, CPU is fine); without it the lexicon is used
 make features             # FinBERT over train + validation news of the watchlist -> DuckDB `sentiment`
+make train                # impact model (train), calibrator (val_a), 8-K item table, hold/threshold grid -> data/models (D-40)
 make backtest STRATEGY=finbert_v0 SPLIT=val
 make up                   # then open http://localhost:8501, type a watchlist ticker
 ```

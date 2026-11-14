@@ -106,3 +106,14 @@ def test_commit_msg_hook_strips_attribution(tmp_path: Path) -> None:
     assert "Co-Authored-By" not in cleaned
     assert "Generated with" not in cleaned
     assert "Claude-Session" not in cleaned
+
+
+def test_make_targets_that_need_trained_artifacts_guard_on_them() -> None:
+    """`data/models` is git-ignored (D-41): eval, arena and the stacked backtests must fail fast
+    with a `make train` hint instead of skipping components or crashing mid-run."""
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert re.search(r"^eval:\s+need-train\b", text, re.M)
+    assert re.search(r"^arena:\s+need-train\b", text, re.M)
+    backtest = text.split("\nbacktest:", 1)[1].split("\n\n", 1)[0]
+    assert "need-train" in backtest
+    assert "run 'make train' first" in text
