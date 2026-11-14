@@ -88,3 +88,12 @@ returns `filings_7d` (8-Ks from the filings table) and `news_7d`; the page shows
 (7d)", "news (7d)" and "classified events (7d)" (labelled as classifier output). *Still open*:
 the classified-events count stays 0 until the event classifier is run over the filings and the rows
 are stored.
+
+**L-16 — The demo slice is thin on news and its trained models come from the full data.** The
+committed slice holds 21 days of news per name (to 2026-08-31) but all prices, filings and facts
+up to then, so a chat question about an earlier date finds prices and filings and often no news.
+The committed models (`data/demo/models`) were trained on the full train/validation history, which
+the slice does not contain, so `make train` cannot be reproduced from it; `make eval` and the
+stacked backtests on a demo-only clone need the full database. The Docker image is ~1.5 GB (CPU
+torch + FinBERT) and the clean-clone check clones the committed HEAD only. *Fix*: none planned; for
+a larger demo raise `NEWS_DAYS` in `src/demo.py` and rebuild with `make demo-build`.
