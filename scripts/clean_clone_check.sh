@@ -58,6 +58,16 @@ wait_health() {
   return 1
 }
 
+wait_ui() {
+  i=0
+  while [ "$i" -lt "${1:-60}" ]; do
+    [ "$(curl -s -m 10 "$UI/_stcore/health")" = ok ] && return 0
+    i=$((i + 1))
+    sleep 2
+  done
+  return 1
+}
+
 ui_degraded() { # EXPECT=true|false: does the Streamlit app render the degraded banner?
   (cd "$CLONE" && docker compose exec -T ui python -c "
 import sys
@@ -87,7 +97,7 @@ if ! (cd "$CLONE" && make up); then say "FAIL: make up"; exit 1; fi
 say "== boot"
 check "health answers" wait_health 30
 check "/docs is served" test "$(http_code "$API/docs")" = 200
-check "UI health endpoint" test "$(curl -s -m 30 "$UI/_stcore/health")" = ok
+check "UI health endpoint" wait_ui 30
 check "UI page is served" test "$(http_code "$UI/")" = 200
 ports=$(cd "$CLONE" && docker compose ps --format '{{.Publishers}}' 2>/dev/null)
 if has "$ports" "0.0.0.0" || has "$ports" "[::]"; then bad "ports bound to 127.0.0.1 only"; else ok "ports bound to 127.0.0.1 only"; fi
