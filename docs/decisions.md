@@ -616,3 +616,38 @@ and always for the test period (R3, D-13): a default API never writes (R7). Jobs
 thread, results in memory. Servers bind to 127.0.0.1 (Makefile `HOST`). Rejected: a separate
 `/signals`-style aggregation in the brief (it shows one configured strategy, falling back to
 `finbert_v0` before `make train`); per-ticker news inside `/events` (different cutoff semantics).
+
+**D-48 (2026-11-15) — Docker demo stack, committed demo slice, Gate 3 check** (deployment phase;
+`Dockerfile`, `docker-compose.yml`, `src/demo.py`, `data/demo/`, `scripts/clean_clone_check.sh`,
+`evals/eval_api.py`). `make up` now builds one image and starts two compose services (`api`, `ui`)
+published on `127.0.0.1:8000` / `127.0.0.1:8501` only; the old local run is `make up-local`.
+AGENTS.md section 7 describes `make up` in the same words (API on :8000, Streamlit on :8501), so
+only its "Does" cell was edited, in its own commit. **Image**: python:3.13-slim + uv, `uv sync
+--frozen --no-dev --extra finbert`; FinBERT is the pinned revision of config/nlp.yaml, downloaded
+at build time by `docker/bake_finbert.py` (fails the build if it does not load), and the container
+runs with `HF_HUB_OFFLINE=1`, so `/analyze` answers `method: finbert`, never the lexicon fallback.
+**Dependency (R14)**: `[tool.uv.sources]` sends `torch` to the PyTorch CPU index on Linux only;
+the default PyPI Linux wheel pulls ~3 GB of CUDA libraries (43 `nvidia-*` packages in the old lock,
+0 now). Windows and macOS keep PyPI's wheel; `uv.lock` was regenerated. No new package was added.
+**Demo slice**: `src/demo.py build` writes zstd parquet for the 10 watchlist names + SPY: prices,
+filings and XBRL facts with `available_at` up to the 16:00 ET close of the last validation day
+(2026-08-31), news and its FinBERT scores for the last 21 days (2,809 news, 2,729 scores), plus
+`data/models/{impact.joblib, event_items.json, selected.json}` and the cached LLM responses; 0.9 MB
+in all. The cut is by the validation end from config, so no code names the test period; a test and
+`python -m src.demo check` verify the manifest hashes and that no row is newer than the cut, and
+`data/test_scores.parquet` is not in the slice. The `events` table is empty in the slice (L-15).
+Models are committed (165 KB) instead of running `make train` at setup because training needs the
+full train/validation history and the 206 MB database; committing is smaller and takes no time.
+The image bakes `src.demo load` at build time, so a container starts with its database ready.
+**UI "degraded"**: `/models` already exposes `calls_today` / `daily_budget`; the app shows a banner
+when the budget is used up (`views.llm_budget_exhausted`). Nothing in the interactive path needs
+the budget (D-46), so this is information, not a failure. **Gate 3**: the script clones HEAD to a
+temp dir, runs `make up`, and runs the boot checks and five scenarios (FinBERT analyze; no LLM
+access; unknown ticker; test-period date and guaranteed profit; budget at 0, with the banner
+checked by Streamlit's AppTest inside the ui container against the live API). **API eval**:
+contract-test pass rate, schema validity of LLM answers from the committed bake-off trace,
+latency (cache replay, endpoints cold vs warm); cold LLM latency is reported `n/a`, nothing calls
+a provider. Rejected: running `make train` in the Dockerfile (needs the full DB); a named volume
+for `data/` (the demo database is rebuilt from the slice, a volume would keep a stale one);
+passing `.env` into the containers (the demo needs no key, and a key must not reach a container
+by accident); `docker compose` healthcheck via curl (not in the slim image).
