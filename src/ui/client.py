@@ -6,18 +6,29 @@ import os
 
 import httpx
 
-from src.schemas import AnalyzeResponse, Brief, ChatResponse, EventsResponse, SignalsResponse
+from src.schemas import (
+    AnalyzeResponse,
+    Brief,
+    ChatResponse,
+    EvalResult,
+    EventsResponse,
+    SignalsResponse,
+)
 
 
 class ApiClient:
-    def __init__(self, base_url: str | None = None, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        timeout: float = 30.0,
+        transport: httpx.BaseTransport | None = None,
+    ) -> None:
         self.base_url = base_url or os.environ.get("API_URL", "http://localhost:8000/api/v1")
-        self._http = httpx.Client(base_url=self.base_url, timeout=timeout)
+        self._http = httpx.Client(base_url=self.base_url, timeout=timeout, transport=transport)
 
     def health(self) -> bool:
-        root = self.base_url.rsplit("/api/", 1)[0]
         try:
-            return httpx.get(f"{root}/health", timeout=5.0).status_code == 200
+            return self._http.get("/health", timeout=5.0).status_code == 200
         except httpx.HTTPError:
             return False
 
@@ -26,11 +37,17 @@ class ApiClient:
         r.raise_for_status()
         return Brief.model_validate(r.json())
 
-    def signals(self, ticker: str, day: str | None = None) -> SignalsResponse:
-        params = {"ticker": ticker, **({"day": day} if day else {})}
+    def signals(self, ticker: str, as_of: str | None = None) -> SignalsResponse:
+        """`as_of`: trading day D (YYYY-MM-DD) or a tz-aware ISO instant; None = API default."""
+        params = {"ticker": ticker, **({"as_of": as_of} if as_of else {})}
         r = self._http.get("/signals", params=params)
         r.raise_for_status()
         return SignalsResponse.model_validate(r.json())
+
+    def evals(self, component: str | None = None) -> list[EvalResult]:
+        r = self._http.get("/evals", params={"component": component} if component else None)
+        r.raise_for_status()
+        return [EvalResult.model_validate(x) for x in r.json()]
 
     def events(self, ticker: str) -> EventsResponse:
         r = self._http.get(f"/events/{ticker}")
