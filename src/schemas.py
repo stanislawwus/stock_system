@@ -179,7 +179,8 @@ class Signal(Record):
 
 
 class Trade(Record):
-    """A simulator fill at the open of day D. available_at = fill time."""
+    """A simulator fill: at the open of D (entries, score <= 0 exits) or at the close of D+h
+    (time exits, end of split). available_at = fill time."""
 
     ticker: str
     day: date
@@ -206,6 +207,14 @@ class BacktestResult(Record):
     n_trades: int
     hit_rate: float | None
     equity_curve: list[tuple[date, float]] = Field(default_factory=list)
+    annualised_return: float | None = None
+    mean_daily_return: float | None = None
+    sharpe_ci95: tuple[float, float] | None = Field(default=None, description="block bootstrap")
+    mean_daily_return_ci95: tuple[float, float] | None = None
+    turnover: float | None = Field(default=None, description="one-way, (buys+sells)/2/mean equity")
+    n_days: int = 0
+    costs_paid: float = 0.0
+    tickers: list[str] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- API only
