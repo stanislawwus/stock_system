@@ -27,7 +27,7 @@ from typing import Any
 
 import numpy as np
 
-from evals.metrics import git_sha
+from evals.metrics import bootstrap_ci, git_sha
 from src import db
 from src.collectors.common import ROOT, load_periods
 from src.marketview.clock import cutoff_for
@@ -106,7 +106,9 @@ def score(filings: list[dict[str, Any]], outputs: list[FilingFacts]) -> dict[str
     scales = {"one": 1.0, "thousand": 1e3, "million": 1e6, "billion": 1e9}
     pairs = within = exact = period_ok = n_extracted = n_grounded = found = 0
     misses: list[dict[str, Any]] = []
+    per_filing: list[tuple[int, int]] = []  # (within, pairs) per filing, for the CI
     for f, out in zip(filings, outputs, strict=True):
+        w0, p0 = within, pairs
         n_extracted += len(out.facts)
         n_grounded += sum(is_grounded(f["text"], x) for x in out.facts)
         pred = {}
@@ -134,7 +136,14 @@ def score(filings: list[dict[str, Any]], outputs: list[FilingFacts]) -> dict[str
                         "quote": x.quote[:160],
                     }  # fmt: skip
                 )
+        per_filing.append((within - w0, pairs - p0))
+    hits = np.array([w for w, _ in per_filing], dtype=float)
+    tot = np.array([n for _, n in per_filing], dtype=float)
+    ci = None
+    if len(per_filing) >= 2 and tot.sum():  # bootstrap over filings (pairs of one filing cluster)
+        ci = bootstrap_ci(len(per_filing), lambda i: float(hits[i].sum() / max(tot[i].sum(), 1)))
     return {
+        "within_1pct_ci95_filing_bootstrap": ci,
         "n_filings": len(filings),
         "gold_pairs": pairs,
         "within_1pct": round(within / pairs, 4) if pairs else 0.0,

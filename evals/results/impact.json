@@ -3,14 +3,14 @@
   "metric": "auc",
   "value": 0.4984,
   "target": 0.55,
-  "git_sha": "c77a97f",
-  "run_at": "2026-11-14T19:15:52+00:00",
+  "git_sha": "03c46c7",
+  "run_at": "2026-11-14T20:35:01+00:00",
   "why_this_metric": "AUC is threshold-free with chance at 0.5; Brier and majority-class accuracy are in details",
   "gold_set": "derived: sign(drift_ar) from prices (src/sim/labels.py, D-28)",
   "n": 620,
   "split": "validation",
   "model": "hgb (fit on train)",
-  "notes": "hgb (higher val_a AUC) scores AUC 0.498 on validation; logreg 0.460. Out-of-sample accuracy 0.490 vs majority 0.502; Brier 0.2601 vs base rate 0.2500. HGB train AUC 0.815 shows it memorises train; the features carry no detectable next-day signal in this sample.",
+  "notes": "hgb (higher val_a AUC) scores AUC 0.498 on validation; logreg 0.460. Out-of-sample accuracy 0.490 vs majority 0.502; Brier 0.2601 vs base rate 0.2500. HGB train AUC 0.815 shows it memorises train; the features carry no detectable next-day signal in this sample. 95% CI of the AUC (bootstrap over 62 days) (0.4537, 0.5422).",
   "details": {
     "n_train": 1220,
     "n_val_a": 310,
@@ -159,7 +159,11 @@
     "chosen": {
       "model": "hgb",
       "calibrator": "platt"
-    }
+    },
+    "auc_ci95_day_bootstrap": [
+      0.4537,
+      0.5422
+    ]
   },
   "disclaimer": "This is a simulation, not investment advice."
 }

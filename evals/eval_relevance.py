@@ -27,6 +27,9 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
+from evals.metrics import bootstrap_ci
 from src import db
 from src.collectors.common import ROOT, load_periods, watchlist_tickers
 from src.marketview.clock import cutoff_for
@@ -158,6 +161,16 @@ def evaluate(db_path: Path | None = None) -> dict[str, Any]:
     p = tp / (tp + fp) if tp + fp else 0.0
     r = tp / (tp + fn) if tp + fn else 0.0
     f1 = 2 * p * r / (p + r) if p + r else 0.0
+    # 95 % CI of F1: i.i.d. bootstrap over gold items (each item is tp/fp/fn/tn on its own)
+    is_tp = np.array([i in dropped and i in planted for i in (n.id for n in items)], dtype=float)
+    is_fp = np.array([i in dropped and i not in planted for i in (n.id for n in items)], float)
+    is_fn = np.array([i in planted and i not in dropped for i in (n.id for n in items)], float)
+
+    def _f1(idx: np.ndarray) -> float:
+        t, f_, n_ = is_tp[idx].sum(), is_fp[idx].sum(), is_fn[idx].sum()
+        return float(2 * t / (2 * t + f_ + n_)) if t else 0.0
+
+    f1_ci = bootstrap_ci(len(items), _f1)
     by_edit = Counter(edits[i] for i in planted)
     caught = Counter(edits[i] for i in planted & dropped)
     by_id = {n.id: n for n in items}
@@ -190,6 +203,7 @@ def evaluate(db_path: Path | None = None) -> dict[str, Any]:
         "run_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "notes": notes,
         "details": {
+            "f1_ci95_item_bootstrap": f1_ci,
             "precision": round(p, 4),
             "recall": round(r, 4),
             "precision_target": 0.90,

@@ -8,11 +8,15 @@
   "n": 87,
   "split": "warmup+train+validation (filings accepted by the last validation cutoff)",
   "model": "regex (LLM fallback on 15 in details)",
-  "git_sha": "3e25cdb",
-  "run_at": "2026-11-14T18:07:04+00:00",
+  "git_sha": "03c46c7",
+  "run_at": "2026-11-14T20:35:03+00:00",
   "notes": "regex within-1% 0.3333 (exact 0.3563, grounded 1.0) vs target 0.9; LLM on 15: within-1% 0.3182, grounded 1.0 (LLM not run: regex fallback). Explanation in docs/evals.md (facts).",
   "details": {
     "regex_all": {
+      "within_1pct_ci95_filing_bootstrap": [
+        0.2353,
+        0.4318
+      ],
       "n_filings": 30,
       "gold_pairs": 87,
       "within_1pct": 0.3333,
@@ -136,6 +140,10 @@
     },
     "head_to_head_first_k": {
       "regex": {
+        "within_1pct_ci95_filing_bootstrap": [
+          0.186,
+          0.4652
+        ],
         "n_filings": 15,
         "gold_pairs": 44,
         "within_1pct": 0.3182,
@@ -264,6 +272,10 @@
           "fallback": 2
         },
         "cache_hits": 0,
+        "within_1pct_ci95_filing_bootstrap": [
+          0.186,
+          0.4652
+        ],
         "n_filings": 15,
         "gold_pairs": 44,
         "within_1pct": 0.3182,

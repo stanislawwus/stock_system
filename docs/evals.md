@@ -24,20 +24,26 @@ No result below uses the test period (AGENTS.md R3).
 | backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
 | backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
-| calibration | brier_skill_val_b | -0.0314 | 0.0 | **no** | derived: sign(drift_ar) on val_b; calibrator fitted on val_a only | 310 | hgb + platt | c77a97f |
+| calibration | brier_skill_val_b | -0.0314 | 0.0 | **no** | derived: sign(drift_ar) on val_b; calibrator fitted on val_a only | 310 | hgb + platt | 03c46c7 |
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 3e25cdb |
 | events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
-| facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 3e25cdb |
-| impact | auc | 0.4984 | 0.55 | **no** | derived: sign(drift_ar) from prices (src/sim/labels.py, D-28) | 620 | hgb (fit on train) | c77a97f |
+| facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 03c46c7 |
+| impact | auc | 0.4984 | 0.55 | **no** | derived: sign(drift_ar) from prices (src/sim/labels.py, D-28) | 620 | hgb (fit on train) | 03c46c7 |
 | intake | name_to_ticker_accuracy | 0.974 | 0.95 | yes | derived: SEC titles in data/raw/edgar/company_tickers.json (sha256 916aaa699923) | 77 | table (tickers + relevance aliases) | 5fec32b |
 | llm_bakeoff | schema_adherence | 0.75 | 1.0 | **no** | 20 headlines of evals/labels/news_100.csv + 10 releases of the facts gold (XBRL) | 30 | nvidia/nemotron-3-ultra-550b-a55b:free | 44fc8b2 |
-| relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 3e25cdb |
+| relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 03c46c7 |
 | risk | planted_caught_share | 1.0 | 1.0 | yes | derived: evals/eval_risk.py scenarios() (4 planted violations) | 4 | rules | 72ad79e |
 | sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 3e25cdb |
 | simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 3e25cdb |
 <!-- results:end -->
 
 ## Notes per component
+
+Confidence intervals (L-11): `impact` AUC 95 % CI [0.45, 0.54] and `calibration` Brier skill
+[-0.094, -0.008], both bootstrapped over days (the names of one day share the market move);
+`facts` within-1 % [0.24, 0.43] over filings; `relevance` dedup F1 [0.96, 0.99] over items.
+Backtests on a split that was used to fit or choose anything show **in-sample** in the table
+instead of a pass (e.g. `impact` on train, Sharpe 7.19).
 
 ### collectors
 

@@ -71,12 +71,6 @@ threshold) points per strategy and keeps the best Sharpe; `impact` kept a point 
 controls and the drop-one ablation (`docs/05_arena.md`). *Still open*: the aggregator eval
 (`evals/eval_impact.evaluate_aggregator`, val_b) has no random control of its own.
 
-**L-11 — Point estimates without intervals.** `impact` (AUC), `calibration` (Brier skill),
-`facts` (within 1 %) and `relevance` (dedup F1) report no CI; `backtest_impact_train` shows
-Sharpe 7.19 as a pass in `docs/evals.md` although it is in-sample. *Fix*: bootstrap over rows
-with `evals.metrics.bootstrap_ci` (AUC: resample (p, y) pairs; facts: resample gold pairs); add
-`in_sample: true` to records whose split was used to fit anything and render it in the table.
-
 **L-12 — `make eval` conflates a missing gold set with a missing model.** `evals/run_all.py`
 catches `FileNotFoundError` (meant for gold sets absent on a clean clone) and prints `skipped`,
 so without `make train` the aggregator and the stacked backtests silently disappear from the
@@ -90,5 +84,3 @@ author as the code they grade, so they measure robustness to the failure modes t
 imagined. The `events` gold was sampled with the rule method's own ±24 h window (noted in
 `docs/evals.md`). *Fix*: a second annotator for 30 dedup pairs; a held-out set of real syndicated
 copies found by `clean.dedup_key` rather than planted.
-
-## Scope

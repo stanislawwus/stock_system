@@ -3,14 +3,14 @@
   "metric": "brier_skill_val_b",
   "value": -0.0314,
   "target": 0.0,
-  "git_sha": "c77a97f",
-  "run_at": "2026-11-14T19:15:53+00:00",
+  "git_sha": "03c46c7",
+  "run_at": "2026-11-14T20:35:03+00:00",
   "why_this_metric": "Brier scores the probability itself; skill > 0 means better than always predicting the base rate",
   "gold_set": "derived: sign(drift_ar) on val_b; calibrator fitted on val_a only",
   "n": 310,
   "split": "validation",
   "model": "hgb + platt",
-  "notes": "platt on val_a: val_b Brier 0.2572 vs base rate 0.2493 (raw 0.2662), ECE 0.066 (raw 0.128). Calibration shrinks the overconfident raw probabilities toward the base rate but cannot add skill the model lacks; the base rate itself shifted between val_a and val_b.",
+  "notes": "platt on val_a: val_b Brier 0.2572 vs base rate 0.2493 (raw 0.2662), ECE 0.066 (raw 0.128). Calibration shrinks the overconfident raw probabilities toward the base rate but cannot add skill the model lacks; the base rate itself shifted between val_a and val_b. 95% CI of the Brier skill (bootstrap over val_b days) (-0.094, -0.0084).",
   "details": {
     "model": "hgb",
     "raw_val_b": {
@@ -146,6 +146,10 @@
       ]
     },
     "figure": "docs\\figs\\reliability_impact.png",
+    "brier_skill_ci95_day_bootstrap": [
+      -0.094,
+      -0.0084
+    ],
     "p_range_val_b": [
       0.4465,
       0.618

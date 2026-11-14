@@ -91,6 +91,21 @@ def bootstrap_ci(
     return round(float(lo), 4), round(float(hi), 4)
 
 
+def cluster_bootstrap_ci(
+    groups: Sequence[Sequence[int]], stat: Callable[[np.ndarray], float]
+) -> tuple[float, float] | None:
+    """CI of `stat(row indices)` resampling whole groups (e.g. all rows of one day or one
+    filing): rows within a group share a shock, so an i.i.d. row bootstrap would be too narrow."""
+    arrays = [np.asarray(g, dtype=int) for g in groups if len(g)]
+    if len(arrays) < 2:
+        return None
+
+    def _stat(idx: np.ndarray) -> float:
+        return stat(np.concatenate([arrays[i] for i in idx]))
+
+    return bootstrap_ci(len(arrays), _stat)
+
+
 def multilabel_report(
     gold: Sequence[set[str]], pred: Sequence[set[str]], labels: Sequence[str]
 ) -> dict[str, Any]:

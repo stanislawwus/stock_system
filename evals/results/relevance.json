@@ -8,10 +8,14 @@
   "n": 600,
   "split": "train",
   "model": "minhash(char4, 128 perms, thr 0.6)",
-  "git_sha": "3e25cdb",
-  "run_at": "2026-11-14T18:04:07+00:00",
+  "git_sha": "03c46c7",
+  "run_at": "2026-11-14T20:35:09+00:00",
   "notes": "",
   "details": {
+    "f1_ci95_item_bootstrap": [
+      0.9607,
+      0.9864
+    ],
     "precision": 0.9965,
     "recall": 0.9533,
     "precision_target": 0.9,

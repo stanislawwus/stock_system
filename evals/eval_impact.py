@@ -26,6 +26,7 @@ from typing import Any
 
 import numpy as np
 
+from evals.metrics import cluster_bootstrap_ci
 from src.collectors.common import ROOT
 from src.impact.features import config, feature_names
 from src.impact.model import fit_calibrator, reliability
@@ -65,16 +66,37 @@ def _fit() -> tuple[Any, dict[str, Any], Any, Any]:
     return model, report, train, val
 
 
+def _day_groups(frame: Any) -> list[list[int]]:
+    """Row indices per session: the 10 names of one day share the market move (cluster)."""
+    days = frame["day"].to_numpy()
+    return [list(np.flatnonzero(days == d)) for d in sorted(set(days))]
+
+
+def _auc(y: np.ndarray, p: np.ndarray) -> float:
+    from sklearn.metrics import roc_auc_score
+
+    return float(roc_auc_score(y, p)) if 0 < y.mean() < 1 else float("nan")
+
+
+def _brier_skill(y: np.ndarray, p: np.ndarray) -> float:
+    base = float(np.mean((y.mean() - y) ** 2))
+    return 1 - float(np.mean((p - y) ** 2)) / base if base > 0 else float("nan")
+
+
 def evaluate_impact() -> dict[str, Any]:
     model, report, train, val = _fit()
     v = report[model.model_name]["validation"]
+    pv = model.predict(val[feature_names()].to_numpy(float))
+    yv = val["y"].to_numpy(int)
+    auc_ci = cluster_bootstrap_ci(_day_groups(val), lambda i: _auc(yv[i], pv[i]))
     notes = (
         f"{model.model_name} (higher val_a AUC) scores AUC {v['auc']:.3f} on validation; "
         f"logreg {report['logreg']['validation']['auc']:.3f}. Out-of-sample accuracy "
         f"{v['accuracy']:.3f} vs majority {v['majority_accuracy']:.3f}; Brier {v['brier']:.4f} vs "
         f"base rate {v['brier_base_rate']:.4f}. HGB train AUC "
         f"{report['hgb']['train']['auc']:.3f} shows it memorises train; the features carry no "
-        "detectable next-day signal in this sample."
+        f"detectable next-day signal in this sample. 95% CI of the AUC (bootstrap over "
+        f"{len(set(val['day']))} days) {auc_ci}."
     )
     return _record(
         "impact", "auc", v["auc"], 0.55,
@@ -82,7 +104,8 @@ def evaluate_impact() -> dict[str, Any]:
         "accuracy are in details",
         gold_set="derived: sign(drift_ar) from prices (src/sim/labels.py, D-28)",
         n=int(v["n"]), split="validation", model=f"{model.model_name} (fit on train)",
-        notes=notes, details=_round(report), disclaimer=DISCLAIMER,
+        notes=notes, details=_round({**report, "auc_ci95_day_bootstrap": auc_ci}),
+        disclaimer=DISCLAIMER,
     )  # fmt: skip
 
 
@@ -126,12 +149,14 @@ def evaluate_calibration() -> dict[str, Any]:
     chosen = cal[model.calibrator_name]["val_b"]
     skill = 1 - chosen["brier"] / chosen["brier_base_rate"]
     p_b = model.predict(val_b[names].to_numpy(float))
+    skill_ci = cluster_bootstrap_ci(_day_groups(val_b), lambda i: _brier_skill(yb[i], p_b[i]))
     notes = (
         f"{model.calibrator_name} on val_a: val_b Brier {chosen['brier']:.4f} vs base rate "
         f"{chosen['brier_base_rate']:.4f} (raw {cal['raw_val_b']['brier']:.4f}), ECE "
         f"{chosen['ece']:.3f} (raw {cal['raw_val_b']['ece']:.3f}). Calibration shrinks the "
         "overconfident raw probabilities toward the base rate but cannot add skill the model "
-        "lacks; the base rate itself shifted between val_a and val_b."
+        "lacks; the base rate itself shifted between val_a and val_b. 95% CI of the Brier "
+        f"skill (bootstrap over val_b days) {skill_ci}."
     )
     return _record(
         "calibration", "brier_skill_val_b", skill, 0.0,
@@ -141,6 +166,7 @@ def evaluate_calibration() -> dict[str, Any]:
         n=int(chosen["n"]), split="validation",
         model=f"{model.model_name} + {model.calibrator_name}", notes=notes,
         details=_round({**cal, "reliability_val_b": rel, "figure": str(FIG.relative_to(ROOT)),
+                        "brier_skill_ci95_day_bootstrap": skill_ci,
                         "p_range_val_b": [float(np.min(p_b)), float(np.max(p_b))]}),
     )  # fmt: skip
 

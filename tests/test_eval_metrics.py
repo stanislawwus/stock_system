@@ -40,3 +40,15 @@ def test_multilabel_micro_macro_by_hand() -> None:
     assert rep["macro_f1"] == pytest.approx(1 / 3, abs=1e-4)
     assert rep["exact_set_match"] == pytest.approx(1 / 3, abs=1e-4)
     assert rep["per_label"]["8.01"]["predicted"] == 1
+
+
+def test_cluster_bootstrap_resamples_whole_groups() -> None:
+    import numpy as np
+
+    from evals.metrics import cluster_bootstrap_ci
+
+    y = np.array([1.0, 1.0, 0.0, 0.0, 1.0, 0.0])
+    groups = [[0, 1], [2, 3], [4, 5]]  # group means 1, 0, 0.5
+    lo, hi = cluster_bootstrap_ci(groups, lambda i: float(y[i].mean()))
+    assert 0.0 <= lo <= 0.5 <= hi <= 1.0
+    assert cluster_bootstrap_ci([[0, 1]], lambda i: 0.0) is None  # one cluster: no interval
