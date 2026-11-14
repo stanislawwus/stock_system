@@ -227,3 +227,28 @@ free quota while the counter says otherwise).
   `as_of` at or after the first test cutoff, unless the process runs inside `final_run()`, which only
   the `--final` entry points of `make test-final` open. `tests/test_test_period_lock.py` pins this
   and scans the repo for any other reference to the test period.
+
+**D-34 (2026-11-14) — Data-quality rules, splits and the news labelling sheet.**
+- *Splits*: `config/splits.yaml` was already frozen and committed (hash pinned in
+  `tests/test_repo_rules.py`); it is not edited. The task's "train/val on the dev track" does not apply:
+  there is no FNSPID dev track (D-29). The lock `tests/test_test_period_lock.py` is the new test for
+  "no code path except `make test-final` reads test-period rows".
+- *Dev cut is exclusive*: offline analysis reads `available_at < 2026-09-01 13:00 UTC` (first test
+  cutoff), the same bound as the collector quality check; a row exactly at the cutoff is the first
+  test day's input and is not analysed.
+- *Duplicates*: the news key stays `(id, ticker)`; 32 % of articles are tagged with several tickers,
+  which is information. Syndicated copies are found by `clean.dedup_key` (NFKC, case, punctuation)
+  within 24 h per ticker and dropped by the future relevance component, not deleted from the database.
+- *Language heuristic*: Latin-script share plus foreign function words; ambiguous words that occur in
+  English names or contractions (de, van, la, le, di, per, et, ve) are excluded after "I've" and
+  "Dirk Van De Put" were flagged. A heuristic, not a language identifier.
+- *8-K header stripping*: removes the collector tag line, `Item x.xx` headings (also split over lines,
+  wrapped titles), `Section n -` headings and inline item mentions restricted to real item numbers
+  (reconciliation tables contain "special items 0.06").
+- *Labelling sheet*: 150 headlines (the task's file name says 100) drawn by `evals/make_news_sheet.py`;
+  strata = coincident 8-K item group (same ticker, accepted within ±24 h) × year × ticker, quotas in
+  `config/data_quality.yaml`. The item stratum lives in `news_100.strata.csv`, not in the sheet, so the
+  annotator does not see it. The sheet is saved as `news_100.draft.csv` (label-helper skill: a draft
+  is renamed to `news_100.csv` and frozen only after the human fills it; R4 freezes committed gold
+  sets). Rejected: a `llm_suggestion` column (the task forbids pre-filling), proportional sampling
+  (2.02/5.02/1.01 would get ~0 rows).
