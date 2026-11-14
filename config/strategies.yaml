@@ -1,12 +1,18 @@
 # Parameters of every strategy. Tuned on `train` only; `validation` picks aggregator weights.
 # Values here are starting points taken from common practice, not fitted yet.
-momentum:
-  fast_window: 50
-  slow_window: 200
-mean_reversion:
-  rsi_window: 14
-  buy_below: 30
-  sell_above: 70
+buy_and_hold:
+  horizon_days: null                 # null = hold to the end of the split (no time exit)
+momentum:                            # simplified 12-1 (D-35): close[t-21] / close[t-252] - 1
+  lookback_days: 252                 # ~12 months of trading days
+  skip_days: 21                      # skip the last month (short-term reversal)
+  score_scale: 0.5                   # score = clip(r_12_1 / score_scale, -1, 1)
+  horizon_days: 20                   # exit at the close of D+h (monthly holding)
+mean_reversion:                      # short-term reversal on a volatility-scaled k-day return (D-35)
+  lookback_days: 5                   # k: the move being faded
+  vol_window: 60                     # daily-return stdev window for the z-score
+  entry_z: 1.0                       # long only when z <= -entry_z
+  z_scale: 2.0                       # score = clip((-z - entry_z) / z_scale, -1, 1)
+  horizon_days: 5
 news_sentiment:
   baseline_window_days: 20
   min_articles_per_day: 1
@@ -29,3 +35,12 @@ aggregator:
   hedge_eta: 0.1
   lookback_days: 20
   confidence_threshold: null         # filled from the validation run, see config/risk.yaml
+
+backtest:                            # src/sim (D-35); costs and the position cap are in config/risk.yaml
+  universe: watchlist                # watchlist | universe
+  bootstrap:
+    n_resamples: 2000
+    block_days: 5                    # moving-block bootstrap keeps short autocorrelation
+    ci: 0.95
+    seed: 20261114
+  trading_days_per_year: 252
