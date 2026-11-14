@@ -9,7 +9,7 @@ No result below uses the test period (AGENTS.md R3).
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
 | aggregator | sharpe_val_b | -3.1453 | 2.0519 | **no** | derived: buy_and_hold on val_b, same tickers | 32 | equal weights (sentiment, event, impact) | c77a97f |
-| arena | deflated_sharpe_aggregate_equal | 0.0014 | 0.95 | **no** | derived: 74 trials in evals/trials.csv; matched random controls | 64 | rules + impact model (data/models) | 5898771 |
+| arena | deflated_sharpe_aggregate_equal | 0.0015 | 0.95 | **no** | derived: 91 trials in evals/trials.csv; matched random controls | 64 | rules + impact model (data/models) | 5fec32b |
 | backtest_aggregate_equal_train | sharpe | -0.9527 | 1.7603 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_aggregate_equal_validation | sharpe | -1.5849 | 1.3374 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
 | backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
@@ -29,6 +29,7 @@ No result below uses the test period (AGENTS.md R3).
 | events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
 | facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 3e25cdb |
 | impact | auc | 0.4984 | 0.55 | **no** | derived: sign(drift_ar) from prices (src/sim/labels.py, D-28) | 620 | hgb (fit on train) | c77a97f |
+| intake | name_to_ticker_accuracy | 0.974 | 0.95 | yes | derived: SEC titles in data/raw/edgar/company_tickers.json (sha256 916aaa699923) | 77 | table (tickers + relevance aliases) | 5fec32b |
 | llm_bakeoff | schema_adherence | 0.75 | 1.0 | **no** | 20 headlines of evals/labels/news_100.csv + 10 releases of the facts gold (XBRL) | 30 | nvidia/nemotron-3-ultra-550b-a55b:free | 44fc8b2 |
 | relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 3e25cdb |
 | risk | planted_caught_share | 1.0 | 1.0 | yes | derived: evals/eval_risk.py scenarios() (4 planted violations) | 4 | rules | 72ad79e |
@@ -188,6 +189,15 @@ No result below uses the test period (AGENTS.md R3).
   (D-34), so (a) sees the sampling variable. On the 60 rows drawn with no 8-K nearby the rule's
   exact match is 0.80 vs 0.62 for (b): there, 'none' is the right answer by construction.
 
+### intake (D-45)
+
+Name → ticker accuracy 0.974 (95 % CI 0.94–1.00) on the official SEC titles of the 77 universe
+companies, target 0.95; misses "Walt Disney Co" (alias is "Disney", not at the start) and
+"INTERNATIONAL BUSINESS MACHINES CORP" (alias "IBM"). False positives: 0/25 on non-universe
+titles containing an alias word, 0/25 on random titles. Watchlist requests, exact set: 1.00 on
+40, but two resolver rules were changed after a first run on this set (0.50), so that figure is
+optimistic. Risk-profile fields and the LLM path (docs/03) are not built.
+
 ### facts
 
 - **Metric**: share of gold (filing, metric) pairs extracted within +/- 1 % of XBRL; exact match
@@ -270,10 +280,10 @@ up-share also moved from 0.53 (val_a) to 0.47 (val_b). Plot: `docs/figs/reliabil
 
 ### arena (`make arena`, D-42; full report `docs/05_arena.md`)
 
-Metric: deflated Sharpe of `aggregate_equal` on validation, N = 74 trials logged in
-`evals/trials.csv` (60 selection-grid points, 7 arena strategies, 3 ablation variants, 2 models,
-2 calibrators); target 0.95. Value 0.001: its Sharpe (-1.58) is far below the 4.24 that the best
-of 74 unskilled trials reaches by luck, and in the matched random control (same entry days and
+Metric: deflated Sharpe of `aggregate_equal` on validation, N = 91 trials logged in
+`evals/trials.csv` (76 selection-grid points incl. the 16 Hedge points, 8 arena strategies, 3
+ablation variants, 2 models, 2 calibrators); target 0.95. Value 0.002: its Sharpe (-1.58) is far
+below the 4.22 that the best of 91 unskilled trials reaches by luck, and in the matched random control (same entry days and
 holding lengths, random names, 200 draws) it sits at the 13.5th percentile. SR0 is high because
 each trial covers only 32-124 sessions, so trial Sharpes vary widely; even the best strategy
 (mean reversion, 3.57, 94.5th percentile of its controls) has a DSR of only 0.36. The drop-one

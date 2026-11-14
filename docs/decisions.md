@@ -552,3 +552,22 @@ enter `evals/trials.csv` (N of the deflated Sharpe) at the next `make arena`. Th
 strategy remembers the scores it computed earlier in the same run; a fresh object (e.g. one API
 call) starts with equal weights. Rejected: weights from a static val_a fit (not online, D-17);
 the label table inside the strategy (R2); a p_min grid above 0.55 (fewer than 10 round trips).
+
+**D-45 (2026-11-14) — Intake: table resolver and an SEC-derived gold set** (docs/01 Must row
+"intake"; `src/nlp/intake.py`, `evals/eval_intake.py`). `resolve_name` / `extract_tickers` use only
+the universe tickers and the relevance aliases (config/nlp.yaml); an alias must start the name or
+leave only legal-form words. The LLM path of the intake agent is not built; this is its table
+fallback. Gold derived from SEC `company_tickers.json` titles (cached raw file, sha256 in the
+record), which the resolver never reads: the 77 universe titles (positives), 25 non-universe
+titles that contain an alias word (hard negatives) and 25 random ones, and 40 seeded watchlist
+requests (half of the companies typed as tickers). Negatives exclude universe companies by CIK
+(a first version counted "T-Mobile US, Inc." under a second SEC symbol as a negative). Two
+resolver rules were changed after seeing this set's phrase misses (first phrase exact-set 0.50):
+in a request a bare upper-case universe ticker counts, including one-letter ones (C, T, V),
+unless the whole request is in capitals (then only $TICKER); the news-relevance rule that
+requires "$" for word-like symbols does not fit typed requests. SEC state tags ("/MA/") are
+stripped from the request phrases (filing artefacts nobody types). So the phrase figure (1.00)
+is in-sample for those two rules; the name accuracy (0.974; misses Walt Disney, IBM's full
+name) is not, no alias was added. Rejected: adding "Walt Disney" / "International Business
+Machines" as aliases (that tunes the table to the gold set); human-labelled dialogues (no time;
+docs/03's 25 synthetic dialogues incl. risk profile remain open).

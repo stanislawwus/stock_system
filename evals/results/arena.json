@@ -1,16 +1,16 @@
 {
   "component": "arena",
   "metric": "deflated_sharpe_aggregate_equal",
-  "value": 0.0014,
+  "value": 0.0015,
   "target": 0.95,
   "why_this_metric": "the deflated Sharpe asks whether the headline strategy's Sharpe beats what the best of all N configurations we tried would reach by luck; a plain Sharpe ignores that search",
-  "gold_set": "derived: 74 trials in evals/trials.csv; matched random controls",
+  "gold_set": "derived: 91 trials in evals/trials.csv; matched random controls",
   "n": 64,
   "split": "validation",
   "model": "rules + impact model (data/models)",
-  "git_sha": "5898771",
-  "run_at": "2026-11-14T20:08:19+00:00",
-  "notes": "aggregate_equal: Sharpe -1.58 on validation (val_b only -4.33); deflated Sharpe 0.001 with N = 74 trials (SR0 4.24 annualised); random-control percentile 13.5 (same entry days, random names). Below target: the Sharpe is not distinguishable from the best of N unskilled configurations. See docs/05_arena.md.",
+  "git_sha": "5fec32b",
+  "run_at": "2026-11-14T20:33:00+00:00",
+  "notes": "aggregate_equal: Sharpe -1.58 on validation (val_b only -4.33); deflated Sharpe 0.001 with N = 91 trials (SR0 4.22 annualised); random-control percentile 13.5 (same entry days, random names). Below target: the Sharpe is not distinguishable from the best of N unskilled configurations. See docs/05_arena.md.",
   "details": {
     "split": "validation",
     "start": "2026-06-01",
@@ -199,6 +199,32 @@
         ],
         "n_days": 64,
         "n_days_val_b": 32
+      },
+      {
+        "strategy": "aggregate_hedge",
+        "sharpe": -1.5849,
+        "sharpe_ci95": [
+          -4.533,
+          1.7086
+        ],
+        "total_return": -0.0476,
+        "max_drawdown": 0.076,
+        "n_trades": 262,
+        "round_trips": 131,
+        "hit_rate": 0.4275,
+        "turnover": 23.4479,
+        "costs_paid": 2343.2138,
+        "mean_exposure": 0.3569,
+        "risk_managed": true,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": -4.3306,
+        "sharpe_val_b_ci95": [
+          -7.4719,
+          0.5153
+        ],
+        "n_days": 64,
+        "n_days_val_b": 32
       }
     ],
     "correlation": {
@@ -209,7 +235,8 @@
         "finbert_v0": 0.8674,
         "event": 0.4571,
         "impact": 0.368,
-        "aggregate_equal": 0.6458
+        "aggregate_equal": 0.6458,
+        "aggregate_hedge": 0.6458
       },
       "momentum": {
         "buy_and_hold": 0.8634,
@@ -218,7 +245,8 @@
         "finbert_v0": 0.8156,
         "event": 0.3556,
         "impact": 0.244,
-        "aggregate_equal": 0.7045
+        "aggregate_equal": 0.7045,
+        "aggregate_hedge": 0.7045
       },
       "mean_reversion": {
         "buy_and_hold": 0.3311,
@@ -227,7 +255,8 @@
         "finbert_v0": 0.1384,
         "event": -0.0582,
         "impact": 0.1426,
-        "aggregate_equal": 0.2295
+        "aggregate_equal": 0.2295,
+        "aggregate_hedge": 0.2295
       },
       "finbert_v0": {
         "buy_and_hold": 0.8674,
@@ -236,7 +265,8 @@
         "finbert_v0": 1.0,
         "event": 0.4896,
         "impact": 0.2393,
-        "aggregate_equal": 0.6413
+        "aggregate_equal": 0.6413,
+        "aggregate_hedge": 0.6413
       },
       "event": {
         "buy_and_hold": 0.4571,
@@ -245,7 +275,8 @@
         "finbert_v0": 0.4896,
         "event": 1.0,
         "impact": 0.1178,
-        "aggregate_equal": 0.2871
+        "aggregate_equal": 0.2871,
+        "aggregate_hedge": 0.2871
       },
       "impact": {
         "buy_and_hold": 0.368,
@@ -254,7 +285,8 @@
         "finbert_v0": 0.2393,
         "event": 0.1178,
         "impact": 1.0,
-        "aggregate_equal": 0.295
+        "aggregate_equal": 0.295,
+        "aggregate_hedge": 0.295
       },
       "aggregate_equal": {
         "buy_and_hold": 0.6458,
@@ -263,7 +295,18 @@
         "finbert_v0": 0.6413,
         "event": 0.2871,
         "impact": 0.295,
-        "aggregate_equal": 1.0
+        "aggregate_equal": 1.0,
+        "aggregate_hedge": 1.0
+      },
+      "aggregate_hedge": {
+        "buy_and_hold": 0.6458,
+        "momentum": 0.7045,
+        "mean_reversion": 0.2295,
+        "finbert_v0": 0.6413,
+        "event": 0.2871,
+        "impact": 0.295,
+        "aggregate_equal": 1.0,
+        "aggregate_hedge": 1.0
       }
     },
     "ablation": [
@@ -496,79 +539,117 @@
           "mean_exposure": 0.3569,
           "random_mean_exposure": 0.3704
         }
+      },
+      "aggregate_hedge": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -1.5849,
+          "percentile": 13.5,
+          "random_sharpe_p05": -2.7071,
+          "random_sharpe_median": -0.1779,
+          "random_sharpe_p95": 1.7344,
+          "round_trips": 131,
+          "random_round_trips_mean": 131.0,
+          "mean_exposure": 0.3569,
+          "random_mean_exposure": 0.3566
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -1.5849,
+          "percentile": 31.5,
+          "random_sharpe_p05": -3.4542,
+          "random_sharpe_median": -0.8211,
+          "random_sharpe_p95": 1.4549,
+          "round_trips": 131,
+          "random_round_trips_mean": 130.19,
+          "mean_exposure": 0.3569,
+          "random_mean_exposure": 0.3704
+        }
       }
     },
     "deflated_sharpe": {
       "buy_and_hold": {
         "sharpe_daily": 0.0842,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": -0.0881,
         "kurtosis": 3.4263,
-        "dsr": 0.0748,
+        "dsr": 0.0757,
         "psr_vs_zero": 0.7469
       },
       "momentum": {
         "sharpe_daily": 0.1499,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": -0.178,
         "kurtosis": 3.9569,
-        "dsr": 0.1817,
+        "dsr": 0.1833,
         "psr_vs_zero": 0.8779
       },
       "mean_reversion": {
         "sharpe_daily": 0.2249,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": 0.7567,
         "kurtosis": 5.4691,
-        "dsr": 0.3618,
+        "dsr": 0.3643,
         "psr_vs_zero": 0.971
       },
       "finbert_v0": {
         "sharpe_daily": -0.0373,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": 0.024,
         "kurtosis": 4.6538,
-        "dsr": 0.0079,
+        "dsr": 0.0081,
         "psr_vs_zero": 0.3838
       },
       "event": {
         "sharpe_daily": 0.1926,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": 1.5665,
         "kurtosis": 7.6778,
-        "dsr": 0.2496,
+        "dsr": 0.2519,
         "psr_vs_zero": 0.9602
       },
       "impact": {
         "sharpe_daily": -0.0399,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": -0.5691,
         "kurtosis": 7.2378,
-        "dsr": 0.007,
+        "dsr": 0.0071,
         "psr_vs_zero": 0.3746
       },
       "aggregate_equal": {
         "sharpe_daily": -0.0998,
-        "sr0_daily": 0.2668,
+        "sr0_daily": 0.266,
         "skew": -0.5806,
         "kurtosis": 5.9137,
-        "dsr": 0.0014,
+        "dsr": 0.0015,
+        "psr_vs_zero": 0.2086
+      },
+      "aggregate_hedge": {
+        "sharpe_daily": -0.0998,
+        "sr0_daily": 0.266,
+        "skew": -0.5806,
+        "kurtosis": 5.9137,
+        "dsr": 0.0015,
         "psr_vs_zero": 0.2086
       }
     },
     "trials": {
-      "n": 74,
-      "n_with_sharpe": 62,
+      "n": 91,
+      "n_with_sharpe": 79,
       "by_family": {
-        "selection_grid": 60,
-        "arena": 7,
+        "selection_grid": 76,
+        "arena": 8,
         "ablation": 3,
         "calibrator": 2,
         "impact_model": 2
       },
       "path": "evals/trials.csv"
     },
-    "run_at": "2026-11-14T20:08:19+00:00",
+    "run_at": "2026-11-14T20:33:00+00:00",
     "disclaimer": "This is a simulation, not investment advice."
   }
 }
