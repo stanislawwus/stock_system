@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import statistics
 from datetime import UTC, datetime
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -60,11 +61,30 @@ def test_mean_reversion_z_score_by_hand() -> None:
     assert mr.signal("A", FakeView([5.0] * 6)).reasons == ["zero_volatility"]  # type: ignore[arg-type]
 
 
+RULE_BASED = {"buy_and_hold", "momentum", "mean_reversion", "finbert_v0"}
+STACKED = {"event", "impact", "aggregate_equal"}  # need `make train` artifacts (D-40)
+
+
 def test_registry_builds_every_strategy_from_config() -> None:
-    assert set(BUILDERS) == {"buy_and_hold", "momentum", "mean_reversion", "finbert_v0"}
-    for name in BUILDERS:
+    assert set(BUILDERS) == RULE_BASED | STACKED
+    for name in sorted(RULE_BASED):
         s = build(name)
         assert isinstance(s, Strategy) and s.name == name
     assert build("momentum").lookback_days == 252  # type: ignore[attr-defined]
     with pytest.raises(KeyError):
         build("nope")
+
+
+def test_stacked_strategies_need_trained_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.strategies import signal_stack
+
+    monkeypatch.setattr(signal_stack, "model_dir", lambda: tmp_path)
+    signal_stack.load_item_table.cache_clear()
+    signal_stack.load_impact_model.cache_clear()
+    for name in sorted(STACKED):
+        with pytest.raises(FileNotFoundError, match="make train"):
+            build(name)
+    signal_stack.load_item_table.cache_clear()
+    signal_stack.load_impact_model.cache_clear()

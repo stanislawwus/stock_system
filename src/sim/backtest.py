@@ -6,6 +6,7 @@ Only `train` and `validation` are accepted here; the test period belongs to `mak
 
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 from src.collectors.common import load_periods, load_universe, load_yaml, watchlist_tickers
@@ -14,6 +15,7 @@ from src.schemas import BacktestResult
 from src.sim import metrics as m
 from src.sim.engine import SimConfig, SimResult, default_view_factory, simulate
 from src.sim.execution import ExecutionPrices
+from src.sim.risk import RiskConfig, RiskManager
 from src.strategies.base import Strategy, backtest_config
 from src.strategies.registry import build
 
@@ -76,14 +78,25 @@ def summarise(
 
 
 def run_backtest(
-    strategy: str | Strategy, split: str, db_path: Path | None = None
+    strategy: str | Strategy,
+    split: str,
+    db_path: Path | None = None,
+    start: date | None = None,
+    end: date | None = None,
 ) -> BacktestResult:
+    """`start`/`end` narrow the run to a sub-range of the split (e.g. val_b, D-40). Strategies
+    listed in `backtest.risk_managed` run with the risk manager (src/sim/risk.py)."""
     split = resolve_split(split)
     (period,) = load_periods([split])
+    lo, hi = max(start or period.start, period.start), min(end or period.end, period.end)
     bt = backtest_config()
     tickers, benchmark = backtest_tickers(bt["universe"])
     strat = build(strategy) if isinstance(strategy, str) else strategy
-    cfg = SimConfig.from_risk(load_yaml("risk.yaml"))
-    prices = ExecutionPrices.load(tickers, period.start, period.end, benchmark, db_path)
-    res = simulate(strat, tickers, prices, cfg, default_view_factory(db_path))
+    risk_yaml = load_yaml("risk.yaml")
+    cfg = SimConfig.from_risk(risk_yaml)
+    rm = None
+    if strat.name in bt.get("risk_managed", []):
+        rm = RiskManager(RiskConfig.from_risk(risk_yaml))
+    prices = ExecutionPrices.load(tickers, lo, hi, benchmark, db_path)
+    res = simulate(strat, tickers, prices, cfg, default_view_factory(db_path), risk=rm)
     return summarise(res, cfg, split, tickers, bt)

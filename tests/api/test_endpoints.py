@@ -20,6 +20,7 @@ from src.marketview.clock import bar_close_for, cutoff_for
 from src.nlp import sentiment
 from src.nlp.sentiment import LexiconBackend
 from src.schemas import DISCLAIMER, AnalyzeResponse, EvalResult, SignalsResponse
+from src.strategies.registry import BUILDERS
 
 client = TestClient(app)
 DAY = date(2026, 7, 15)  # validation, a Wednesday
@@ -69,7 +70,7 @@ def test_signals_for_a_day(api_db: Path) -> None:
     assert body.ticker == "AAPL" and body.disclaimer == DISCLAIMER
     assert body.as_of == cutoff_for(DAY)
     by = {s.strategy: s for s in body.signals}
-    assert set(by) == STRATEGIES
+    assert STRATEGIES <= set(by) <= set(BUILDERS)  # stacked ones only after `make train`
     assert by["finbert_v0"].score == pytest.approx(0.3)  # (0.8 - 0.2) / 2; n3 is after the cutoff
     assert by["buy_and_hold"].score > 0
     assert all(s.as_of == body.as_of for s in body.signals)
@@ -155,3 +156,19 @@ def test_evals_filter_by_component() -> None:
     (rec,) = [EvalResult.model_validate(x) for x in r.json()]
     assert rec.component == "simulator"
     assert client.get(f"{API_PREFIX}/evals", params={"component": "nope"}).json() == []
+
+
+def test_signals_skip_untrained_strategies(
+    api_db: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Before `make train` the stacked strategies are skipped, not a 503 (D-40)."""
+    from src.strategies import signal_stack
+
+    monkeypatch.setattr(signal_stack, "model_dir", lambda: tmp_path)
+    signal_stack.load_item_table.cache_clear()
+    signal_stack.load_impact_model.cache_clear()
+    r = client.get(f"{API_PREFIX}/signals", params={"ticker": "AAPL", "as_of": DAY.isoformat()})
+    signal_stack.load_item_table.cache_clear()
+    signal_stack.load_impact_model.cache_clear()
+    assert r.status_code == 200
+    assert {s["strategy"] for s in r.json()["signals"]} == STRATEGIES

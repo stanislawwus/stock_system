@@ -20,9 +20,31 @@ finbert_v0:                          # walking-skeleton news strategy (D-36)
 news_sentiment:
   baseline_window_days: 20
   min_articles_per_day: 1
-event:
-  horizon_days: 3
-  surprise_source: [revenue, eps]   # quarter-over-quarter and year-over-year change
+event:                               # 8-K item strategy (D-40); item drift table learned on train
+  item_table_universe: universe      # fit the per-item mean drift_ar on all universe names (train)
+  min_label_n: 10                    # an item with fewer train events carries no weight
+  score_scale: 0.01                  # mean drift_ar of 1 % -> score 1
+impact:                              # impact model + calibration (D-40); fit on train, calibrate on val_a
+  model_dir: data/models
+  feature_dir: data/features
+  vol_window: 20                     # daily-return stdev window (sessions)
+  growth_tolerance_days: 20          # YoY match: prior period ends 365 +/- this many days earlier
+  growth_clip: 1.0                   # growth_momentum clipped to [-clip, clip]
+  logreg: {C: 1.0, max_iter: 2000}
+  hgb: {max_depth: 3, learning_rate: 0.05, max_iter: 150, min_samples_leaf: 40, l2_regularization: 1.0}
+  calibrator: platt                  # platt | isotonic; Platt fixed a priori (val_a has ~300 rows)
+  val_fit_fraction: 0.5              # first half of validation sessions = val_a (fit), rest = val_b (report)
+  ece_bins: 10
+aggregate_equal:                     # equal weights of sentiment, event and impact scores (D-40)
+  components: [sentiment, event, impact]
+selection:                           # hold period x entry threshold grid, Sharpe after costs (D-40)
+  hold_days: [1, 3, 5, 10]           # hold exactly h sessions (min holding period = time exit)
+  entry_threshold: [0.0, 0.05, 0.1, 0.2, 0.3]   # on the score; impact: score = 2p - 1
+  min_trades: 10                     # fewer round trips -> not eligible (too few to judge)
+  period:                            # where each strategy's hold/threshold is chosen (R3)
+    event: train
+    impact: val_a
+    aggregate_equal: val_a
 contrarian:                          # Should
   move_sigma: 2.0
   lookback_days: 60
@@ -48,3 +70,4 @@ backtest:                            # src/sim (D-35); costs and the position ca
     ci: 0.95
     seed: 20261114
   trading_days_per_year: 252
+  risk_managed: [event, impact, aggregate_equal]   # src/sim/risk.py applied to these (D-40)

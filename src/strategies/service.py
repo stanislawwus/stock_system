@@ -9,6 +9,7 @@ No aggregation yet (the aggregator is a later component): `aggregated` is None.
 
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime
 from pathlib import Path
 
@@ -21,6 +22,8 @@ from src.marketview.clock import cutoff_for
 from src.schemas import Signal, SignalsResponse
 from src.splits import TestPeriodLockedError
 from src.strategies.registry import BUILDERS, build
+
+log = logging.getLogger(__name__)
 
 __all__ = ["DataUnavailableError", "TestPeriodLockedError", "UnknownTickerError", "signals_for"]
 
@@ -65,12 +68,17 @@ def signals_for(
     if t not in known_tickers():
         raise UnknownTickerError(f"{t} is not in config/universe.yaml")
     cutoff = resolve_as_of(as_of)
-    names = strategies or sorted(BUILDERS)
+    built = []
+    for name in strategies or sorted(BUILDERS):
+        try:
+            built.append(build(name))
+        except FileNotFoundError as exc:  # stacked strategies before `make train` (D-40)
+            log.warning("signals: strategy %s skipped: %s", name, exc)
     out: list[Signal] = []
     try:
         with MarketView(cutoff, db_path) as view, guarded():
-            for name in names:
-                out.append(build(name).signal(t, view))
+            for strat in built:
+                out.append(strat.signal(t, view))
     except FileNotFoundError as exc:
         raise DataUnavailableError(str(exc)) from exc
     except duckdb.IOException as exc:  # writer lock held by another process
