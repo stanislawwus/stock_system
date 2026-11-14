@@ -8,7 +8,8 @@ Guarantees:
 - JSON output validated against the pydantic `schema`; invalid output counts as a failure
 - per-call JSONL record (`CallRecord`) appended to `<trace_dir>/<UTC date>.jsonl`
 - persistent daily counter (`.llm_budget.json`, UTC day) with cap `daily_budget`; it is consumed
-  BEFORE every HTTP attempt and raises BudgetExceeded at the cap; cache hits do not consume budget
+  BEFORE every real HTTP attempt and raises BudgetExceeded at the cap; cache hits and mock-mode
+  attempts do not consume budget (D-39)
 - client-side throttle of `requests_per_minute` (live mode only)
 - every caller passes a deterministic `fallback`; `call_json` uses it on BudgetExceeded and on
   total failure, logs it, and reports `used_fallback=True`; it never skips items silently
@@ -391,7 +392,8 @@ def _run_batch(
                 pass  # stale cache entry: recompute
         for attempt in range(1, int(cfg["max_retries"]) + 1):
             try:
-                counter.consume()
+                if mode == "live":  # mock attempts are not provider calls (D-39)
+                    counter.consume()
             except BudgetExceeded as exc:
                 records.append(
                     _record(

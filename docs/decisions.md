@@ -394,3 +394,12 @@ redrawn the committed strata). New rows go to `news_100.v2.csv`.
   10 items per call, <= 15 calls) is run on purpose; the model choice and the fallback order
   (then inkling-2-small, lfm-3-1.7b; never parallel/decisions-fast, it is web-grounded) are to
   be recorded here after that run. Not run yet (agent_log 2026-11-14).
+- *Model order (provisional, 2026-11-14)*: the bake-off has NOT produced a result file, so no
+  bake-off winner exists. `config/llm.yaml` keeps the a-priori order: cohere/north-mini-code
+  (primary), nvidia/nemotron-3-ultra (facts/events/chat), thinkingmachines/inkling-2-small,
+  liquid/lfm-3-1.7b, liquid/lfm-2.5-2.6b (sentiment only); parallel/decisions-fast is never used.
+  Replace this bullet with the measured choice after `EVAL_LLM_LIVE=1` run of
+  `evals.eval_llm_bakeoff`.
+- *Budget counter fix*: `src/llm.py` consumes the daily counter only for real provider calls
+  (mode `live`). Mock-mode attempts (tests, dry-runs) are free; earlier dry-runs had inflated
+  `.llm_budget.json` with 30 phantom calls. Test: `test_mock_attempts_do_not_consume_the_daily_budget`.

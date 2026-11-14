@@ -1,0 +1,87 @@
+{
+  "component": "llm_bakeoff",
+  "metric": "schema_adherence",
+  "value": 0.0,
+  "target": 1.0,
+  "why_this_metric": "on free tiers a model that breaks the JSON schema burns retries and falls back; adherence and latency decide usefulness before quality on n=30",
+  "gold_set": "20 headlines of evals/labels/news_100.csv + 10 releases of the facts gold (XBRL)",
+  "n": 30,
+  "split": "train+validation (gold), dev filings",
+  "model": "cohere/north-mini-code:free",
+  "git_sha": "b88ded1",
+  "run_at": "2026-11-14T18:23:20+00:00",
+  "notes": "best model adherence 0.0; see docs/evals.md",
+  "details": {
+    "ranking": [
+      "cohere/north-mini-code:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free"
+    ],
+    "per_model": {
+      "cohere/north-mini-code:free": {
+        "http_calls": 6,
+        "schema_valid_calls": 0,
+        "schema_adherence": 0.0,
+        "status_counts": {
+          "invalid_json": 6
+        },
+        "latency_ms": [
+          3190,
+          4495,
+          4520,
+          4608,
+          6166,
+          6491
+        ],
+        "headlines_used_fallback": true,
+        "releases_used_fallback": true,
+        "sentiment_macro_f1_20": 0.2963,
+        "events_exact_set_match_20": 0.6,
+        "facts_10": {
+          "n_filings": 10,
+          "gold_pairs": 30,
+          "within_1pct": 0.4,
+          "exact_match": 0.4333,
+          "coverage": 0.5333,
+          "grounding_rate": 1.0,
+          "n_extracted": 16,
+          "period_quarter_match_of_found": 0.875
+        },
+        "median_latency_ms_ok": null
+      },
+      "nvidia/nemotron-3-ultra-550b-a55b:free": {
+        "http_calls": 6,
+        "schema_valid_calls": 0,
+        "schema_adherence": 0.0,
+        "status_counts": {
+          "invalid_json": 6
+        },
+        "latency_ms": [
+          14968,
+          15172,
+          16900,
+          18032,
+          19429,
+          22522
+        ],
+        "headlines_used_fallback": true,
+        "releases_used_fallback": true,
+        "sentiment_macro_f1_20": 0.2963,
+        "events_exact_set_match_20": 0.6,
+        "facts_10": {
+          "n_filings": 10,
+          "gold_pairs": 30,
+          "within_1pct": 0.4,
+          "exact_match": 0.4333,
+          "coverage": 0.5333,
+          "grounding_rate": 1.0,
+          "n_extracted": 16,
+          "period_quarter_match_of_found": 0.875
+        },
+        "median_latency_ms_ok": null
+      }
+    },
+    "http_calls_total_live_run": 12,
+    "max_calls": 15,
+    "budget_env": "45"
+  }
+}

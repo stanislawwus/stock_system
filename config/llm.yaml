@@ -20,6 +20,7 @@ cache_dir: data/cache/llm
 trace_dir: data/traces
 
 # Tried in order (filtered by use_for); skipped after max_consecutive_failures.
+# Order is provisional (D-39): the live bake-off has not run yet. Update after it.
 models:
   - id: cohere/north-mini-code:free            # primary: JSON schema output
     use_for: [facts, events, sentiment, intake]

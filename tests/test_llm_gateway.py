@@ -60,7 +60,7 @@ def test_mock_call_returns_validated_outputs_and_batches() -> None:
     assert not res.used_fallback and res.model == PRIMARY
     assert res.outputs == [Senti(label=1)] * 23
     assert len(rec.calls) == 3  # max_items_per_call = 10 -> 10 + 10 + 3
-    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 3
+    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 0  # mock attempts are not counted
 
 
 def test_cache_hit_spends_no_budget() -> None:
@@ -70,7 +70,7 @@ def test_cache_hit_spends_no_budget() -> None:
     _sentiment(items)
     res = _sentiment(items)
     assert res.cache_hits == 1 and len(rec.calls) == 1
-    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 1
+    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 0
 
 
 def test_invalid_json_retries_then_next_model() -> None:
@@ -102,13 +102,34 @@ def test_model_skipped_after_consecutive_failures() -> None:
 
 
 def test_budget_exceeded_mid_run_falls_back_for_the_rest(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_MODE", "live")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-not-real")
     monkeypatch.setenv("LLM_DAILY_BUDGET", "1")
-    llm.set_mock_responder(Recorder(label=1))
+    monkeypatch.setattr(llm, "_throttle", RateLimiter(100, 60.0, clock=lambda: 0.0, sleep=bool))
+    monkeypatch.setattr(
+        llm,
+        "_http_post",
+        lambda m, msgs, p, cfg: json.dumps({"results": [{"label": 1}] * _items_in(msgs)}),
+    )
     res = _sentiment([{"text": str(i)} for i in range(15)])
     assert res.outputs[:10] == [Senti(label=1)] * 10
     assert res.outputs[10:] == [Senti(label=0)] * 5
     assert res.used_fallback
     assert "budget_exceeded" in [r.status for r in res.records]
+    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 1
+
+
+def test_mock_attempts_do_not_consume_the_daily_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only real provider calls count: successes, failures and retries in mock mode are free,
+    and a zero budget does not block mock mode."""
+    monkeypatch.setenv("LLM_DAILY_BUDGET", "0")
+    rec = Recorder(label=1, fail_models=frozenset({PRIMARY}))
+    llm.set_mock_responder(rec)
+    res = _sentiment([{"text": str(i)} for i in range(15)])
+    assert not res.used_fallback and res.model == SECOND
+    assert len(rec.calls) > 2  # retries on the failing primary happened
+    assert "budget_exceeded" not in [r.status for r in res.records]
+    assert llm.DailyCounter(llm.BUDGET_PATH).used() == 0
 
 
 def test_no_responder_in_mock_mode_never_touches_network(monkeypatch: pytest.MonkeyPatch) -> None:
