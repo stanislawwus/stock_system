@@ -1,0 +1,165 @@
+{
+  "component": "impact",
+  "metric": "auc",
+  "value": 0.4984,
+  "target": 0.55,
+  "git_sha": "c77a97f",
+  "run_at": "2026-11-14T19:15:52+00:00",
+  "why_this_metric": "AUC is threshold-free with chance at 0.5; Brier and majority-class accuracy are in details",
+  "gold_set": "derived: sign(drift_ar) from prices (src/sim/labels.py, D-28)",
+  "n": 620,
+  "split": "validation",
+  "model": "hgb (fit on train)",
+  "notes": "hgb (higher val_a AUC) scores AUC 0.498 on validation; logreg 0.460. Out-of-sample accuracy 0.490 vs majority 0.502; Brier 0.2601 vs base rate 0.2500. HGB train AUC 0.815 shows it memorises train; the features carry no detectable next-day signal in this sample.",
+  "details": {
+    "n_train": 1220,
+    "n_val_a": 310,
+    "n_val_b": 310,
+    "logreg": {
+      "train": {
+        "n": 1220,
+        "auc": 0.539,
+        "accuracy": 0.532,
+        "majority_accuracy": 0.5049,
+        "brier": 0.2484,
+        "brier_base_rate": 0.25,
+        "ece": 0.0073,
+        "pos_rate": 0.5049
+      },
+      "validation": {
+        "n": 620,
+        "auc": 0.4602,
+        "accuracy": 0.4839,
+        "majority_accuracy": 0.5016,
+        "brier": 0.2567,
+        "brier_base_rate": 0.25,
+        "ece": 0.0505,
+        "pos_rate": 0.5016
+      },
+      "val_a": {
+        "n": 310,
+        "auc": 0.4712,
+        "accuracy": 0.4839,
+        "majority_accuracy": 0.529,
+        "brier": 0.2534,
+        "brier_base_rate": 0.2492,
+        "ece": 0.0494,
+        "pos_rate": 0.529
+      },
+      "val_b": {
+        "n": 310,
+        "auc": 0.4614,
+        "accuracy": 0.4839,
+        "majority_accuracy": 0.4742,
+        "brier": 0.26,
+        "brier_base_rate": 0.2493,
+        "ece": 0.0683,
+        "pos_rate": 0.4742
+      }
+    },
+    "hgb": {
+      "train": {
+        "n": 1220,
+        "auc": 0.8145,
+        "accuracy": 0.7262,
+        "majority_accuracy": 0.5049,
+        "brier": 0.2024,
+        "brier_base_rate": 0.25,
+        "ece": 0.1355,
+        "pos_rate": 0.5049
+      },
+      "validation": {
+        "n": 620,
+        "auc": 0.4984,
+        "accuracy": 0.4903,
+        "majority_accuracy": 0.5016,
+        "brier": 0.2601,
+        "brier_base_rate": 0.25,
+        "ece": 0.0909,
+        "pos_rate": 0.5016
+      },
+      "val_a": {
+        "n": 310,
+        "auc": 0.5466,
+        "accuracy": 0.529,
+        "majority_accuracy": 0.529,
+        "brier": 0.2539,
+        "brier_base_rate": 0.2492,
+        "ece": 0.0624,
+        "pos_rate": 0.529
+      },
+      "val_b": {
+        "n": 310,
+        "auc": 0.4474,
+        "accuracy": 0.4516,
+        "majority_accuracy": 0.4742,
+        "brier": 0.2662,
+        "brier_base_rate": 0.2493,
+        "ece": 0.1285,
+        "pos_rate": 0.4742
+      }
+    },
+    "calibration": {
+      "model": "hgb",
+      "raw_val_b": {
+        "n": 310,
+        "auc": 0.4474,
+        "accuracy": 0.4516,
+        "majority_accuracy": 0.4742,
+        "brier": 0.2662,
+        "brier_base_rate": 0.2493,
+        "ece": 0.1285,
+        "pos_rate": 0.4742
+      },
+      "platt": {
+        "val_a_in_sample": {
+          "n": 310,
+          "auc": 0.5466,
+          "accuracy": 0.5065,
+          "majority_accuracy": 0.529,
+          "brier": 0.2476,
+          "brier_base_rate": 0.2492,
+          "ece": 0.0367,
+          "pos_rate": 0.529
+        },
+        "val_b": {
+          "n": 310,
+          "auc": 0.4474,
+          "accuracy": 0.5097,
+          "majority_accuracy": 0.4742,
+          "brier": 0.2572,
+          "brier_base_rate": 0.2493,
+          "ece": 0.0662,
+          "pos_rate": 0.4742
+        }
+      },
+      "isotonic": {
+        "val_a_in_sample": {
+          "n": 310,
+          "auc": 0.5779,
+          "accuracy": 0.5484,
+          "majority_accuracy": 0.529,
+          "brier": 0.2418,
+          "brier_base_rate": 0.2492,
+          "ece": 0.0,
+          "pos_rate": 0.529
+        },
+        "val_b": {
+          "n": 310,
+          "auc": 0.4377,
+          "accuracy": 0.4548,
+          "majority_accuracy": 0.4742,
+          "brier": 0.2707,
+          "brier_base_rate": 0.2493,
+          "ece": 0.1005,
+          "pos_rate": 0.4742
+        }
+      }
+    },
+    "chosen": {
+      "model": "hgb",
+      "calibrator": "platt"
+    }
+  },
+  "disclaimer": "This is a simulation, not investment advice."
+}

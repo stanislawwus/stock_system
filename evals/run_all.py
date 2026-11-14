@@ -13,6 +13,7 @@ from evals import (
     eval_collectors,
     eval_events,
     eval_facts,
+    eval_impact,
     eval_relevance,
     eval_risk,
     eval_sentiment,
@@ -30,6 +31,9 @@ EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "sentiment": eval_sentiment.evaluate,
     "events": eval_events.evaluate,
     "facts": eval_facts.evaluate,
+    "impact": eval_impact.evaluate_impact,
+    "calibration": eval_impact.evaluate_calibration,
+    "aggregator": eval_impact.evaluate_aggregator,
     **{
         f"backtest_{name}_{split}": partial(backtest.evaluate, name, split)
         for split in ("train", "validation")

@@ -1,0 +1,76 @@
+{
+  "component": "aggregator",
+  "metric": "sharpe_val_b",
+  "value": -3.1453,
+  "target": 2.0519,
+  "git_sha": "c77a97f",
+  "run_at": "2026-11-14T19:16:53+00:00",
+  "why_this_metric": "risk-adjusted return after costs on days no choice has seen; the target is simply holding the same names",
+  "gold_set": "derived: buy_and_hold on val_b, same tickers",
+  "n": 32,
+  "split": "validation",
+  "model": "equal weights (sentiment, event, impact)",
+  "notes": "val_b 2026-07-17..2026-08-31 (32 days), never used for a choice. aggregate_equal Sharpe -3.15 (95% CI (-7.281485756253167, 2.803407068045897)) vs buy-and-hold 2.05; costs 1158 USD over 126 trades. Equal weights include an impact component with no out-of-sample skill (see impact).",
+  "details": {
+    "aggregate_equal": {
+      "sharpe": -3.1453,
+      "total_return": -0.0539,
+      "max_drawdown": 0.0576,
+      "n_trades": 126,
+      "costs_paid": 1157.8692,
+      "sharpe_ci95": [
+        -7.281485756253167,
+        2.803407068045897
+      ]
+    },
+    "impact": {
+      "sharpe": -2.8291,
+      "total_return": -0.0132,
+      "max_drawdown": 0.017,
+      "n_trades": 16,
+      "costs_paid": 157.9997,
+      "sharpe_ci95": [
+        -6.135340570591941,
+        3.658851238287388
+      ]
+    },
+    "event": {
+      "sharpe": 3.7949,
+      "total_return": 0.0452,
+      "max_drawdown": 0.0207,
+      "n_trades": 14,
+      "costs_paid": 144.176,
+      "sharpe_ci95": [
+        -2.9179618223974813,
+        9.778637310921281
+      ]
+    },
+    "finbert_v0": {
+      "sharpe": 0.2931,
+      "total_return": 0.0038,
+      "max_drawdown": 0.0375,
+      "n_trades": 238,
+      "costs_paid": 1777.1977,
+      "sharpe_ci95": [
+        -4.09700156133463,
+        5.831998835112926
+      ]
+    },
+    "buy_and_hold": {
+      "sharpe": 2.0519,
+      "total_return": 0.0296,
+      "max_drawdown": 0.0239,
+      "n_trades": 20,
+      "costs_paid": 101.4791,
+      "sharpe_ci95": [
+        -2.796663255909111,
+        8.944522242112408
+      ]
+    },
+    "val_b": [
+      "2026-07-17",
+      "2026-08-31"
+    ]
+  },
+  "disclaimer": "This is a simulation, not investment advice."
+}

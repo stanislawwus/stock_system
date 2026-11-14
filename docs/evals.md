@@ -8,19 +8,29 @@ No result below uses the test period (AGENTS.md R3).
 <!-- results:begin -->
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
+| aggregator | sharpe_val_b | -3.1453 | 2.0519 | **no** | derived: buy_and_hold on val_b, same tickers | 32 | equal weights (sentiment, event, impact) | c77a97f |
+| backtest_aggregate_equal_train | sharpe | -0.9527 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
+| backtest_aggregate_equal_validation | sharpe | -1.5849 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
 | backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_event_train | sharpe | -0.4815 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
+| backtest_event_validation | sharpe | 3.0577 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
 | backtest_finbert_v0_train | sharpe | -0.2936 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_finbert_v0_validation | sharpe | -0.5917 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_impact_train | sharpe | 7.1876 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
+| backtest_impact_validation | sharpe | -0.6327 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
 | backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
 | backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| calibration | brier_skill_val_b | -0.0314 | 0.0 | **no** | derived: sign(drift_ar) on val_b; calibrator fitted on val_a only | 310 | hgb + platt | c77a97f |
 | collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 3e25cdb |
 | events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
 | facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 3e25cdb |
+| impact | auc | 0.4984 | 0.55 | **no** | derived: sign(drift_ar) from prices (src/sim/labels.py, D-28) | 620 | hgb (fit on train) | c77a97f |
 | llm_bakeoff | schema_adherence | 0.75 | 1.0 | **no** | 20 headlines of evals/labels/news_100.csv + 10 releases of the facts gold (XBRL) | 30 | nvidia/nemotron-3-ultra-550b-a55b:free | 44fc8b2 |
 | relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 3e25cdb |
+| risk | planted_caught_share | 1.0 | 1.0 | yes | derived: evals/eval_risk.py scenarios() (4 planted violations) | 4 | rules | 72ad79e |
 | sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 3e25cdb |
 | simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 3e25cdb |
 <!-- results:end -->
@@ -238,6 +248,40 @@ No result below uses the test period (AGENTS.md R3).
   synchronous API path), with `grounded_only` **mandatory** (27 % of nemotron's facts were
   ungrounded) and the **period taken from XBRL**, never from the model (period match 0.12: the
   model's period string rarely names the gold quarter; the cause was not analysed per fact).
+
+### impact
+
+Out-of-sample the impact model has no skill: validation AUC 0.498 (HistGradientBoosting, chosen
+by val_a AUC 0.547) and 0.460 for the logistic-regression baseline, accuracy 0.490 vs 0.502 for
+the majority class, Brier 0.260 vs 0.250 for the base rate. The gradient boosting reaches AUC
+0.81 on train, so it memorises 1,220 rows of noisy one-day abnormal returns; the logistic model
+is flat on train too (0.54). This is a negative result, not a bug: with ten names and six months
+of training data the features (news tone, 8-K items, YoY growth, last day's move, volatility)
+show no detectable link to the next day-and-a-half's abnormal return.
+
+### calibration
+
+Platt scaling fitted on val_a halves the ECE of the raw probabilities on val_b (0.128 -> 0.066)
+and lowers Brier (0.266 -> 0.257), but stays worse than predicting val_b's base rate (0.249):
+Brier skill -0.03. Isotonic is worse on val_b (0.271) though perfect in-sample (ECE 0), the
+expected overfit on about 300 rows. Calibration cannot add discrimination the model lacks; the
+up-share also moved from 0.53 (val_a) to 0.47 (val_b). Plot: `docs/figs/reliability_impact.png`.
+
+### aggregator, event, impact backtests
+
+On val_b, the only days no choice saw, the equal-weight aggregate has Sharpe -3.15 (95 % CI
+-7.3 to 2.8) vs 2.05 for buy-and-hold, with 126 trades and 1,158 USD of costs. Its validation
+backtest (-1.58) includes val_a, where its hold period and threshold were picked. `impact` on
+train shows Sharpe 7.19: that is in-sample (the model was fitted on those days) and must not be
+read as skill; on validation it is -0.63. `event` was tuned on train (Sharpe -0.48, hold 10 days,
+threshold 0) and gets 3.06 on validation from 10 round trips, CI -0.55 to 6.55, which contains
+buy-and-hold's 1.34: indistinguishable from it. Hedge weights were not built (time box).
+
+### risk
+
+Four planted scenarios (stop-loss, drawdown halt, cooldown, position cap with a planted 100 %
+sizing bug) each violate their rule without the risk manager and hold with it: 4/4, 0
+violations after veto.
 
 ### prompt injection (tests, not a scored eval)
 
