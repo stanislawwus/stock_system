@@ -58,3 +58,25 @@ def final_run() -> Iterator[None]:
         yield
     finally:
         _final.reset(token)
+
+
+def final_scores_path() -> Path:
+    """Where `make features-test` writes the test-period sentiment parquet (D-38)."""
+    nlp = yaml.safe_load((ROOT / "config" / "nlp.yaml").read_text(encoding="utf-8"))
+    return ROOT / nlp["features_test"]["scores_path"]
+
+
+def final_scores_for(as_of: datetime) -> Path | None:
+    """The parquet a view at `as_of` must add to its `sentiment` rows, or None (D-38).
+
+    None before the first test cutoff (dev views read DuckDB only). At or after it the caller has
+    already passed `assert_readable`, i.e. runs inside `final_run()`; a missing file then fails
+    loudly instead of leaving every test day without sentiment.
+    """
+    if to_utc(as_of) < first_test_cutoff():
+        return None
+    assert_readable(as_of)
+    path = final_scores_path()
+    if not path.exists():
+        raise FileNotFoundError(f"{path} is missing; run `make features-test` first (D-38)")
+    return path

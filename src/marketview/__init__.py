@@ -15,10 +15,10 @@ from typing import Any
 
 import duckdb
 
+from src import splits  # module import: src.splits imports src.marketview.clock (cycle)
 from src.db import _connect_for_marketview
 from src.marketview.clock import cutoff_for
 from src.schemas import Event, Fact, Filing, NewsItem, PriceBar, Sentiment, Span
-from src.splits import assert_readable
 
 __all__ = ["MarketView", "cutoff_for"]
 
@@ -35,7 +35,7 @@ class MarketView:
     def __init__(self, as_of: datetime, db_path: Path | None = None) -> None:
         if as_of.tzinfo is None:
             raise ValueError("as_of must be timezone-aware (UTC)")
-        assert_readable(as_of)
+        splits.assert_readable(as_of)
         self.as_of = as_of
         self._db_path = db_path
         self._con: duckdb.DuckDBPyConnection | None = None
@@ -122,12 +122,25 @@ class MarketView:
     def sentiment(
         self, ticker: str, lookback_days: int = 30, method: str | None = None
     ) -> list[Sentiment]:
-        """Sentiment rows of `ticker`; `method` (finbert | lexicon | ...) filters one backend."""
-        sql = (
-            "SELECT source_ref, ticker, label, score, method, available_at FROM sentiment "
-            "WHERE ticker = ? AND available_at <= ? AND available_at > ?"
-        )
-        params: list[Any] = [ticker, self.as_of, self._since(lookback_days)]
+        """Sentiment rows of `ticker`; `method` (finbert | lexicon | ...) filters one backend.
+
+        Inside the final run, test-period views add the rows of `make features-test`'s parquet
+        (D-38); a pair already in the table wins, so a row is never counted twice.
+        """
+        cols = "source_ref, ticker, label, score, method, available_at"
+        source = "sentiment"
+        params: list[Any] = []
+        extra = splits.final_scores_for(self.as_of)
+        if extra is not None:
+            source = (
+                f"(SELECT {cols} FROM sentiment UNION ALL SELECT {cols} FROM ("
+                f"SELECT p.* FROM read_parquet(?) p "
+                "ANTI JOIN sentiment s USING (source_ref, ticker, method)))"
+            )
+            params.append(str(extra))
+        sql = f"SELECT {cols} FROM {source} WHERE ticker = ? AND available_at <= ? "
+        sql += "AND available_at > ?"
+        params += [ticker, self.as_of, self._since(lookback_days)]
         if method is not None:
             sql += " AND method = ?"
             params.append(method)

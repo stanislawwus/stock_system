@@ -9,7 +9,7 @@ API_PORT ?= 8000
 UI_PORT ?= 8501
 FINAL_LOCK := evals/results/TEST_FINAL.lock
 
-.PHONY: eda help setup up api ui test lint fmt eval features collect-dev collect-test backtest arena test-final
+.PHONY: eda help setup up api ui test lint fmt eval features features-test collect-dev collect-test backtest arena test-final
 
 help: ## list targets
 > @grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /  -  /'
@@ -56,6 +56,9 @@ eda: ## figures into docs/figs and docs/02_data_understanding.md, data-quality a
 features: ## precompute NLP features (sentiment, events, facts, impact) for dev splits
 > $(RUN) python -m src.nlp.features --splits train,validation
 
+features-test: ## FinBERT inference on test news -> data/test_scores.parquet, resumable (D-38)
+> $(RUN) python -m src.nlp.features_test
+
 eval: ## run every component eval, write evals/results/*.json and the table in docs/evals.md
 > $(RUN) python -m evals.run_all
 
@@ -71,7 +74,7 @@ test-final: ## the ONE run on the test period; refuses to run twice (AGENTS.md R
 > @if [ -f "$(FINAL_LOCK)" ]; then \
 >   echo "ERROR: $(FINAL_LOCK) exists - the test period has already been used once."; exit 1; fi
 > $(RUN) python -m src.collectors.run --periods test
-> $(RUN) python -m src.nlp.features --splits test
+> $(RUN) python -m src.nlp.features_test
 > $(RUN) python -m src.strategies.arena --split test --final
 > $(RUN) python -m src.sim.run --split test --final
 > @printf 'run_at=%s\ngit_sha=%s\n' "$$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$$(git rev-parse HEAD)" > "$(FINAL_LOCK)"

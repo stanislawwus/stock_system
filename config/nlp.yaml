@@ -117,6 +117,14 @@ features:
   universe: watchlist        # watchlist | universe
   lookback_days_before_split: 7   # news before the first split day still feeds its first signal
 
+features_test:
+  # make features-test (D-38): FinBERT inference on test-period news, written to parquet, not
+  # DuckDB (no competition for the single writer, R7). The final run reads it via MarketView.
+  backend: finbert           # no lexicon fallback: the final run must see the dev-time model
+  scores_path: data/test_scores.parquet
+  parts_dir: data/test_scores.parts     # one parquet part per chunk = resumable checkpoint
+  chunk_articles: 1024       # articles per checkpoint (~1 min on a 14-thread CPU)
+
 # Fallback lexicon (D-09, D-36): a compact list of finance cue words in the spirit of
 # Loughran-McDonald, not the full LM dictionary. Exact match on lower-cased words.
 lexicon:

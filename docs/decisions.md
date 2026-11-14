@@ -339,3 +339,31 @@ the draft was removed, and the set was committed alone. Step 8: README row, docs
 `news_100.csv` and `news_100.strata.csv` are hash-pinned in `tests/test_repo_rules.py`, and
 `evals/make_news_sheet.py` refuses to write once the frozen file exists (a rerun would have
 redrawn the committed strata). New rows go to `news_100.v2.csv`.
+
+**D-38 (2026-11-14) — Test-period sentiment is precomputed by `make features-test` into parquet**
+(data preparation; amends D-13, D-16 and AGENTS.md R3 for this one step).
+- *What*: `src/nlp/features_test.py` runs the dev scoring path (`features.pending` +
+  `features.score_frame`, FinBERT pinned to the D-36 revision, no lexicon fallback) on the news of
+  (first test cutoff - `lookback_days_before_split`, cutoff of the last test day] for the
+  watchlist, skipping pairs the dev run already wrote, and writes `data/test_scores.parquet` plus a
+  manifest (model, revision, window, counts). `make test-final` reruns it in place of
+  `src.nlp.features --splits test` (a no-op when complete; it scores only news that a late
+  `collect-test` added), and `MarketView.sentiment()` adds the parquet rows only for views at or
+  after the first test cutoff, which `assert_readable` already confines to `final_run()`; a pair in
+  both sources is taken from DuckDB. A missing parquet in the final run raises.
+- *Why*: FinBERT on ~86k test articles takes over an hour on CPU; doing it inside `test-final`
+  makes the one-shot run long and fragile, and writing DuckDB would hold the single writer lock
+  (R7) for that hour. Inference with a frozen model has no tunable input and produces no metric,
+  so running it early does not use the test period in the R3 sense, provided nobody looks at the
+  scores: the CLI and manifest carry counts, throughput and ETA only.
+- *Guards*: allowlisted in `tests/test_test_period_lock.py` as the only module that may read
+  test-period news text; it has no SQL of its own and imports nothing from sim, strategies,
+  impact, MarketView, API or LLM (tests); its test fixture drops every table except `news` and
+  `sentiment`; it never takes the write lock (test); one short read-only connection is closed
+  before inference. Resumable: one atomically written part per `chunk_articles` articles in
+  `data/test_scores.parts/`, a resume with a different model/revision is refused.
+- *Side fix*: `src.marketview` now imports `src.splits` as a module, which removes the latent
+  circular import noted in the agent log.
+- Rejected: scoring test news inside `test-final` (long, fragile one-shot run), writing it to
+  the DuckDB `sentiment` table (blocks the single writer for an hour), a separate DuckDB file
+  (another writer and lock to manage; parquet is read directly by DuckDB).
