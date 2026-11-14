@@ -23,7 +23,7 @@ class ApiClient:
         timeout: float = 30.0,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
-        self.base_url = base_url or os.environ.get("API_URL", "http://localhost:8000/api/v1")
+        self.base_url = base_url or os.environ.get("API_URL", "http://127.0.0.1:8000/api/v1")
         self._http = httpx.Client(base_url=self.base_url, timeout=timeout, transport=transport)
 
     def health(self) -> bool:

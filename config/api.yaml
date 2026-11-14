@@ -1,0 +1,34 @@
+# API and UI settings (no magic numbers in code, AGENTS.md R14). Decisions: D-46.
+brief:
+  strategy: aggregate_equal        # signal shown in the brief; stacked strategies need `make train`
+  fallback_strategy: finbert_v0    # used when the stacked model files are missing (D-40)
+  sentiment_method: finbert        # sentiment rows averaged into the sentiment index
+  events_lookback_days: 7          # events shown per name
+  price_lookback_days: 10          # bars fetched to find the last two closes
+events:
+  facts_lookback_quarters: 8
+news:
+  default_lookback_days: 7
+  max_items: 50                    # newest items returned by GET /news/{ticker}
+prices:
+  default_lookback_days: 120
+jobs:
+  max_workers: 1                   # one job at a time: the collect job is the only writer (R7)
+  max_kept: 50                     # finished jobs kept in memory
+collect:
+  enabled_env: API_ENABLE_COLLECT  # POST /collect answers 403 unless this env var is "1"
+  forbidden_periods: [test]        # the test period is collected by `make collect-test` only (D-13)
+  sources: [prices, news, filings, xbrl]
+# Where each stored eval keeps the 95 % CI of its headline `value` (path inside `details`).
+# Components absent here have no CI of the headline value (rates over a planted set, deflated
+# Sharpe, etc.). Backtest records use details.sharpe_ci95 (prefix match below).
+eval_ci_paths:
+  calibration: [brier_skill_ci95_day_bootstrap]
+  events: [a_rules_8k_items, macro_f1_ci95]
+  facts: [regex_all, within_1pct_ci95_filing_bootstrap]
+  impact: [auc_ci95_day_bootstrap]
+  intake: [name_accuracy_ci95]
+  relevance: [f1_ci95_item_bootstrap]
+  sentiment: [finbert, macro_f1_ci95]
+  aggregator: [aggregate_equal, sharpe_ci95]
+eval_ci_backtest_key: sharpe_ci95

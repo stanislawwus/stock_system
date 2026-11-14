@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from src.api.routers._common import not_implemented
+from src.modelinfo import models_info
 from src.schemas import ModelInfo
 
 router = APIRouter(tags=["models"])
@@ -12,4 +12,4 @@ router = APIRouter(tags=["models"])
     "/models", response_model=list[ModelInfo], summary="Configured free models and budget use"
 )
 def get_models() -> list[ModelInfo]:
-    raise not_implemented("llm config reader")
+    return models_info()
