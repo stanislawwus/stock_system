@@ -11,7 +11,7 @@ Everything it outputs is a **simulation, not investment advice**.
 ```sh
 make setup      # uv sync, enable git hooks, create .env from .env.example
 # fill in .env: OPENROUTER_API_KEY, FINNHUB_API_KEY, SEC_USER_AGENT
-make up         # API http://localhost:8000/docs  ·  UI http://localhost:8501
+make up         # API http://127.0.0.1:8000/docs  ·  UI http://127.0.0.1:8501 (loopback only)
 make test       # offline tests
 make lint
 ```
@@ -40,7 +40,7 @@ uv sync --extra finbert   # optional: FinBERT (torch, CPU is fine); without it t
 make features             # FinBERT over train + validation news of the watchlist -> DuckDB `sentiment`
 make train                # impact model (train), calibrator (val_a), 8-K item table, hold/threshold grid -> data/models (D-40)
 make backtest STRATEGY=finbert_v0 SPLIT=val
-make up                   # then open http://localhost:8501, type a watchlist ticker
+make up                   # then open http://127.0.0.1:8501: Daily brief, Ticker, Ask, Strategy arena, Text analyzer, Evals
 ```
 
 ## API examples
@@ -52,6 +52,15 @@ curl "http://localhost:8000/api/v1/signals?ticker=AAPL"                      # d
 curl -X POST http://localhost:8000/api/v1/analyze -H "Content-Type: application/json"      -d '{"text": "Boeing shares plunge after FAA grounds jets", "ticker": "BA"}'
 curl "http://localhost:8000/api/v1/evals?component=backtest_finbert_v0_validation"
 curl -X POST http://localhost:8000/api/v1/chat -H "Content-Type: application/json"         -d '{"question": "Why did NVDA fall on 2026-06-05?"}'                # template answer, numbered citations
+curl http://localhost:8000/api/v1/watchlist
+curl "http://localhost:8000/api/v1/brief?day=2026-08-14"                      # one row per watchlist stock
+curl "http://localhost:8000/api/v1/events/AAPL?lookback_days=90"             # filings + labels + facts
+curl "http://localhost:8000/api/v1/news/AAPL?lookback_days=7"                # news + sentiment, citable
+curl "http://localhost:8000/api/v1/prices/AAPL?lookback_days=120"
+curl http://localhost:8000/api/v1/models                                     # free models + budget use
+curl -X POST http://localhost:8000/api/v1/arena -H "Content-Type: application/json" -d '{"split": "validation"}'
+curl http://localhost:8000/api/v1/jobs/<job_id>                              # status + result
+curl -X POST http://localhost:8000/api/v1/collect -H "Content-Type: application/json" -d '{"periods": ["train"]}'   # 403 unless API_ENABLE_COLLECT=1; never the test period
 ```
 
 `/signals` refuses dates in the test period (403, AGENTS.md R3) and unknown tickers (404).

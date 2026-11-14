@@ -49,10 +49,10 @@
                   "type": "null"
                 }
               ],
-              "description": "trading day D; default: today",
+              "description": "trading day D (cutoff 09:00 ET); default: last validation day",
               "title": "Day"
             },
-            "description": "trading day D; default: today"
+            "description": "trading day D (cutoff 09:00 ET); default: last validation day"
           }
         ],
         "responses": {
@@ -65,6 +65,12 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "as_of is in the test period (AGENTS.md R3)"
+          },
+          "503": {
+            "description": "database missing, or busy while make features/collect writes"
           },
           "422": {
             "description": "Validation Error",
@@ -160,7 +166,7 @@
         "tags": [
           "events"
         ],
-        "summary": "8-K filings with event labels and extracted facts",
+        "summary": "SEC filings with event labels and extracted facts",
         "operationId": "get_events_api_v1_events__ticker__get",
         "parameters": [
           {
@@ -183,6 +189,25 @@
               "default": 90,
               "title": "Lookback Days"
             }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "trading day D (cutoff 09:00 ET); default: last val day",
+              "title": "As Of"
+            },
+            "description": "trading day D (cutoff 09:00 ET); default: last val day"
           }
         ],
         "responses": {
@@ -195,6 +220,179 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "as_of is in the test period (AGENTS.md R3)"
+          },
+          "404": {
+            "description": "ticker not in the universe"
+          },
+          "503": {
+            "description": "database missing, or busy while make features/collect writes"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/news/{ticker}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Newest news with sentiment, citable by id, url and available_at",
+        "operationId": "get_news_api_v1_news__ticker__get",
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ticker"
+            }
+          },
+          {
+            "name": "lookback_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 7,
+              "title": "Lookback Days"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "trading day D (cutoff 09:00 ET); default: last val day",
+              "title": "As Of"
+            },
+            "description": "trading day D (cutoff 09:00 ET); default: last val day"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "as_of is in the test period (AGENTS.md R3)"
+          },
+          "404": {
+            "description": "ticker not in the universe"
+          },
+          "503": {
+            "description": "database missing, or busy while make features/collect writes"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prices/{ticker}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Daily bars that had closed by the cutoff of day D",
+        "operationId": "get_prices_api_v1_prices__ticker__get",
+        "parameters": [
+          {
+            "name": "ticker",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ticker"
+            }
+          },
+          {
+            "name": "lookback_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 800,
+              "minimum": 1,
+              "default": 120,
+              "title": "Lookback Days"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "trading day D (cutoff 09:00 ET); default: last val day",
+              "title": "As Of"
+            },
+            "description": "trading day D (cutoff 09:00 ET); default: last val day"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricesResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "as_of is in the test period (AGENTS.md R3)"
+          },
+          "404": {
+            "description": "ticker not in the universe"
+          },
+          "503": {
+            "description": "database missing, or busy while make features/collect writes"
           },
           "422": {
             "description": "Validation Error",
@@ -335,7 +533,7 @@
         "tags": [
           "jobs"
         ],
-        "summary": "Start data collection for the given periods (background job)",
+        "summary": "Start data collection for the given periods (background job, opt-in)",
         "operationId": "post_collect_api_v1_collect_post",
         "requestBody": {
           "content": {
@@ -358,6 +556,9 @@
               }
             }
           },
+          "403": {
+            "description": "API collect disabled, or the test period was requested"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -376,7 +577,8 @@
         "tags": [
           "jobs"
         ],
-        "summary": "Run every strategy on a split and refresh the leaderboard (background job)",
+        "summary": "Leaderboard of the strategy arena for a split (background job, stored result)",
+        "description": "Serves the leaderboard `make arena` stored; it does not re-run the strategies (D-47).",
         "operationId": "post_arena_api_v1_arena_post",
         "requestBody": {
           "content": {
@@ -440,6 +642,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "unknown job id"
           },
           "422": {
             "description": "Validation Error",
@@ -997,6 +1202,45 @@
             ],
             "title": "Details",
             "description": "component-specific extras"
+          },
+          "ci95": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci95",
+            "description": "95% bootstrap CI of `value`, read from `details` when stored"
+          },
+          "in_sample": {
+            "type": "boolean",
+            "title": "In Sample",
+            "description": "the value was fitted or chosen on data it is reported on",
+            "default": false
+          },
+          "in_sample_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Sample Note"
           }
         },
         "type": "object",
@@ -1407,6 +1651,218 @@
           "daily_budget"
         ],
         "title": "ModelInfo"
+      },
+      "NewsEntry": {
+        "properties": {
+          "news": {
+            "$ref": "#/components/schemas/NewsItem"
+          },
+          "sentiment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sentiment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "news"
+        ],
+        "title": "NewsEntry",
+        "description": "A news item with its sentiment row; cite it by `news.id`, `news.url`, `news.available_at`."
+      },
+      "NewsItem": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "stable id, sha1 of url + headline"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "yfinance",
+              "stooq",
+              "binance",
+              "finnhub",
+              "edgar",
+              "demo",
+              "test"
+            ],
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "id",
+          "ticker",
+          "published_at",
+          "headline",
+          "url",
+          "source"
+        ],
+        "title": "NewsItem",
+        "description": "One news article. available_at = publication datetime from the provider."
+      },
+      "NewsResponse": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NewsEntry"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "This is a simulation, not investment advice."
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "as_of",
+          "items"
+        ],
+        "title": "NewsResponse"
+      },
+      "PriceBar": {
+        "properties": {
+          "available_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Available At",
+            "description": "UTC moment the record became public"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "bar_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Bar Date"
+          },
+          "open": {
+            "type": "number",
+            "title": "Open"
+          },
+          "high": {
+            "type": "number",
+            "title": "High"
+          },
+          "low": {
+            "type": "number",
+            "title": "Low"
+          },
+          "close": {
+            "type": "number",
+            "title": "Close"
+          },
+          "volume": {
+            "type": "number",
+            "title": "Volume"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "yfinance",
+              "stooq",
+              "binance",
+              "finnhub",
+              "edgar",
+              "demo",
+              "test"
+            ],
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_at",
+          "ticker",
+          "bar_date",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "source"
+        ],
+        "title": "PriceBar",
+        "description": "Daily OHLCV bar. available_at = bar close time (16:00 ET stocks, candle close crypto)."
+      },
+      "PricesResponse": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of"
+          },
+          "bars": {
+            "items": {
+              "$ref": "#/components/schemas/PriceBar"
+            },
+            "type": "array",
+            "title": "Bars"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "as_of",
+          "bars"
+        ],
+        "title": "PricesResponse"
       },
       "Sentiment": {
         "properties": {

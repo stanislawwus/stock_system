@@ -274,6 +274,26 @@ class EventsResponse(BaseModel):
     facts: list[Fact]
 
 
+class NewsEntry(BaseModel):
+    """A news item with its sentiment row; cite it by `news.id`, `news.url`, `news.available_at`."""
+
+    news: NewsItem
+    sentiment: Sentiment | None = None
+
+
+class NewsResponse(BaseModel):
+    ticker: str
+    as_of: AwareDatetime
+    items: list[NewsEntry]
+    disclaimer: str = DISCLAIMER
+
+
+class PricesResponse(BaseModel):
+    ticker: str
+    as_of: AwareDatetime
+    bars: list[PriceBar]
+
+
 class AnalyzeRequest(BaseModel):
     text: str = Field(min_length=1, max_length=20000)
     ticker: str | None = None
@@ -342,6 +362,13 @@ class EvalResult(BaseModel):
     run_at: datetime
     notes: str = ""
     details: dict | None = Field(default=None, description="component-specific extras")
+    ci95: tuple[float, float] | None = Field(
+        default=None, description="95% bootstrap CI of `value`, read from `details` when stored"
+    )
+    in_sample: bool = Field(
+        default=False, description="the value was fitted or chosen on data it is reported on"
+    )
+    in_sample_note: str | None = None
 
 
 class ModelInfo(BaseModel):

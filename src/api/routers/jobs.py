@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 
-from src.api.routers._common import not_implemented
+from src.api.jobs import jobs
+from src.collectors.job import CollectForbidden, check_collect_allowed, collect_job
+from src.evalstore import stored_arena
 from src.schemas import ArenaRequest, CollectRequest, JobAccepted, JobStatus
 
 router = APIRouter(tags=["jobs"])
@@ -12,22 +14,36 @@ router = APIRouter(tags=["jobs"])
     "/collect",
     response_model=JobAccepted,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Start data collection for the given periods (background job)",
+    summary="Start data collection for the given periods (background job, opt-in)",
+    responses={403: {"description": "API collect disabled, or the test period was requested"}},
 )
 def post_collect(body: CollectRequest) -> JobAccepted:
-    raise not_implemented("collect job")
+    try:
+        check_collect_allowed(body.periods)
+    except CollectForbidden as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return JobAccepted(job_id=jobs.submit("collect", lambda: collect_job(body.periods)))
 
 
 @router.post(
     "/arena",
     response_model=JobAccepted,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Run every strategy on a split and refresh the leaderboard (background job)",
+    summary="Leaderboard of the strategy arena for a split (background job, stored result)",
 )
 def post_arena(body: ArenaRequest) -> JobAccepted:
-    raise not_implemented("arena job")
+    """Serves the leaderboard `make arena` stored; it does not re-run the strategies (D-47)."""
+    return JobAccepted(job_id=jobs.submit("arena", lambda: stored_arena(body.split)))
 
 
-@router.get("/jobs/{job_id}", response_model=JobStatus, summary="Status and result of a job")
+@router.get(
+    "/jobs/{job_id}",
+    response_model=JobStatus,
+    summary="Status and result of a job",
+    responses={404: {"description": "unknown job id"}},
+)
 def get_job(job_id: str) -> JobStatus:
-    raise not_implemented("job store")
+    found = jobs.status(job_id)
+    if found is None:
+        raise HTTPException(status_code=404, detail=f"unknown job {job_id!r}")
+    return found

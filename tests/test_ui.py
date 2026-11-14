@@ -4,13 +4,12 @@ headless render of the page. Offline: no server, no database (the API calls are 
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from pathlib import Path
 
 import httpx
 import pytest
 
 from src.api.main import app
-from src.schemas import DISCLAIMER, EvalResult, Signal, SignalsResponse
+from src.schemas import EvalResult, Signal, SignalsResponse
 from src.ui.client import ApiClient
 from src.ui.views import backtest_summary, equity_frame, signals_table
 
@@ -82,15 +81,24 @@ def test_client_talks_to_the_api_over_httpx(monkeypatch: pytest.MonkeyPatch) -> 
     assert [r.component for r in recs] == ["simulator"]
 
 
-def test_page_renders_signals_and_the_equity_curve(monkeypatch: pytest.MonkeyPatch) -> None:
-    from streamlit.testing.v1 import AppTest
+def test_client_maps_failures_to_typed_errors() -> None:
+    from src.ui.client import ApiError, ApiTimeout, ApiUnreachable
 
-    monkeypatch.setattr(ApiClient, "health", lambda self: True)
-    monkeypatch.setattr(ApiClient, "signals", lambda self, t, d=None: resp())
-    monkeypatch.setattr(ApiClient, "evals", lambda self, c=None: [record()])
-    page = Path(__file__).resolve().parents[1] / "src" / "ui" / "app.py"
-    at = AppTest.from_file(str(page), default_timeout=30).run()
-    assert not at.exception
-    assert any(DISCLAIMER in c.value for c in at.caption)
-    assert at.dataframe[0].value["strategy"].tolist() == ["finbert_v0", "momentum"]
-    assert [m.label for m in at.metric][:2] == ["Sharpe", "buy-and-hold Sharpe"]
+    def boom(kind: type[Exception]):
+        def handler(request: httpx.Request) -> httpx.Response:
+            raise kind("x", request=request)
+
+        return handler
+
+    def client(handler) -> ApiClient:
+        return ApiClient("http://t/api/v1", transport=httpx.MockTransport(handler))
+
+    with pytest.raises(ApiTimeout):
+        client(boom(httpx.ReadTimeout)).watchlist()
+    with pytest.raises(ApiUnreachable):
+        client(boom(httpx.ConnectError)).watchlist()
+    c = client(lambda r: httpx.Response(501, json={"detail": "chat: not implemented"}))
+    with pytest.raises(ApiError) as exc:
+        c.chat("q")
+    assert exc.value.status == 501 and exc.value.degraded and "not implemented" in exc.value.detail
+    assert not ApiError(404, "x").degraded

@@ -598,3 +598,21 @@ questions in `evals/chat_questions.yaml` are agent-written intents/refusals, not
 because every expected value is derived from DuckDB. Rejected: an LLM planner (latency, budget,
 injection surface); an LLM judge (budget; code checks suffice for numbers and citations);
 serving the 8-K `events` table (empty: filings' 8-K item numbers are used directly).
+
+**D-47 (2026-11-14) — Read endpoints and jobs for the Streamlit client** (`src/briefing.py`,
+`src/modelinfo.py`, `src/api/jobs.py`, `config/api.yaml`). `GET /brief`, `/events/{t}`, `/watchlist`,
+`/models` call read-only services; history goes through `MarketView` inside `guarded()`, and the
+default day is the last validation day (the test period is not servable, R3). Two endpoints beyond
+the plan table, `GET /news/{t}` and `GET /prices/{t}`, exist because the ticker page needs citable
+news and a price series and the chat tools must not be the UI's data source; both are cutoff-bound
+reads. `/evals` gains three typed fields lifted from the stored records: `ci95` (path per component
+in `config/api.yaml`; absent where no CI is stored), `in_sample` and `in_sample_note` (backtest
+`details.in_sample`, `src.sim.run.FITTED_ON` for records that predate it, arena headline row
+`validation_in_sample`). `POST /arena` is a job that returns the leaderboard `make arena` stored
+(`recomputed: false`); re-running 8 strategies with 200 random controls in the API process is heavy
+and takes a second DuckDB reader for minutes (rejected). `POST /collect` is a job over the same
+`run()` as `make collect-*` but answers 403 unless `API_ENABLE_COLLECT=1` is set for the API process
+and always for the test period (R3, D-13): a default API never writes (R7). Jobs run in one worker
+thread, results in memory. Servers bind to 127.0.0.1 (Makefile `HOST`). Rejected: a separate
+`/signals`-style aggregation in the brief (it shows one configured strategy, falling back to
+`finbert_v0` before `make train`); per-ticker news inside `/events` (different cutoff semantics).
