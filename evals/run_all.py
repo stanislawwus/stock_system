@@ -8,7 +8,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
-from evals import eval_collectors, eval_relevance, eval_simulator
+from evals import eval_collectors, eval_relevance, eval_sentiment, eval_simulator
 from src.collectors.common import ROOT
 from src.sim import run as backtest
 from src.strategies.registry import BUILDERS
@@ -17,6 +17,7 @@ EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "collectors": eval_collectors.evaluate,
     "simulator": eval_simulator.evaluate,
     "relevance": eval_relevance.evaluate,
+    "sentiment": eval_sentiment.evaluate,
     **{
         f"backtest_{name}_{split}": partial(backtest.evaluate, name, split)
         for split in ("train", "validation")
@@ -54,7 +55,11 @@ def refresh_doc() -> None:
 
 def main() -> int:
     for name, fn in EVALS.items():
-        result = fn()
+        try:
+            result = fn()
+        except FileNotFoundError as exc:  # a gold set not on disk (e.g. a clean clone)
+            print(f"{name}: skipped ({exc})")
+            continue
         path = ROOT / "evals" / "results" / f"{name}.json"
         path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8", newline="\n")
         print(f"{name}: {result['metric']} = {result['value']} (target {result['target']})")

@@ -1,0 +1,60 @@
+{
+  "component": "sentiment",
+  "metric": "macro_f1",
+  "value": 0.5155,
+  "target": 0.8,
+  "why_this_metric": "classes are imbalanced (mostly neutral); macro-F1 weights negative and positive as much as neutral",
+  "gold_set": "evals/labels/news_100.csv",
+  "n": 150,
+  "split": "train+validation",
+  "model": "ProsusAI/finbert@0bc2ac1",
+  "git_sha": "9811515",
+  "run_at": "2026-11-14T16:08:05+00:00",
+  "notes": "macro-F1 0.5155 below 0.8; per class {'pos': 0.4819, 'neu': 0.6774, 'neg': 0.3871}. Explanation in docs/evals.md (sentiment).",
+  "details": {
+    "gold_distribution": {
+      "pos": 33,
+      "neu": 110,
+      "neg": 7
+    },
+    "finbert": {
+      "macro_f1": 0.5155,
+      "f1_per_class": {
+        "pos": 0.4819,
+        "neu": 0.6774,
+        "neg": 0.3871
+      },
+      "accuracy": 0.5933,
+      "confusion_gold_to_pred": {
+        "neg->neg": 6,
+        "neg->neu": 1,
+        "neu->neg": 17,
+        "neu->neu": 63,
+        "neu->pos": 30,
+        "pos->neg": 1,
+        "pos->neu": 12,
+        "pos->pos": 20
+      }
+    },
+    "lexicon_baseline": {
+      "macro_f1": 0.5521,
+      "f1_per_class": {
+        "pos": 0.6133,
+        "neu": 0.8077,
+        "neg": 0.2353
+      },
+      "accuracy": 0.7267,
+      "confusion_gold_to_pred": {
+        "neg->neg": 2,
+        "neg->neu": 5,
+        "neu->neg": 7,
+        "neu->neu": 84,
+        "neu->pos": 19,
+        "pos->neg": 1,
+        "pos->neu": 9,
+        "pos->pos": 23
+      }
+    },
+    "input": "headline only (the labelling guideline is headline only)"
+  }
+}
