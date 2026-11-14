@@ -5,13 +5,22 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from functools import partial
 from typing import Any
 
-from evals import eval_collectors
+from evals import eval_collectors, eval_simulator
 from src.collectors.common import ROOT
+from src.sim import run as backtest
+from src.strategies.registry import BUILDERS
 
 EVALS: dict[str, Callable[[], dict[str, Any]]] = {
     "collectors": eval_collectors.evaluate,
+    "simulator": eval_simulator.evaluate,
+    **{
+        f"backtest_{name}_{split}": partial(backtest.evaluate, name, split)
+        for split in ("train", "validation")
+        for name in sorted(BUILDERS)
+    },
 }
 DOC = ROOT / "docs" / "evals.md"
 BEGIN, END = "<!-- results:begin -->", "<!-- results:end -->"

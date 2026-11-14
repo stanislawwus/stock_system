@@ -62,8 +62,10 @@ eval: ## run every component eval, write evals/results/*.json and the table in d
 arena: ## run all strategies on the validation split and write the leaderboard
 > $(RUN) python -m src.strategies.arena --split validation
 
-backtest: ## simulate the aggregated strategy on the validation split
-> $(RUN) python -m src.sim.run --split validation
+STRATEGY ?= all
+SPLIT ?= validation
+backtest: ## simulate STRATEGY=<all|buy_and_hold|momentum|mean_reversion> on SPLIT=<train|val>
+> $(RUN) python -m src.sim.run --strategy $(STRATEGY) --split $(SPLIT)
 
 test-final: ## the ONE run on the test period; refuses to run twice (AGENTS.md R3)
 > @if [ -f "$(FINAL_LOCK)" ]; then \
