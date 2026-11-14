@@ -206,7 +206,7 @@ data/         git-ignored except data/demo/
 | Target | Does |
 |---|---|
 | `make setup` | `uv sync`, `git config core.hooksPath .githooks`, create `.env` from example |
-| `make up` | API on :8000 (Swagger at `/docs`) and Streamlit on :8501 |
+| `make up` | Docker: builds the image (FinBERT baked in) and starts the API on 127.0.0.1:8000 (Swagger at `/docs`) and Streamlit on 127.0.0.1:8501 on the committed demo data; `make down` stops it, `make up-local` runs both without Docker (D-48) |
 | `make test` / `make lint` | pytest / ruff check + format check |
 | `make collect-dev` | collect warmup + train + validation periods into DuckDB (single writer) |
 | `make collect-test` | collect the test period; run only right before `make test-final` (`D-13`) |
