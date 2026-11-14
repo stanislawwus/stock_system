@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 from pathlib import Path
 
@@ -42,3 +43,53 @@ def test_decision_modules_never_read_the_open_of_day_d() -> None:
     files = [p for d in ("strategies", "nlp", "impact") for p in _py(SRC / d)]
     bad = _offenders(files, r"open_price\(|execution_price|\.open\b\s*\]")
     assert not bad, f"only src/sim may read open(D): {bad}"
+
+
+def _imported_modules(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    mods: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            mods |= {a.name for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            mods.add(node.module)
+            mods |= {f"{node.module}.{a.name}" for a in node.names}  # `from src import db`
+    return mods
+
+
+def test_ui_package_never_imports_duckdb_or_the_database_layer() -> None:
+    """AST check, so a comment or string cannot fool it: the UI reads through httpx only."""
+    forbidden = ("duckdb", "src.db")
+    bad = {}
+    for p in _py(SRC / "ui"):
+        hit = sorted(
+            m
+            for m in _imported_modules(p)
+            if any(m == f or m.startswith(f + ".") for f in forbidden)
+        )
+        if hit:
+            bad[str(p.relative_to(ROOT))] = hit
+    assert not bad, f"UI imports the database layer: {bad}"
+
+
+def test_ui_imports_from_src_are_only_schemas_and_itself() -> None:
+    """The UI shares pydantic contracts with the API and nothing else of the backend."""
+    allowed = ("src.schemas", "src.ui")
+    bad = {}
+    for p in _py(SRC / "ui"):
+        extra = sorted(
+            m for m in _imported_modules(p)
+            if m.startswith("src.") and not any(m == a or m.startswith(a + ".") for a in allowed)
+        )  # fmt: skip
+        if extra:
+            bad[str(p.relative_to(ROOT))] = extra
+    assert not bad, f"UI imports backend modules: {bad}"
+
+
+def test_servers_bind_to_loopback_only() -> None:
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "0.0.0.0" not in text
+    assert "HOST ?= 127.0.0.1" in text
+    assert text.count("--host $(HOST)") >= 2 and text.count("--server.address $(HOST)") >= 2
+    ui_src = "\n".join(p.read_text(encoding="utf-8") for p in _py(SRC / "ui"))
+    assert "0.0.0.0" not in ui_src
