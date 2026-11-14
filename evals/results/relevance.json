@@ -1,57 +1,45 @@
 {
   "component": "relevance",
   "metric": "dedup_f1",
-  "value": 0.9746,
+  "value": 0.9744,
   "target": 0.85,
   "why_this_metric": "dropped originals bias the daily sentiment mean (precision), missed syndicated copies count one story several times (recall); F1 balances both",
   "gold_set": "derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each",
   "n": 600,
   "split": "train",
   "model": "minhash(char4, 128 perms, thr 0.6)",
-  "git_sha": "222f493",
-  "run_at": "2026-11-14T16:00:05+00:00",
+  "git_sha": "3e25cdb",
+  "run_at": "2026-11-14T18:04:07+00:00",
   "notes": "",
   "details": {
-    "precision": 0.9863,
-    "recall": 0.9632,
+    "precision": 0.9965,
+    "recall": 0.9533,
     "precision_target": 0.9,
     "recall_target": 0.8,
-    "tp": 288,
-    "fp": 4,
-    "fn": 11,
+    "tp": 286,
+    "fp": 1,
+    "fn": 14,
     "recall_by_edit": {
-      "drop_two_suffix": 0.73,
+      "drop_two_suffix": 0.676,
       "drop_word": 1.0,
       "punctuation": 1.0,
       "reorder": 1.0,
-      "source_suffix": 1.0,
+      "source_suffix": 0.974,
       "swap_word": 0.973,
       "upper": 1.0,
       "wire_prefix": 1.0
     },
     "fp_examples": [
       [
-        "MindMed to Present at the 44th Annual J.P. Morgan Healthcare Conference",
-        "Aveanna to Participate at the 44th Annual J.P. Morgan Healthcare Conference"
-      ],
-      [
-        "Zoetis to Participate in the 44th Annual J.P. Morgan Healthcare Conference",
-        "Aveanna to Participate at the 44th Annual J.P. Morgan Healthcare Conference"
-      ],
-      [
-        "Citigroup Maintains Exxon Mobil (XOM) Neutral Recommendation",
-        "Jefferies Maintains Exxon Mobil (XOM) Buy Recommendation"
-      ],
-      [
-        "Kallyope To Present at the 44th Annual J.P. Morgan Healthcare Conference",
-        "Calyxo, Inc. to Present at the 44th Annual J.P. Morgan Healthcare Conference"
+        "ExxonMobil CEO calls Venezuela\u00a0\u2018uninvestable\u2019 without\u00a0\u2018significant changes\u2019",
+        "ExxonMobil CEO calls Venezuela 'uninvestable'"
       ]
     ],
     "relevant_share_train_by_ticker": {
       "AAPL": 0.452,
       "MSFT": 0.371,
       "NVDA": 0.33,
-      "JPM": 0.517,
+      "JPM": 0.48,
       "GS": 0.498,
       "XOM": 0.384,
       "WMT": 0.534,
@@ -59,6 +47,6 @@
       "JNJ": 0.505,
       "BA": 0.476
     },
-    "relevant_share_train_all": 0.4038
+    "relevant_share_train_all": 0.4011
   }
 }

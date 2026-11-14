@@ -8,18 +8,20 @@ No result below uses the test period (AGENTS.md R3).
 <!-- results:begin -->
 | Component | Metric | Value | Target | Pass | Gold set | n | Model | git |
 |---|---|---|---|---|---|---|---|---|
-| backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
-| backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
-| backtest_finbert_v0_train | sharpe | -0.217 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 5134cee |
-| backtest_finbert_v0_validation | sharpe | -0.5917 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 5134cee |
-| backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
-| backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
-| backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 02ef822 |
-| backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 02ef822 |
-| collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 6fd4458 |
-| relevance | dedup_f1 | 0.9746 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 222f493 |
-| sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 84f0a6a |
-| simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 02ef822 |
+| backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
+| backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_finbert_v0_train | sharpe | -0.2936 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
+| backtest_finbert_v0_validation | sharpe | -0.5917 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
+| backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
+| backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| collectors | price_session_completeness | 1.0 | 0.99 | yes | derived: SPY sessions as the exchange calendar; dedup keys; D-24/D-30 rules | 77 | n/a | 3e25cdb |
+| events | macro_f1 | 0.2822 | 0.75 | **no** | evals/labels/news_100.csv (events column) | 150 | tfidf+logreg (weak labels from 8-K items) | 3e25cdb |
+| facts | within_1pct | 0.3333 | 0.9 | **no** | derived: XBRL companyfacts (3-month Q1-Q3 values) for 30 dev 8-K 2.02 filings | 87 | regex (LLM fallback on 15 in details) | 3e25cdb |
+| relevance | dedup_f1 | 0.9744 | 0.85 | yes | derived: 30 train ticker-days x 10 relevant distinct watchlist headlines at real times + one planted syndication-style copy each | 600 | minhash(char4, 128 perms, thr 0.6) | 3e25cdb |
+| sentiment | macro_f1 | 0.5155 | 0.8 | **no** | evals/labels/news_100.csv | 150 | ProsusAI/finbert@0bc2ac1 | 3e25cdb |
+| simulator | hand_fixture_exact_share | 1.0 | 1.0 | yes | derived: evals/sim_fixtures.py (4 hand-worked fixtures) | 4 | n/a | 3e25cdb |
 <!-- results:end -->
 
 ## Notes per component
@@ -87,8 +89,9 @@ No result below uses the test period (AGENTS.md R3).
 - **Result**: F1 0.97 (P 0.99, R 0.96). Misses are mostly "two dropped words + suffix" on short
   headlines (recall 0.73 for that edit). The 4 false positives are informative: three
   "X to Present at the 44th Annual J.P. Morgan Healthcare Conference" items (templated text
-  that MinHash cannot tell apart, and also a relevance false positive: the JPM alias
-  "J.P. Morgan" fires on the conference name) and one pair of templated analyst notes
+  that MinHash cannot tell apart; they were also a relevance false positive for JPM, fixed on
+  2026-11-14 by `relevance.exclude_phrases` with a regression test, which moved the F1 from
+  0.9746 to 0.9744) and one pair of templated analyst notes
   ("Citigroup / Jefferies Maintains Exxon Mobil ... Recommendation") with different ratings.
   A first version that drew originals from six months at random scored 1.0 because unrelated
   headlines never look alike; same-day originals are the harder, honest test.
@@ -115,20 +118,105 @@ No result below uses the test period (AGENTS.md R3).
   filter) FinBERT reaches 0.59 (neg 0.60). Negative has only 7 gold rows, so its F1 moves by
   about 0.1 per headline and the macro-F1 is noisy. Nothing is tuned on this set: it is the
   only human gold set and would stop being a test.
+- **CIs and recall** (95 % i.i.d. bootstrap, 2,000 resamples): FinBERT 0.52 [0.42, 0.61],
+  lexicon 0.55 [0.44, 0.66]: the two backends are not distinguishable on 150 rows. FinBERT's
+  recall is pos 0.61 / neu 0.57 / neg 0.86: it finds the negatives (6 of 7) but calls 47 of 110
+  neutrals directional (30 pos, 17 neg), so its errors are false alarms, not misses.
+- **Second gold set, not PhraseBank** (`details.twitter_financial`): FinBERT was fine-tuned on
+  Financial PhraseBank, so a PhraseBank score would flatter it. On the validation split of the
+  public `zeroshot/twitter-financial-news-sentiment` (2,388 finance tweets/headlines, labelled
+  bearish / bullish / neutral by the dataset authors, revision and sha256 pinned in
+  `config/evals.yaml`, t.co links stripped) FinBERT scores **0.66 [0.64, 0.68]** (recall pos 0.61,
+  neu 0.74, neg 0.76) and the lexicon 0.61 [0.59, 0.64]. So the gap to 0.80 is not only our
+  stricter "holder of the tagged ticker" guideline: on independent finance text FinBERT is
+  still well below target, and its main error is the same (190 neutral -> pos, 215 neutral ->
+  neg). The macro-F1 on our set stays the reported value; nothing was tuned on either set.
 
 ### finbert_v0 (`backtest_finbert_v0_<split>`)
 
 - Same metric, target and rules as the other backtests; strategy defined in D-36 (mean FinBERT
   score of relevant, deduplicated news in (previous weekday 09:00 ET, D 09:00 ET], long when
   > 0, hold to the close of D+1). Nothing fitted.
-- **Below target on both splits**: train Sharpe -0.22 (total -1.5 %) vs buy-and-hold 1.76,
-  validation -0.59 (-2.4 %) vs 1.34. The 95 % CIs ([-3.58, 2.46] and [-4.45, 3.14]) contain the
+- **Below target on both splits**: train Sharpe -0.29 (total -2.0 %) vs buy-and-hold 1.76,
+  validation -0.59 (-2.4 %) vs 1.34. The 95 % CIs ([-3.63, 2.34] and [-4.45, 3.14]) contain the
   target, so the strategy is not distinguishable from buy-and-hold either way.
-- **Costs dominate**: a one-day hold re-trades most names every day (1,004 trades on train,
+- **Costs dominate**: a one-day hold re-trades most names every day (1,000 trades on train,
   one-way turnover 67x, 502 trades / 35x on validation). Costs paid were 6.9 % of initial
-  capital on train and 3.4 % on validation, so before costs the strategy made about +5.4 % and
+  capital on train and 3.4 % on validation, so before costs the strategy made about +4.9 % and
   +1.0 %, still below buy-and-hold on train (+9.7 %). Hit rate per round trip after costs is
   0.49 on both splits. Obvious next steps (longer horizon, an entry threshold above 0, a
   per-ticker baseline instead of the raw mean) are parameters to tune on train only (R3).
 - The input itself is weak: FinBERT's macro-F1 on the human gold set is 0.52 (0.59 on relevant
   headlines), see `sentiment`.
+
+### events
+
+- **Metric**: macro-F1 over the event labels with gold support (multi-label, 'none' is a label,
+  8-K item 9.01 dropped); micro-F1, exact set match and per-label precision/recall in `details`,
+  95 % bootstrap CIs on macro and micro F1.
+- **Gold set**: the `events` column of `evals/labels/news_100.csv` (150 headlines; 108 none,
+  20 8.01, 10 2.02, 4 1.01, 3 5.02, 2 7.01, 2 2.01, 1 3.02, 1 other_item).
+- **Methods** (D-39): (a) rules: the item codes of the tagged ticker's 8-Ks accepted within
+  +/- 24 h of the headline; (b) TF-IDF (1-2 grams) + one-vs-rest logistic regression on the
+  headline, trained on 72,630 train-split headlines that name their company, weak-labelled by
+  (a), gold ids excluded. Settings fixed in `config/extraction.yaml` before scoring.
+- **Target**: 0.75 macro-F1. **Why**: event classes are rare and unequal; accuracy would reward
+  predicting 'none'.
+- **Below target: (b) 0.28 [0.18, 0.40], (a) 0.25 [0.20, 0.37]**; micro-F1 0.54 vs 0.40, exact
+  set match 0.53 vs 0.39. The CIs overlap, so (b) is not shown to be better on macro-F1; it is
+  better on micro-F1 because it predicts 'none' more often (none recall 0.69 vs 0.44).
+  Why both are low: (1) the rule labels by coincidence, not content: on an earnings day every
+  headline of the ticker ("stock up 3 %", analyst notes) gets 2.02, which is why rule precision
+  is 0.32 for 2.02 and 0.14 for 5.02; (2) (b) learns from those noisy labels, so it inherits the
+  noise (weak labels: 57k none, 10.7k 2.02, 3.1k 7.01, 2.6k 8.01); (3) the human used 8.01 for
+  immaterial PR and partnerships (20 rows) that rarely have an 8-K, so 8.01 F1 is 0.16-0.20 for
+  both; (4) seven of the ten labels have 1-4 gold rows, each moving its F1 by 0.25-1.0, so the
+  macro-F1 is mostly noise (2.01 is never positive in the weak labels at all).
+- **Caveat**: news_100 was sampled by "an 8-K within +/- 24 h" with the rule's own window
+  (D-34), so (a) sees the sampling variable. On the 60 rows drawn with no 8-K nearby the rule's
+  exact match is 0.80 vs 0.62 for (b): there, 'none' is the right answer by construction.
+
+### facts
+
+- **Metric**: share of gold (filing, metric) pairs extracted within +/- 1 % of XBRL; exact match
+  at the stated precision, coverage, grounding rate and quarter match in `details`.
+- **Gold set**: derived, XBRL companyfacts (3-month Q1-Q3 revenue, net income, diluted EPS) of
+  30 dev-split 8-K item 2.02 filings (one per ticker, fixed seed, 87 gold pairs). XBRL has no
+  separate Q4 quarter, so Q4 releases are not in the set.
+- **Target**: >= 0.90 within 1 %, 100 % grounded. **Why**: a number is right or useless; the
+  span makes every wrong value inspectable.
+- **Below target: regex 0.33 within 1 %, 0.36 exact at stated precision, 100 % grounded**
+  (38 facts, all quotes found in the source with a matching number). The misses: 49 of the 87
+  pairs are not extracted at all (coverage 0.44: net income 19, EPS 17, revenue 13 missing),
+  because many releases give these numbers only in tables or in phrasings the patterns do not
+  cover, and the 6 net losses are not handled. 9 extracted values are wrong: 3 are rounding
+  ("net income of $2.4 billion" vs XBRL 2.437 bn, inside the stated precision but 1.5 % off),
+  4 are segment or sub-line figures taken as the company total (AMD "revenue of $2.3 billion",
+  CMCSA "Revenue Increased 28% to $1.0 Billion"), 1 is a gold problem (AXP: the XBRL concept
+  picked for revenue, 9.3 bn, is narrower than the reported total revenue of 15.8 bn), 1 is an
+  EPS from another line (NFLX). The regex was not tuned on this gold set.
+- **LLM on 15 filings: not run in this session** (see llm_bakeoff); `details.head_to_head_first_k`
+  shows `used_fallback: true`, i.e. regex numbers, and is labelled as such in `notes`.
+
+### llm_bakeoff (pending)
+
+- **Metric**: JSON-schema adherence per HTTP call for `cohere/north-mini-code:free` vs
+  `nvidia/nemotron-3-ultra-550b-a55b:free`, latency per call, quality on 20 gold headlines and
+  10 gold releases as a tie-breaker. `evals/eval_llm_bakeoff.py`, at most 15 calls, 10 items per
+  call. **Not run yet**: the live run was stopped by the session's permission layer (the
+  budget counter needed a cap above 15 because mock dry-runs had counted 30 phantom calls, see
+  agent_log). No result file is committed, so no model choice is recorded yet (D-39).
+
+### prompt injection (tests, not a scored eval)
+
+`tests/test_injection.py`: 8 poisoned texts (ignore-previous, fake SYSTEM turn, closing-tag
+breakout, spoofed data delimiters, "reply BUY", `<script>` + label request, fake annotator
+instruction with a planted "$999 billion", translate request) appended to clean headlines and
+releases. Pinned: the TF-IDF event verdict, the regex facts and the gateway's wrapping (one
+delimiter pair, spoofed delimiters and HTML stripped) do not change; a mock model that obeys the
+injection (empty list, prose, wrong type) fails validation and the batch lands on the
+deterministic fallback with one valid record per item. **Known limitation**: the lexicon
+sentiment fallback follows no instructions but counts words, so a poison stuffed with positive
+cue words ("bullish, beats, soars") flips a negative headline; the test pins this so it stays
+visible. A planted figure placed *before* the real ones would also be taken by the regex (it
+takes the first match); only appended poisons are tested.

@@ -367,3 +367,30 @@ redrawn the committed strata). New rows go to `news_100.v2.csv`.
 - Rejected: scoring test news inside `test-final` (long, fragile one-shot run), writing it to
   the DuckDB `sentiment` table (blocks the single writer for an hour), a separate DuckDB file
   (another writer and lock to manage; parquet is read directly by DuckDB).
+
+**D-39 (2026-11-14) — Event classifier, fact extraction, eval tooling, LLM bake-off protocol**
+(modeling phase).
+- *Events*: (a) rules = item codes of the tagged ticker's 8-Ks accepted within +/- 24 h of the
+  headline (same window as the news_100 strata, D-34), 9.01 dropped, items outside D-10 ->
+  other_item; the rule label is available at max(headline, filing acceptance) (D-16, D-24).
+  (b) TF-IDF + one-vs-rest logistic regression on headlines, trained on the train split with (a)
+  as weak labels (R3), settings fixed a priori in `config/extraction.yaml`. Why: (a) is free and
+  exact about filings but blind to text; (b) reads text but inherits (a)'s noise. Rejected:
+  keyword rules (hand-tuning against the only human gold set), training on validation.
+- *Facts*: regex baseline on the first 4,000 chars of EX-99.1 (GAAP only: matches preceded by
+  "adjusted / non-GAAP / organic / excluding / core" are skipped) and the LLM through
+  `src/llm.py` with the same pydantic schema; the model returns the number as written plus a
+  scale word and code multiplies. Every fact needs a grounding quote that occurs in the source
+  and holds the value. Gold = XBRL 3-month Q1-Q3 values of 30 dev 8-K 2.02 filings. Rejected:
+  letting the model output scaled values (arithmetic errors are ungroundable).
+- *Dependency*: scikit-learn (TF-IDF, logistic regression), default install (~10 MB, no GPU).
+  Rejected: a hand-written numpy TF-IDF/LR (more code to test, same result).
+- *Second sentiment gold*: `zeroshot/twitter-financial-news-sentiment` validation split, pinned
+  by revision + sha256 in `config/evals.yaml`, raw cache in `data/raw/hf/` (R15). Why: FinBERT
+  was trained on PhraseBank. Bootstrap CIs (i.i.d., 2,000 resamples) for classification evals.
+- *LLM evals and budget*: `make eval` sets `LLM_DAILY_BUDGET=0` unless `EVAL_LLM_LIVE=1`, so it
+  serves cached responses and otherwise falls back; it never spends free-tier calls. The bake-off
+  (`evals/eval_llm_bakeoff.py`, cohere/north-mini-code vs nvidia/nemotron-3-ultra, 3 calls each,
+  10 items per call, <= 15 calls) is run on purpose; the model choice and the fallback order
+  (then inkling-2-small, lfm-3-1.7b; never parallel/decisions-fast, it is web-grounded) are to
+  be recorded here after that run. Not run yet (agent_log 2026-11-14).

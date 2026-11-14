@@ -8,8 +8,8 @@
   "n": 124,
   "split": "train",
   "model": "rules",
-  "git_sha": "02ef822",
-  "run_at": "2026-11-14T15:46:18+00:00",
+  "git_sha": "3e25cdb",
+  "run_at": "2026-11-14T18:07:42+00:00",
   "notes": "95% block-bootstrap CI of the Sharpe [-2.48, 2.33] over 124 days contains the target 1.76: not distinguishable from it.",
   "details": {
     "available_at": "2026-05-29T20:00:00Z",

@@ -8,8 +8,8 @@
   "n": 64,
   "split": "validation",
   "model": "rules",
-  "git_sha": "02ef822",
-  "run_at": "2026-11-14T15:46:41+00:00",
+  "git_sha": "3e25cdb",
+  "run_at": "2026-11-14T18:08:14+00:00",
   "notes": "95% block-bootstrap CI of the Sharpe [-1.34, 6.56] over 64 days contains the target 1.34: not distinguishable from it.",
   "details": {
     "available_at": "2026-08-31T20:00:00Z",
