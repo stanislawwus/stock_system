@@ -18,7 +18,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import duckdb
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
 
 from src import db
 from src.collectors.common import ROOT, load_periods, load_yaml, watchlist_tickers
@@ -88,7 +89,7 @@ def build_slice(
     """Write the parquet files and `manifest.json`; returns the manifest."""
     cutoff = cutoff or slice_cutoff()
     out_dir.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(source_db), read_only=True)
+    con = db.connect(source_db)  # read-only, outside any guard (maintainer tooling)
     con.execute("SET TimeZone = 'UTC'")
     tables: dict[str, Any] = {}
     try:
@@ -126,18 +127,13 @@ def check_slice(demo_dir: Path = DEMO_DIR, cutoff: datetime | None = None) -> di
     """Verify files against the manifest and that no row is newer than the cutoff (R3)."""
     manifest = json.loads((demo_dir / "manifest.json").read_text(encoding="utf-8"))
     cutoff = cutoff or slice_cutoff()
-    con = duckdb.connect()
-    con.execute("SET TimeZone = 'UTC'")
     for name, meta in manifest["tables"].items():
         path = demo_dir / f"{name}.parquet"
         if _sha256(path) != meta["sha256"]:
             raise DemoDataError(f"{path.name} does not match manifest.json")
-        newest = con.execute(
-            f"SELECT max(available_at) FROM read_parquet('{path.as_posix()}')"
-        ).fetchone()[0]
+        newest = pc.max(pq.read_table(path, columns=["available_at"])["available_at"]).as_py()
         if newest is not None and newest > cutoff:
             raise DemoDataError(f"{name}: row available at {newest} is after the cutoff {cutoff}")
-    con.close()
     return manifest
 
 
