@@ -9,7 +9,7 @@ import pytest
 
 from evals import eval_collectors
 from src import db
-from src.collectors import report
+from src.collectors import quality, report
 from src.marketview.clock import bar_close_for
 
 
@@ -41,7 +41,12 @@ def seeded(tmp_path: Path) -> Path:
     return path
 
 
-def test_planted_errors_are_all_caught_and_clean_slice_is_clean(seeded: Path) -> None:
+def test_planted_errors_are_all_caught_and_clean_slice_is_clean(
+    seeded: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Hermetic: after the final run the repo's TEST_FINAL.lock exists and the test-period check
+    # is off by design (quality.FINAL_LOCK); pin the pre-final behaviour here.
+    monkeypatch.setattr(quality, "FINAL_LOCK", tmp_path / "no.lock")
     con = db.connect(seeded)
     try:
         out = eval_collectors.planted_errors(con, "AAPL")

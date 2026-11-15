@@ -67,7 +67,12 @@ def test_wrong_available_at_fails(con: duckdb.DuckDBPyConnection) -> None:
     assert any("price_bars" in f for f in rep.failures)
 
 
-def test_test_period_row_in_dev_collection_fails(con: duckdb.DuckDBPyConnection) -> None:
+def test_test_period_row_in_dev_collection_fails(
+    con: duckdb.DuckDBPyConnection, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Hermetic: the repo's real TEST_FINAL.lock (committed after the final run) disables this
+    # check by design; the test pins the pre-final behaviour.
+    monkeypatch.setattr(quality, "FINAL_LOCK", tmp_path / "no.lock")
     _seed(con)
     ts = datetime(2026, 9, 15, 14, 0, tzinfo=UTC)
     con.execute(
