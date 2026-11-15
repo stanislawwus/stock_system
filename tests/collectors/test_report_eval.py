@@ -41,12 +41,16 @@ def seeded(tmp_path: Path) -> Path:
     return path
 
 
+@pytest.mark.parametrize("lock_exists", [False, True])
 def test_planted_errors_are_all_caught_and_clean_slice_is_clean(
-    seeded: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    seeded: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, lock_exists: bool
 ) -> None:
-    # Hermetic: after the final run the repo's TEST_FINAL.lock exists and the test-period check
-    # is off by design (quality.FINAL_LOCK); pin the pre-final behaviour here.
-    monkeypatch.setattr(quality, "FINAL_LOCK", tmp_path / "no.lock")
+    # The eval passes the lock state explicitly, so 6/6 holds with and without the repo's
+    # TEST_FINAL.lock (D-49): `make eval` on a clone that contains the lock reports 6/6 again.
+    lock = tmp_path / "TEST_FINAL.lock"
+    if lock_exists:
+        lock.write_text("status=ok", encoding="utf-8")
+    monkeypatch.setattr(quality, "FINAL_LOCK", lock)
     con = db.connect(seeded)
     try:
         out = eval_collectors.planted_errors(con, "AAPL")

@@ -67,19 +67,43 @@ def test_wrong_available_at_fails(con: duckdb.DuckDBPyConnection) -> None:
     assert any("price_bars" in f for f in rep.failures)
 
 
-def test_test_period_row_in_dev_collection_fails(
-    con: duckdb.DuckDBPyConnection, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # Hermetic: the repo's real TEST_FINAL.lock (committed after the final run) disables this
-    # check by design; the test pins the pre-final behaviour.
-    monkeypatch.setattr(quality, "FINAL_LOCK", tmp_path / "no.lock")
+def _seed_test_period_row(con: duckdb.DuckDBPyConnection) -> None:
     _seed(con)
     ts = datetime(2026, 9, 15, 14, 0, tzinfo=UTC)
     con.execute(
         "INSERT INTO news VALUES ('leak', 'AAPL', ?, 'h', '', 'http://b', 'test', ?)", [ts, ts]
     )
-    rep = quality.run_checks(con, [VAL], ["AAPL"], "SPY")
+
+
+def test_test_period_row_in_dev_collection_fails(con: duckdb.DuckDBPyConnection) -> None:
+    # The lock state is passed explicitly (D-49): the repo's real TEST_FINAL.lock is irrelevant.
+    _seed_test_period_row(con)
+    rep = quality.run_checks(con, [VAL], ["AAPL"], "SPY", test_period_locked=False)
     assert any("test period" in f for f in rep.failures)
+
+
+def test_test_period_check_is_skipped_once_locked(con: duckdb.DuckDBPyConnection) -> None:
+    # After the final run the dev database legitimately holds test-period rows (D-13, D-49).
+    _seed_test_period_row(con)
+    rep = quality.run_checks(con, [VAL], ["AAPL"], "SPY", test_period_locked=True)
+    assert not any("test period" in f for f in rep.failures)
+
+
+@pytest.mark.parametrize("lock_exists", [False, True])
+def test_default_lock_state_follows_the_lock_file(
+    con: duckdb.DuckDBPyConnection,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    lock_exists: bool,
+) -> None:
+    # The collector CLI passes nothing and follows the lock file (D-49).
+    lock = tmp_path / "TEST_FINAL.lock"
+    if lock_exists:
+        lock.write_text("status=ok", encoding="utf-8")
+    monkeypatch.setattr(quality, "FINAL_LOCK", lock)
+    _seed_test_period_row(con)
+    rep = quality.run_checks(con, [VAL], ["AAPL"], "SPY")
+    assert any("test period" in f for f in rep.failures) is (not lock_exists)
 
 
 def test_outlier_move_is_flagged(con: duckdb.DuckDBPyConnection) -> None:

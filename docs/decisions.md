@@ -651,3 +651,14 @@ a provider. Rejected: running `make train` in the Dockerfile (needs the full DB)
 for `data/` (the demo database is rebuilt from the slice, a volume would keep a stale one);
 passing `.env` into the containers (the demo needs no key, and a key must not reach a container
 by accident); `docker compose` healthcheck via curl (not in the slim image).
+
+**D-49 (2026-11-15) — The collectors eval passes the test-period lock state explicitly.**
+`quality.run_checks` takes `test_period_locked: bool | None`. `None` (the collector CLI,
+`src/collectors/run.py`, `report.py`) reads `TEST_FINAL.lock` as before: after the final run the
+dev database legitimately holds test-period rows, so the "test-period rows in a dev collection"
+check is skipped there. `evals/eval_collectors.planted_errors` passes `False`, because its scratch
+slices are validation-only and a planted test-period row is always an error in them; otherwise
+`make eval` on a clone that contains the committed lock reported 5/6 planted errors instead of 6/6.
+Tests pass the flag instead of monkeypatching the lock path, and one test pins the CLI default
+for both lock states. Rejected: deleting the lock check (D-13 still needs it before the final
+run); making the eval delete or hide the lock (a global side effect inside an eval).

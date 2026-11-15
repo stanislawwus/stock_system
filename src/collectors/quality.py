@@ -71,9 +71,20 @@ def run_checks(
     periods: list[Period],
     tickers: list[str],
     benchmark: str,
+    *,
+    test_period_locked: bool | None = None,
 ) -> QualityReport:
+    """Run every check; `test_period_locked` says whether the test period has been used.
+
+    `None` (the collector CLI) reads `TEST_FINAL.lock`: after the final run the dev database
+    legitimately holds test-period rows, so check 3 is skipped. Callers that build their own
+    slice (the collectors eval, tests) pass the state explicitly, so their result does not
+    change because the repo contains the lock (D-49).
+    """
     cfg = collectors_config()["prices"]
     rep = QualityReport()
+    if test_period_locked is None:
+        test_period_locked = FINAL_LOCK.exists()
 
     # 1. every available_at is TIMESTAMPTZ NOT NULL (R2)
     for table in TABLES:
@@ -115,7 +126,7 @@ def run_checks(
         rep.failures.append(f"facts: {n} xbrl rows not stamped with their filing's acceptance")
 
     # 3. a dev collection holds no test-period rows (D-13)
-    if "test" not in {p.name for p in periods} and not FINAL_LOCK.exists():
+    if "test" not in {p.name for p in periods} and not test_period_locked:
         cut = cutoff_for(test_period().start)
         for table in TABLES:
             n = _one(con, f"SELECT count(*) FROM {table} WHERE available_at >= ?", [cut])

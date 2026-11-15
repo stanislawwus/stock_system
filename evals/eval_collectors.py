@@ -9,6 +9,7 @@ why         a missing bar silently shifts every rolling window and return a stra
 planted     six corruptions of a real data slice (future row, early timestamps, a missing session,
             a duplicate, a price spike); the quality checks must flag every one
 Never reads the test period (rows at/after the first test cutoff are not in a dev collection).
+The planted slices pass `test_period_locked=False`, so 6/6 holds after the final run too (D-49).
 """
 
 from __future__ import annotations
@@ -87,7 +88,9 @@ def planted_errors(src: duckdb.DuckDBPyConnection, ticker: str) -> dict[str, Any
             with writer_session(Path(tmp) / f"p{i}.duckdb") as dst:
                 _slice(src, dst, ticker)
                 corrupt(dst)
-                rep: QualityReport = run_checks(dst, val, [ticker], "SPY")
+                # The scratch slice is validation-only, so a test-period row is always an
+                # error here, whether or not the repo holds TEST_FINAL.lock (D-49).
+                rep: QualityReport = run_checks(dst, val, [ticker], "SPY", test_period_locked=False)
             text = "\n".join(rep.failures + rep.warnings)
             if not expect:
                 out["clean_slice_flags"] = rep.failures + rep.warnings
