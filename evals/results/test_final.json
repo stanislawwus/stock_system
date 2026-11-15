@@ -1,0 +1,130 @@
+{
+  "component": "test_final",
+  "metric": "sharpe_aggregate_equal_test",
+  "value": -0.7525,
+  "target": -0.2451,
+  "why_this_metric": "risk-adjusted return after costs of the headline aggregate on the 48 untouched test sessions; the target is buy-and-hold on the same names and days",
+  "gold_set": "derived: buy_and_hold on the test split, same 10 watchlist names",
+  "n": 48,
+  "split": "test",
+  "model": "equal weights (sentiment, event, impact); impact hgb+platt from data/models",
+  "git_sha": "47d8c2a",
+  "run_at": "2026-11-15T13:36:05+00:00",
+  "notes": "Single run of make test-final (lock below). Sharpe -0.75 vs buy-and-hold -0.25; the 95% CI contains the target, so the aggregate is not distinguishable from holding the names. Deflated Sharpe 0.016 (target 0.95). Copied from arena_test.json and backtest_*_test.json; nothing recomputed or tuned.",
+  "details": {
+    "tag": "freeze-1",
+    "config_hash_sha256": "c6897348289fc0d3865c84f325238032ba9a6d9b385dc8b32f2e43642e9171d5",
+    "config_hash_inputs": "tracked config/*.yaml (sorted) + data/models/selected.json + event_items.json + impact.joblib",
+    "lock": {
+      "started_at": "2026-11-15T13:32:09+00:00",
+      "git_sha": "47d8c2a9d7fe749f429e90a1c72a32bb160a7684",
+      "finished_at": "2026-11-15T13:36:05+00:00",
+      "status": "ok"
+    },
+    "period": [
+      "2026-09-01",
+      "2026-11-06"
+    ],
+    "strategies": {
+      "aggregate_equal": {
+        "sharpe": -0.7525,
+        "sharpe_ci95": [
+          -5.526157035292347,
+          1.8042172327346406
+        ],
+        "total_return": -0.0185,
+        "max_drawdown": 0.0691,
+        "n_trades": 200,
+        "costs_paid": 1803.9243,
+        "source": "evals/results/backtest_aggregate_equal_test.json"
+      },
+      "aggregate_hedge": {
+        "sharpe": -0.7525,
+        "sharpe_ci95": [
+          -5.526157035292347,
+          1.8042172327346406
+        ],
+        "total_return": -0.0185,
+        "max_drawdown": 0.0691,
+        "n_trades": 200,
+        "costs_paid": 1803.9243,
+        "source": "evals/results/backtest_aggregate_hedge_test.json"
+      },
+      "buy_and_hold": {
+        "sharpe": -0.2451,
+        "sharpe_ci95": [
+          -3.342016902196722,
+          3.103120439657001
+        ],
+        "total_return": -0.0081,
+        "max_drawdown": 0.051,
+        "n_trades": 20,
+        "costs_paid": 99.5952,
+        "source": "evals/results/backtest_buy_and_hold_test.json"
+      },
+      "event": {
+        "sharpe": -0.865,
+        "sharpe_ci95": [
+          -4.422007429984909,
+          1.952312272132653
+        ],
+        "total_return": -0.0159,
+        "max_drawdown": 0.0315,
+        "n_trades": 16,
+        "costs_paid": 157.8113,
+        "source": "evals/results/backtest_event_test.json"
+      },
+      "finbert_v0": {
+        "sharpe": -2.3046,
+        "sharpe_ci95": [
+          -6.097430694805562,
+          0.6595589894699224
+        ],
+        "total_return": -0.0541,
+        "max_drawdown": 0.0773,
+        "n_trades": 376,
+        "costs_paid": 2591.9864,
+        "source": "evals/results/backtest_finbert_v0_test.json"
+      },
+      "impact": {
+        "sharpe": 0.7043,
+        "sharpe_ci95": [
+          -4.204191834991025,
+          2.877594765437933
+        ],
+        "total_return": 0.0035,
+        "max_drawdown": 0.0065,
+        "n_trades": 16,
+        "costs_paid": 160.2321,
+        "source": "evals/results/backtest_impact_test.json"
+      },
+      "mean_reversion": {
+        "sharpe": 0.7484,
+        "sharpe_ci95": [
+          -1.77873725293727,
+          6.0052464649154516
+        ],
+        "total_return": 0.0102,
+        "max_drawdown": 0.022,
+        "n_trades": 54,
+        "costs_paid": 544.3269,
+        "source": "evals/results/backtest_mean_reversion_test.json"
+      },
+      "momentum": {
+        "sharpe": 0.0108,
+        "sharpe_ci95": [
+          -2.7821308853235074,
+          4.430983822424131
+        ],
+        "total_return": -0.0014,
+        "max_drawdown": 0.0415,
+        "n_trades": 46,
+        "costs_paid": 331.6399,
+        "source": "evals/results/backtest_momentum_test.json"
+      }
+    },
+    "deflated_sharpe_aggregate_equal": 0.0158,
+    "random_control_source": "evals/results/arena_test.json details.random_controls",
+    "report": "docs/06_final_run.md"
+  }
+}
