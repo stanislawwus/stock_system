@@ -11,18 +11,27 @@ No result below uses the test period (AGENTS.md R3).
 | aggregator | sharpe_val_b | -3.1453 | 2.0519 | **no** | derived: buy_and_hold on val_b, same tickers | 32 | equal weights (sentiment, event, impact) | c77a97f |
 | api | contract_test_pass_rate | 1.0 | 1.0 | yes | tests/api/ (contract tests); evals/results/llm_bakeoff.calls.jsonl; data/demo | 32 | template (rules) + FinBERT; no LLM call | d5bdd83 |
 | arena | deflated_sharpe_aggregate_equal | 0.0015 | 0.95 | **no** | derived: 91 trials in evals/trials.csv; matched random controls | 64 | rules + impact model (data/models) | 5fec32b |
+| arena_test | deflated_sharpe_aggregate_equal | 0.0158 | 0.95 | **no** | derived: 91 trials in evals/trials.csv; matched random controls | 48 | rules + impact model (data/models) | 47d8c2a |
+| backtest_aggregate_equal_test | sharpe | -0.7525 | -0.2451 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_aggregate_equal_train | sharpe | -0.9527 | 1.7603 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_aggregate_equal_validation | sharpe | -1.5849 | 1.3374 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
+| backtest_aggregate_hedge_test | sharpe | -0.7525 | -0.2451 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
+| backtest_buy_and_hold_test | sharpe | -0.2451 | 0.0 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_buy_and_hold_train | sharpe | 1.7603 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_buy_and_hold_validation | sharpe | 1.3374 | 0.0 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_event_test | sharpe | -0.865 | -0.2451 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_event_train | sharpe | -0.4815 | 1.7603 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_event_validation | sharpe | 3.0577 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
+| backtest_finbert_v0_test | sharpe | -2.3046 | -0.2451 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_finbert_v0_train | sharpe | -0.2936 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_finbert_v0_validation | sharpe | -0.5917 | 1.3374 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_impact_test | sharpe | 0.7043 | -0.2451 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_impact_train | sharpe | 7.1876 | 1.7603 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | c77a97f |
 | backtest_impact_validation | sharpe | -0.6327 | 1.3374 | in-sample | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | c77a97f |
+| backtest_mean_reversion_test | sharpe | 0.7484 | -0.2451 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_mean_reversion_train | sharpe | -0.0195 | 1.7603 | **no** | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_mean_reversion_validation | sharpe | 3.5702 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
+| backtest_momentum_test | sharpe | 0.0108 | -0.2451 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 48 | rules | 47d8c2a |
 | backtest_momentum_train | sharpe | 1.9543 | 1.7603 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 124 | rules | 3e25cdb |
 | backtest_momentum_validation | sharpe | 2.3792 | 1.3374 | yes | derived: buy_and_hold on the same split and tickers (benchmark) | 64 | rules | 3e25cdb |
 | calibration | brier_skill_val_b | -0.0314 | 0.0 | **no** | derived: sign(drift_ar) on val_b; calibrator fitted on val_a only | 310 | hgb + platt | 03c46c7 |

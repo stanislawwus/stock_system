@@ -1,0 +1,631 @@
+{
+  "component": "arena_test",
+  "metric": "deflated_sharpe_aggregate_equal",
+  "value": 0.0158,
+  "target": 0.95,
+  "why_this_metric": "the deflated Sharpe asks whether the headline strategy's Sharpe beats what the best of all N configurations we tried would reach by luck; a plain Sharpe ignores that search",
+  "gold_set": "derived: 91 trials in evals/trials.csv; matched random controls",
+  "n": 48,
+  "split": "test",
+  "model": "rules + impact model (data/models)",
+  "git_sha": "47d8c2a",
+  "run_at": "2026-11-15T13:36:05+00:00",
+  "notes": "aggregate_equal: Sharpe -0.75 on test; deflated Sharpe 0.016 with N = 91 trials (SR0 4.22 annualised); random-control percentile 89.5 (same entry days, random names). Below target: the Sharpe is not distinguishable from the best of N unskilled configurations. See docs/06_final_run.md.",
+  "details": {
+    "split": "test",
+    "start": "2026-09-01",
+    "end": "2026-11-06",
+    "val_b_start": null,
+    "n_days": 48,
+    "leaderboard": [
+      {
+        "strategy": "buy_and_hold",
+        "sharpe": -0.2451,
+        "sharpe_ci95": [
+          -3.342,
+          3.1031
+        ],
+        "total_return": -0.0081,
+        "max_drawdown": 0.051,
+        "n_trades": 20,
+        "round_trips": 10,
+        "hit_rate": 0.6,
+        "turnover": 1.0005,
+        "costs_paid": 99.5952,
+        "mean_exposure": 0.9792,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "momentum",
+        "sharpe": 0.0108,
+        "sharpe_ci95": [
+          -2.7821,
+          4.431
+        ],
+        "total_return": -0.0014,
+        "max_drawdown": 0.0415,
+        "n_trades": 46,
+        "round_trips": 23,
+        "hit_rate": 0.4783,
+        "turnover": 3.2825,
+        "costs_paid": 331.6399,
+        "mean_exposure": 0.9325,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "mean_reversion",
+        "sharpe": 0.7484,
+        "sharpe_ci95": [
+          -1.7787,
+          6.0052
+        ],
+        "total_return": 0.0102,
+        "max_drawdown": 0.022,
+        "n_trades": 54,
+        "round_trips": 27,
+        "hit_rate": 0.5556,
+        "turnover": 5.4113,
+        "costs_paid": 544.3269,
+        "mean_exposure": 0.2073,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "finbert_v0",
+        "sharpe": -2.3046,
+        "sharpe_ci95": [
+          -6.0974,
+          0.6596
+        ],
+        "total_return": -0.0541,
+        "max_drawdown": 0.0773,
+        "n_trades": 376,
+        "round_trips": 188,
+        "hit_rate": 0.4468,
+        "turnover": 26.4134,
+        "costs_paid": 2591.9864,
+        "mean_exposure": 0.5443,
+        "risk_managed": false,
+        "choice_period": "fixed a priori (D-36)",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "event",
+        "sharpe": -0.865,
+        "sharpe_ci95": [
+          -4.422,
+          1.9523
+        ],
+        "total_return": -0.0159,
+        "max_drawdown": 0.0315,
+        "n_trades": 16,
+        "round_trips": 8,
+        "hit_rate": 0.375,
+        "turnover": 1.5855,
+        "costs_paid": 157.8113,
+        "mean_exposure": 0.1902,
+        "risk_managed": true,
+        "choice_period": "train",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "impact",
+        "sharpe": 0.7043,
+        "sharpe_ci95": [
+          -4.2042,
+          2.8776
+        ],
+        "total_return": 0.0035,
+        "max_drawdown": 0.0065,
+        "n_trades": 16,
+        "round_trips": 8,
+        "hit_rate": 0.5,
+        "turnover": 1.6032,
+        "costs_paid": 160.2321,
+        "mean_exposure": 0.0248,
+        "risk_managed": true,
+        "choice_period": "val_a (+ impact model on train, calibrator on val_a)",
+        "validation_in_sample": true,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "aggregate_equal",
+        "sharpe": -0.7525,
+        "sharpe_ci95": [
+          -5.5262,
+          1.8042
+        ],
+        "total_return": -0.0185,
+        "max_drawdown": 0.0691,
+        "n_trades": 200,
+        "round_trips": 100,
+        "hit_rate": 0.48,
+        "turnover": 18.5281,
+        "costs_paid": 1803.9243,
+        "mean_exposure": 0.3728,
+        "risk_managed": true,
+        "choice_period": "val_a (+ impact model on train, calibrator on val_a)",
+        "validation_in_sample": true,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      },
+      {
+        "strategy": "aggregate_hedge",
+        "sharpe": -0.7525,
+        "sharpe_ci95": [
+          -5.5262,
+          1.8042
+        ],
+        "total_return": -0.0185,
+        "max_drawdown": 0.0691,
+        "n_trades": 200,
+        "round_trips": 100,
+        "hit_rate": 0.48,
+        "turnover": 18.5281,
+        "costs_paid": 1803.9243,
+        "mean_exposure": 0.3728,
+        "risk_managed": true,
+        "choice_period": "fixed a priori (config, D-35)",
+        "validation_in_sample": false,
+        "sharpe_val_b": null,
+        "sharpe_val_b_ci95": null,
+        "n_days": 48,
+        "n_days_val_b": 0
+      }
+    ],
+    "correlation": {
+      "buy_and_hold": {
+        "buy_and_hold": 1.0,
+        "momentum": 0.9137,
+        "mean_reversion": 0.6599,
+        "finbert_v0": 0.8283,
+        "event": 0.5452,
+        "impact": 0.4146,
+        "aggregate_equal": 0.7558,
+        "aggregate_hedge": 0.7558
+      },
+      "momentum": {
+        "buy_and_hold": 0.9137,
+        "momentum": 1.0,
+        "mean_reversion": 0.6305,
+        "finbert_v0": 0.8917,
+        "event": 0.4615,
+        "impact": 0.3246,
+        "aggregate_equal": 0.6536,
+        "aggregate_hedge": 0.6536
+      },
+      "mean_reversion": {
+        "buy_and_hold": 0.6599,
+        "momentum": 0.6305,
+        "mean_reversion": 1.0,
+        "finbert_v0": 0.6104,
+        "event": 0.2025,
+        "impact": 0.1699,
+        "aggregate_equal": 0.3639,
+        "aggregate_hedge": 0.3639
+      },
+      "finbert_v0": {
+        "buy_and_hold": 0.8283,
+        "momentum": 0.8917,
+        "mean_reversion": 0.6104,
+        "finbert_v0": 1.0,
+        "event": 0.3992,
+        "impact": 0.226,
+        "aggregate_equal": 0.6539,
+        "aggregate_hedge": 0.6539
+      },
+      "event": {
+        "buy_and_hold": 0.5452,
+        "momentum": 0.4615,
+        "mean_reversion": 0.2025,
+        "finbert_v0": 0.3992,
+        "event": 1.0,
+        "impact": 0.5419,
+        "aggregate_equal": 0.4441,
+        "aggregate_hedge": 0.4441
+      },
+      "impact": {
+        "buy_and_hold": 0.4146,
+        "momentum": 0.3246,
+        "mean_reversion": 0.1699,
+        "finbert_v0": 0.226,
+        "event": 0.5419,
+        "impact": 1.0,
+        "aggregate_equal": 0.529,
+        "aggregate_hedge": 0.529
+      },
+      "aggregate_equal": {
+        "buy_and_hold": 0.7558,
+        "momentum": 0.6536,
+        "mean_reversion": 0.3639,
+        "finbert_v0": 0.6539,
+        "event": 0.4441,
+        "impact": 0.529,
+        "aggregate_equal": 1.0,
+        "aggregate_hedge": 1.0
+      },
+      "aggregate_hedge": {
+        "buy_and_hold": 0.7558,
+        "momentum": 0.6536,
+        "mean_reversion": 0.3639,
+        "finbert_v0": 0.6539,
+        "event": 0.4441,
+        "impact": 0.529,
+        "aggregate_equal": 1.0,
+        "aggregate_hedge": 1.0
+      }
+    },
+    "ablation": [
+      {
+        "variant": "all components",
+        "dropped": null,
+        "sharpe": -0.7525,
+        "sharpe_ci95": [
+          -5.5262,
+          1.8042
+        ],
+        "total_return": -0.0185,
+        "round_trips": 100,
+        "delta_sharpe_vs_all": 0.0
+      },
+      {
+        "variant": "without_sentiment",
+        "dropped": "sentiment",
+        "sharpe": -1.3859,
+        "sharpe_ci95": [
+          -7.0784,
+          2.2447
+        ],
+        "total_return": -0.0279,
+        "round_trips": 102,
+        "delta_sharpe_vs_all": -0.6335
+      },
+      {
+        "variant": "without_event",
+        "dropped": "event",
+        "sharpe": -1.483,
+        "sharpe_ci95": [
+          -5.7905,
+          1.068
+        ],
+        "total_return": -0.0325,
+        "round_trips": 99,
+        "delta_sharpe_vs_all": -0.7305
+      },
+      {
+        "variant": "without_impact",
+        "dropped": "impact",
+        "sharpe": -1.1223,
+        "sharpe_ci95": [
+          -4.4061,
+          1.2565
+        ],
+        "total_return": -0.0289,
+        "round_trips": 98,
+        "delta_sharpe_vs_all": -0.3698
+      }
+    ],
+    "random_controls": {
+      "momentum": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 0.0108,
+          "percentile": 61.0,
+          "random_sharpe_p05": -1.5282,
+          "random_sharpe_median": -0.2243,
+          "random_sharpe_p95": 0.9652,
+          "round_trips": 23,
+          "random_round_trips_mean": 23.0,
+          "mean_exposure": 0.9325,
+          "random_mean_exposure": 0.9335
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 0.0108,
+          "percentile": 68.0,
+          "random_sharpe_p05": -2.3068,
+          "random_sharpe_median": -0.4856,
+          "random_sharpe_p95": 1.5437,
+          "round_trips": 23,
+          "random_round_trips_mean": 21.51,
+          "mean_exposure": 0.9325,
+          "random_mean_exposure": 0.7929
+        }
+      },
+      "mean_reversion": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 0.7484,
+          "percentile": 87.5,
+          "random_sharpe_p05": -3.4716,
+          "random_sharpe_median": -0.7067,
+          "random_sharpe_p95": 1.1617,
+          "round_trips": 27,
+          "random_round_trips_mean": 27.0,
+          "mean_exposure": 0.2073,
+          "random_mean_exposure": 0.2079
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 0.7484,
+          "percentile": 73.0,
+          "random_sharpe_p05": -3.6385,
+          "random_sharpe_median": -0.472,
+          "random_sharpe_p95": 2.4075,
+          "round_trips": 27,
+          "random_round_trips_mean": 27.0,
+          "mean_exposure": 0.2073,
+          "random_mean_exposure": 0.2081
+        }
+      },
+      "finbert_v0": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -2.3046,
+          "percentile": 73.5,
+          "random_sharpe_p05": -4.4269,
+          "random_sharpe_median": -2.9027,
+          "random_sharpe_p95": -1.2279,
+          "round_trips": 188,
+          "random_round_trips_mean": 187.505,
+          "mean_exposure": 0.5443,
+          "random_mean_exposure": 0.5456
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -2.3046,
+          "percentile": 55.0,
+          "random_sharpe_p05": -4.2244,
+          "random_sharpe_median": -2.4766,
+          "random_sharpe_p95": -0.7881,
+          "round_trips": 188,
+          "random_round_trips_mean": 180.235,
+          "mean_exposure": 0.5443,
+          "random_mean_exposure": 0.5572
+        }
+      },
+      "event": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -0.865,
+          "percentile": 41.5,
+          "random_sharpe_p05": -2.7701,
+          "random_sharpe_median": -0.4992,
+          "random_sharpe_p95": 1.6448,
+          "round_trips": 8,
+          "random_round_trips_mean": 8.0,
+          "mean_exposure": 0.1902,
+          "random_mean_exposure": 0.1914
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -0.865,
+          "percentile": 36.5,
+          "random_sharpe_p05": -3.2377,
+          "random_sharpe_median": -0.253,
+          "random_sharpe_p95": 3.4887,
+          "round_trips": 8,
+          "random_round_trips_mean": 8.0,
+          "mean_exposure": 0.1902,
+          "random_mean_exposure": 0.1916
+        }
+      },
+      "impact": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": 0.7043,
+          "percentile": 37.5,
+          "random_sharpe_p05": -1.9225,
+          "random_sharpe_median": 1.454,
+          "random_sharpe_p95": 4.4874,
+          "round_trips": 8,
+          "random_round_trips_mean": 8.0,
+          "mean_exposure": 0.0248,
+          "random_mean_exposure": 0.025
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": 0.7043,
+          "percentile": 76.0,
+          "random_sharpe_p05": -4.0267,
+          "random_sharpe_median": -1.1177,
+          "random_sharpe_p95": 2.8306,
+          "round_trips": 8,
+          "random_round_trips_mean": 8.0,
+          "mean_exposure": 0.0248,
+          "random_mean_exposure": 0.0249
+        }
+      },
+      "aggregate_equal": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -0.7525,
+          "percentile": 89.5,
+          "random_sharpe_p05": -4.464,
+          "random_sharpe_median": -2.4724,
+          "random_sharpe_p95": -0.0007,
+          "round_trips": 100,
+          "random_round_trips_mean": 100.0,
+          "mean_exposure": 0.3728,
+          "random_mean_exposure": 0.3725
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -0.7525,
+          "percentile": 85.0,
+          "random_sharpe_p05": -4.7981,
+          "random_sharpe_median": -2.2158,
+          "random_sharpe_p95": 0.1718,
+          "round_trips": 100,
+          "random_round_trips_mean": 99.335,
+          "mean_exposure": 0.3728,
+          "random_mean_exposure": 0.3724
+        }
+      },
+      "aggregate_hedge": {
+        "names": {
+          "n": 200,
+          "mode": "names",
+          "seed": 20261114,
+          "sharpe": -0.7525,
+          "percentile": 89.5,
+          "random_sharpe_p05": -4.464,
+          "random_sharpe_median": -2.4724,
+          "random_sharpe_p95": -0.0007,
+          "round_trips": 100,
+          "random_round_trips_mean": 100.0,
+          "mean_exposure": 0.3728,
+          "random_mean_exposure": 0.3725
+        },
+        "timing_and_names": {
+          "n": 200,
+          "mode": "timing_and_names",
+          "seed": 20261114,
+          "sharpe": -0.7525,
+          "percentile": 85.0,
+          "random_sharpe_p05": -4.7981,
+          "random_sharpe_median": -2.2158,
+          "random_sharpe_p95": 0.1718,
+          "round_trips": 100,
+          "random_round_trips_mean": 99.335,
+          "mean_exposure": 0.3728,
+          "random_mean_exposure": 0.3724
+        }
+      }
+    },
+    "deflated_sharpe": {
+      "buy_and_hold": {
+        "sharpe_daily": -0.0154,
+        "sr0_daily": 0.266,
+        "skew": -0.3479,
+        "kurtosis": 7.0,
+        "dsr": 0.0265,
+        "psr_vs_zero": 0.4578
+      },
+      "momentum": {
+        "sharpe_daily": 0.0007,
+        "sr0_daily": 0.266,
+        "skew": -1.625,
+        "kurtosis": 8.9988,
+        "dsr": 0.0345,
+        "psr_vs_zero": 0.5019
+      },
+      "mean_reversion": {
+        "sharpe_daily": 0.0471,
+        "sr0_daily": 0.266,
+        "skew": -1.8424,
+        "kurtosis": 11.7093,
+        "dsr": 0.0756,
+        "psr_vs_zero": 0.6214
+      },
+      "finbert_v0": {
+        "sharpe_daily": -0.1452,
+        "sr0_daily": 0.266,
+        "skew": -2.3265,
+        "kurtosis": 12.9693,
+        "dsr": 0.0005,
+        "psr_vs_zero": 0.1213
+      },
+      "event": {
+        "sharpe_daily": -0.0545,
+        "sr0_daily": 0.266,
+        "skew": 0.5571,
+        "kurtosis": 8.6245,
+        "dsr": 0.0154,
+        "psr_vs_zero": 0.3568
+      },
+      "impact": {
+        "sharpe_daily": 0.0444,
+        "sr0_daily": 0.266,
+        "skew": 1.1116,
+        "kurtosis": 10.2927,
+        "dsr": 0.06,
+        "psr_vs_zero": 0.6222
+      },
+      "aggregate_equal": {
+        "sharpe_daily": -0.0474,
+        "sr0_daily": 0.266,
+        "skew": -0.0212,
+        "kurtosis": 3.2137,
+        "dsr": 0.0158,
+        "psr_vs_zero": 0.3726
+      },
+      "aggregate_hedge": {
+        "sharpe_daily": -0.0474,
+        "sr0_daily": 0.266,
+        "skew": -0.0212,
+        "kurtosis": 3.2137,
+        "dsr": 0.0158,
+        "psr_vs_zero": 0.3726
+      }
+    },
+    "trials": {
+      "n": 91,
+      "n_with_sharpe": 79,
+      "by_family": {
+        "selection_grid": 76,
+        "arena": 8,
+        "ablation": 3,
+        "calibrator": 2,
+        "impact_model": 2
+      },
+      "path": "evals/trials.csv"
+    },
+    "run_at": "2026-11-15T13:36:05+00:00",
+    "disclaimer": "This is a simulation, not investment advice."
+  }
+}
