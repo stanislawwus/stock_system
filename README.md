@@ -33,6 +33,30 @@ Verify a fresh clone end to end (clone, `make up`, 5 smoke scenarios, shut down)
 sh scripts/clean_clone_check.sh      # prints PASS/FAIL per check, exit 0 only if all pass (Gate 3)
 ```
 
+## What a reviewer can run
+
+**On a demo-only clone** (this repository as committed, no API keys, no extra data):
+
+- `make up` (Docker) or `make setup && make demo && make up-local`: the API and the UI on the committed
+  demo slice (`data/demo/`, prices/filings/facts up to 2026-08-31, news for the last 21 days before it).
+- `make test` (472 offline tests) and `make lint`.
+- the curl examples below, Swagger at `/docs`, and `sh scripts/clean_clone_check.sh` (clone, `make up`,
+  five smoke scenarios).
+- `make eval-api` (contract tests, saved LLM traces, latency on the demo database; no model call).
+- the numbers: **`evals/results/` holds the committed result record of every component** (one JSON
+  per component, plus the single test run: `arena_test.json`, `backtest_*_test.json`,
+  `test_final.json`, `TEST_FINAL.lock`). `docs/evals.md`, `docs/05_arena.md`, `docs/06_final_run.md`
+  and `REPORT.md` are generated from or copied from these files. The UI page "Evals and data
+  quality" and `GET /api/v1/evals` serve the same records. Nothing has to be rerun to see them.
+
+**Only with the full data** (`make collect-dev` with `FINNHUB_API_KEY` and `SEC_USER_AGENT`, about
+an hour; then `make features` and `make train`, which are not committed, D-41):
+
+- `make eval` (`evals/run_all.py` regenerates every record and the table in `docs/evals.md`; on a
+  demo-only clone it stops at the `need-train` guard), `make arena`, `make backtest`.
+- `make test-final`: already run once (`evals/results/TEST_FINAL.lock`); it refuses to run again
+  (AGENTS.md R3). The test-period data is not in the repository.
+
 ## Curl examples
 
 ```sh
@@ -217,7 +241,7 @@ curl "http://127.0.0.1:8000/api/v1/signals?ticker=AAPL&as_of=2026-08-14"     # c
 curl "http://127.0.0.1:8000/api/v1/signals?ticker=AAPL"                      # default: last validation day
 curl -X POST http://127.0.0.1:8000/api/v1/analyze -H "Content-Type: application/json"      -d '{"text": "Boeing shares plunge after FAA grounds jets", "ticker": "BA"}'
 curl "http://127.0.0.1:8000/api/v1/evals?component=backtest_finbert_v0_validation"
-curl -X POST http://127.0.0.1:8000/api/v1/chat -H "Content-Type: application/json"         -d '{"question": "Why did NVDA fall on 2026-06-05?"}'                # template answer, numbered citations
+curl -X POST http://127.0.0.1:8000/api/v1/chat -H "Content-Type: application/json"         -d '{"question": "Why did NVDA move on 2026-08-27?"}'                # template answer, numbered citations (demo news: 2026-08-10 .. 08-31)
 curl http://127.0.0.1:8000/api/v1/watchlist
 curl "http://127.0.0.1:8000/api/v1/brief?day=2026-08-14"                      # one row per watchlist stock
 curl "http://127.0.0.1:8000/api/v1/events/AAPL?lookback_days=90"             # filings + labels + facts
